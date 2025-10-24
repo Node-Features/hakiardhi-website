@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "db:migrate": "ts-node scripts/run-migration.ts",
+    "db:status": "ts-node scripts/run-migration.ts status",
+    "db:setup": "chmod +x scripts/setup-db.sh && ./scripts/setup-db.sh",
+    "test:legal-aid": "echo 'Run tests/legal-aid.http in REST Client or use curl/Postman'",
+    "seed:legal-aid": "ts-node scripts/seed-legal-aid.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.0"
+  }
+}

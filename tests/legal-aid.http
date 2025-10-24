@@ -1,0 +1,221 @@
+# Legal Aid API Test Collection
+# Use with REST Client extension in VS Code or similar HTTP client
+
+@baseUrl = http://localhost:3000/api/admin/legal-aid
+@token = YOUR_JWT_TOKEN_HERE
+
+### 1. Create Legal Aid Request
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Jane Mwangi",
+  "phone_number": "+255712345678",
+  "email": "jane.mwangi@example.com",
+  "beneficiary_details": {
+    "age": 42,
+    "gender": "Female",
+    "occupation": "Farmer",
+    "education_level": "Primary",
+    "income_level": "Low",
+    "disability_status": "None",
+    "marital_status": "Widowed",
+    "number_of_dependents": 4,
+    "id_number": "19820315-12345-67890",
+    "id_type": "National ID"
+  },
+  "demographic_details": {
+    "region_id": "REGION_UUID_HERE",
+    "district_id": "DISTRICT_UUID_HERE",
+    "ward": "Mvomero Ward",
+    "village": "Kinole Village",
+    "street": "Uhuru Street",
+    "residential_status": "Owner",
+    "years_in_residence": 20,
+    "tribe": "Chagga",
+    "religion": "Christian",
+    "language_preference": "Swahili"
+  },
+  "case_details": {
+    "case_type": "Inheritance Dispute",
+    "case_category": "Women's Land Rights",
+    "case_description": "I am facing challenges claiming my late husband's land. My in-laws are claiming that as a woman, I cannot inherit the land even though we were legally married for 18 years. I have the marriage certificate and the land title deed showing my husband's name. My children and I risk losing our home and farm.",
+    "land_size": "5 acres",
+    "land_location": "Plot 456, Kinole Village, Mvomero District",
+    "land_use": "Agriculture - maize and vegetables",
+    "title_deed_available": true,
+    "title_deed_number": "DEED-MVR-2005-00456",
+    "dispute_duration": "6 months since husband's death",
+    "previous_attempts_at_resolution": "Village council mediation failed. In-laws refuse to recognize my rights.",
+    "opposing_party": "Husband's brothers (3 people)",
+    "witnesses_available": true,
+    "evidence_documents": ["marriage_certificate.pdf", "title_deed.pdf", "death_certificate.pdf"],
+    "court_documents_needed": ["Certificate of Occupancy", "Letter of Administration"],
+    "has_active_court_case": false,
+    "court_case_number": null,
+    "court_name": null,
+    "next_court_date": null,
+    "urgency_level": "High",
+    "estimated_loss_value": "15,000,000 TSH"
+  },
+  "preferred_contact_method": "Phone",
+  "preferred_language": "Swahili",
+  "consent_to_data_processing": true,
+  "how_did_you_hear_about_us": "Recommended by Women Gender Champion in my village"
+}
+
+### 2. List All Legal Aid Requests
+GET {{baseUrl}}?page=1&limit=10
+Authorization: Bearer {{token}}
+
+### 3. List with Filters - Urgent Cases
+GET {{baseUrl}}?priority=Urgent&page=1&limit=20
+Authorization: Bearer {{token}}
+
+### 4. List with Filters - Active Court Cases
+GET {{baseUrl}}?has_active_court_case=true
+Authorization: Bearer {{token}}
+
+### 5. Search by Name or Case Number
+GET {{baseUrl}}?search=Jane
+Authorization: Bearer {{token}}
+
+### 6. Filter by Region
+GET {{baseUrl}}?region_id=REGION_UUID_HERE
+Authorization: Bearer {{token}}
+
+### 7. Get Request by ID
+@requestId = REQUEST_UUID_HERE
+GET {{baseUrl}}/{{requestId}}
+Authorization: Bearer {{token}}
+
+### 8. Update Request
+PUT {{baseUrl}}/{{requestId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "phone_number": "+255712345679",
+  "case_details": {
+    "urgency_level": "Urgent",
+    "next_court_date": "2025-11-15",
+    "has_active_court_case": true,
+    "court_case_number": "HC-CIVIL-123/2025",
+    "court_name": "High Court of Tanzania - Morogoro"
+  }
+}
+
+### 9. Update Stage
+PUT {{baseUrl}}/{{requestId}}/stage
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "new_stage": "Intake - Under Review",
+  "notes": "Initial assessment completed. Case is eligible for legal aid."
+}
+
+### 10. Assign to Lawyer (Manual)
+@lawyerId = LAWYER_UUID_HERE
+POST {{baseUrl}}/{{requestId}}/assign
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "assigned_lawyer_id": "{{lawyerId}}",
+  "notes": "Assigned based on specialization in women's land rights"
+}
+
+### 11. Auto-Assign to Best Lawyer
+PUT {{baseUrl}}/{{requestId}}/assign
+Authorization: Bearer {{token}}
+
+### 12. Get Assignment Queue
+GET {{baseUrl}}/queue
+Authorization: Bearer {{token}}
+
+### 13. Get Statistics - All
+GET {{baseUrl}}/statistics
+Authorization: Bearer {{token}}
+
+### 14. Get Statistics - Filtered by Region
+GET {{baseUrl}}/statistics?region_id=REGION_UUID_HERE
+Authorization: Bearer {{token}}
+
+### 15. Get Statistics - Date Range
+GET {{baseUrl}}/statistics?date_from=2025-01-01&date_to=2025-10-31
+Authorization: Bearer {{token}}
+
+### 16. Get Lawyer Workload - All Lawyers
+GET {{baseUrl}}/workload
+Authorization: Bearer {{token}}
+
+### 17. Get Lawyer Workload - Specific Lawyer
+GET {{baseUrl}}/workload?lawyer_id={{lawyerId}}
+Authorization: Bearer {{token}}
+
+### 18. Delete Request (Admin Only)
+DELETE {{baseUrl}}/{{requestId}}
+Authorization: Bearer {{token}}
+
+### ===== TEST SCENARIOS =====
+
+### Scenario 1: Complete Request Flow
+# 1. Create request (see above)
+# 2. Update stage to "Under Review"
+# 3. Auto-assign to lawyer
+# 4. Update stage to "Document Assessment"
+# 5. Check queue status
+# 6. Check lawyer workload
+
+### Scenario 2: High Priority Case with Court Date
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "John Kamau",
+  "phone_number": "+255723456789",
+  "beneficiary_details": {
+    "age": 55,
+    "gender": "Male",
+    "occupation": "Teacher",
+    "education_level": "University",
+    "income_level": "Medium",
+    "disability_status": "None",
+    "marital_status": "Married",
+    "number_of_dependents": 3
+  },
+  "demographic_details": {
+    "region_id": "REGION_UUID_HERE",
+    "district_id": "DISTRICT_UUID_HERE",
+    "ward": "Central Ward",
+    "village": "Manzese",
+    "language_preference": "Swahili"
+  },
+  "case_details": {
+    "case_type": "Eviction",
+    "case_category": "Unlawful Eviction",
+    "case_description": "Facing eviction notice with 7 days to vacate. Have lived here for 15 years.",
+    "has_active_court_case": true,
+    "court_case_number": "HC-2025-456",
+    "court_name": "High Court - Dar es Salaam",
+    "next_court_date": "2025-10-08",
+    "urgency_level": "Urgent",
+    "witnesses_available": true
+  },
+  "preferred_contact_method": "WhatsApp",
+  "preferred_language": "Swahili",
+  "consent_to_data_processing": true
+}
+
+### Scenario 3: Bulk Status Check
+# Get all cases in different stages
+GET {{baseUrl}}?status=Intake - Pending Review
+###
+GET {{baseUrl}}?status=Queued for Assignment
+###
+GET {{baseUrl}}?status=Assigned to Legal Advisor
+###
+GET {{baseUrl}}?status=Completed - Case Resolved
