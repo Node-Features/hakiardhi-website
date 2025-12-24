@@ -1,0 +1,973 @@
+{
+	"info": {
+		"_postman_id": "missing-endpoints-addon",
+		"name": "Digital Ecosystem API - Missing Endpoints Addon",
+		"description": "Additional endpoints to add to the main collection. Import this alongside the main collection or merge manually.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Public - Extended",
+			"description": "All missing public endpoints (no authentication required)",
+			"item": [
+				{
+					"name": "Publications",
+					"item": [
+						{
+							"name": "List Publications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.data && response.data.length > 0) {",
+											"        pm.environment.set('publication_id', response.data[0].id);",
+											"        console.log('✅ Publication ID saved:', response.data[0].id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/publications?page=1&limit=10",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "publications"],
+									"query": [
+										{"key": "page", "value": "1"},
+										{"key": "limit", "value": "10"},
+										{"key": "search", "value": "land", "disabled": true},
+										{"key": "type", "value": "report", "disabled": true},
+										{"key": "topic", "value": "land rights", "disabled": true},
+										{"key": "year", "value": "2024", "disabled": true},
+										{"key": "featured", "value": "true", "disabled": true},
+										{"key": "sort", "value": "publication_date", "disabled": true},
+										{"key": "order", "value": "desc", "disabled": true}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Publication by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/publications/{{publication_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "publications", "{{publication_id}}"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Download Publication",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/publications/{{publication_id}}/download",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "publications", "{{publication_id}}", "download"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Research",
+					"item": [
+						{
+							"name": "Research Statistics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/research/stats",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "research", "stats"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Research Areas",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/research/areas",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "research", "areas"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Research Partners",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/research/partners",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "research", "partners"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Legal Aid (Public)",
+					"item": [
+						{
+							"name": "Legal Aid Statistics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/legal-aid/stats",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "legal-aid", "stats"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Submit Legal Aid Request",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 201) {",
+											"    const response = pm.response.json();",
+											"    pm.environment.set('public_case_reference', response.reference_number);",
+											"    console.log('✅ Reference number saved:', response.reference_number);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"case_type\": \"Land Dispute\",\n  \"description\": \"Need legal assistance with land ownership issue\",\n  \"full_name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+255712345678\",\n  \"location\": \"Dodoma\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/public/legal-aid/submit",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "legal-aid", "submit"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "LRM (Land Rights Monitors)",
+					"item": [
+						{
+							"name": "LRM Regions",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/lrm/regions",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "lrm", "regions"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "LRM Statistics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/lrm/stats",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "lrm", "stats"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "LRM Roles",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/lrm/roles",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "lrm", "roles"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Apply to be LRM",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 201) {",
+											"    const response = pm.response.json();",
+											"    pm.environment.set('lrm_application_id', response.application_id);",
+											"    console.log('✅ LRM Application ID saved:', response.application_id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"phone\": \"+255722334455\",\n  \"region_id\": \"{{region_id}}\",\n  \"district_id\": \"{{district_id}}\",\n  \"village_id\": \"{{village_id}}\",\n  \"motivation\": \"I want to help my community protect their land rights\",\n  \"experience\": \"Community leader for 5 years\",\n  \"education\": \"Secondary education\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/public/lrm/apply",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "lrm", "apply"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "About",
+					"item": [
+						{
+							"name": "Organization Info",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/about/organization",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "about", "organization"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Team Members",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/about/team",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "about", "team"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Milestones",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/about/milestones",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "about", "milestones"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Contact",
+					"item": [
+						{
+							"name": "Office Locations",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/contact/offices",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "contact", "offices"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Submit Contact Form",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 201) {",
+											"    const response = pm.response.json();",
+											"    pm.environment.set('contact_ticket_id', response.ticket_id);",
+											"    console.log('✅ Contact Ticket ID saved:', response.ticket_id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+255712345678\",\n  \"subject\": \"Inquiry about land rights\",\n  \"message\": \"I would like to know more about your services\",\n  \"category\": \"general\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/public/contact/submit",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "contact", "submit"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Newsletter",
+					"item": [
+						{
+							"name": "Subscribe to Newsletter",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"subscriber@example.com\",\n  \"name\": \"Newsletter Subscriber\",\n  \"preferences\": [\"news\", \"events\", \"reports\"]\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/public/newsletter/subscribe",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "newsletter", "subscribe"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "FAQs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/faqs",
+							"host": ["{{base_url}}"],
+							"path": ["api", "public", "faqs"],
+							"query": [
+								{"key": "category", "value": "legal-aid", "disabled": true},
+								{"key": "search", "value": "land", "disabled": true},
+								{"key": "featured", "value": "true", "disabled": true}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Testimonials",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/testimonials",
+							"host": ["{{base_url}}"],
+							"path": ["api", "public", "testimonials"],
+							"query": [
+								{"key": "featured", "value": "true", "disabled": true}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Partners",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/partners",
+							"host": ["{{base_url}}"],
+							"path": ["api", "public", "partners"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Gallery",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.length > 0) {",
+									"        pm.environment.set('gallery_item_id', response.data[0].id);",
+									"        console.log('✅ Gallery Item ID saved:', response.data[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/gallery?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "public", "gallery"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"},
+								{"key": "category", "value": "project", "disabled": true},
+								{"key": "project_id", "value": "{{project_id}}", "disabled": true},
+								{"key": "featured", "value": "true", "disabled": true}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Events",
+					"item": [
+						{
+							"name": "Upcoming Events",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.data && response.data.length > 0) {",
+											"        pm.environment.set('event_id', response.data[0].id);",
+											"        console.log('✅ Event ID saved:', response.data[0].id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/events/upcoming",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "events", "upcoming"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Donate",
+					"item": [
+						{
+							"name": "Donation Campaigns",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.data && response.data.length > 0) {",
+											"        pm.environment.set('campaign_id', response.data[0].id);",
+											"        console.log('✅ Campaign ID saved:', response.data[0].id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/donate/campaigns",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "donate", "campaigns"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Donation Options",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/donate/options",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "donate", "options"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Donation Impact",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/public/donate/impact",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "donate", "impact"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Process Donation",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"campaign_id\": \"{{campaign_id}}\",\n  \"amount\": 50000,\n  \"donor_name\": \"Anonymous Donor\",\n  \"donor_email\": \"donor@example.com\",\n  \"payment_method\": \"mobile_money\",\n  \"phone_number\": \"+255712345678\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/public/donate/process",
+									"host": ["{{base_url}}"],
+									"path": ["api", "public", "donate", "process"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Get News by Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/news/{{news_slug}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "public", "news", "{{news_slug}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin - Extended",
+			"description": "Missing admin endpoints",
+			"item": [
+				{
+					"name": "Permissions",
+					"item": [
+						{
+							"name": "Create Permission",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.role && response.role.id) {",
+											"        pm.environment.set('permission_id', response.role.id);",
+											"        console.log('✅ Permission ID saved:', response.role.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"manage_users\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Permissions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.data && response.data.length > 0) {",
+											"        pm.environment.set('first_permission_id', response.data[0].id);",
+											"        console.log('✅ First permission ID saved:', response.data[0].id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions?page=1&limit=10",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions"],
+									"query": [
+										{"key": "page", "value": "1"},
+										{"key": "limit", "value": "10"}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Permission by ID",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/{{permission_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "{{permission_id}}"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Permission",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "PUT",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"manage_users_updated\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/{{permission_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "{{permission_id}}"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Permission",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/permissions/{{permission_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "permissions", "{{permission_id}}"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Campaigns",
+					"item": [
+						{
+							"name": "Send Campaign",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Monthly Newsletter\",\n  \"subject\": \"Updates from Digital Ecosystem\",\n  \"message\": \"Here are the latest updates...\",\n  \"recipients\": \"all_subscribers\",\n  \"schedule_time\": \"2025-01-15T10:00:00Z\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/campaigns/send",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "campaigns", "send"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Activity Extended",
+					"item": [
+						{
+							"name": "Activity Beneficiaries",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/activities/{{activity_id}}/beneficiaries",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "activities", "{{activity_id}}", "beneficiaries"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Activity Assignments",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/activities/{{activity_id}}/assignments",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "activities", "{{activity_id}}", "assignments"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Incident by ID",
+					"item": [
+						{
+							"name": "Get Incident by ID",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/incidents/{{incident_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "incidents", "{{incident_id}}"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Incident",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "PUT",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Incident Updated\",\n  \"description\": \"Updated description\",\n  \"status\": \"resolved\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/incidents/{{incident_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "incidents", "{{incident_id}}"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Incident",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/incidents/{{incident_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "incidents", "{{incident_id}}"]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Background Jobs",
+			"description": "Background job processing endpoints",
+			"item": [
+				{
+					"name": "Message Jobs",
+					"item": [
+						{
+							"name": "Create Message Job",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.jobId) {",
+											"        pm.environment.set('message_job_id', response.jobId);",
+											"        console.log('✅ Message Job ID saved:', response.jobId);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"entity_type\": \"case\",\n  \"entity_id\": \"{{case_id}}\",\n  \"job_type\": \"notification\",\n  \"recipients\": [\n    {\n      \"recipient_id\": \"user123\",\n      \"channel\": \"sms\",\n      \"destination\": \"+255712345678\",\n      \"message\": \"Your case has been updated\"\n    },\n    {\n      \"recipient_id\": \"user456\",\n      \"channel\": \"email\",\n      \"destination\": \"user@example.com\",\n      \"message\": \"Your case status has changed\"\n    }\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/jobs/messages",
+									"host": ["{{base_url}}"],
+									"path": ["api", "jobs", "messages"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Upload Jobs",
+					"item": [
+						{
+							"name": "Create Upload Job",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.jobId) {",
+											"        pm.environment.set('upload_job_id', response.jobId);",
+											"        console.log('✅ Upload Job ID saved:', response.jobId);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"entity_type\": \"case\",\n  \"entity_id\": \"{{case_id}}\",\n  \"job_type\": \"file_upload\",\n  \"files\": [\n    {\n      \"file_name\": \"document.pdf\",\n      \"mime_type\": \"application/pdf\",\n      \"size\": 102400,\n      \"base64_data\": \"JVBERi0xLjQKJeLjz9MK...\"\n    }\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/jobs/uploads",
+									"host": ["{{base_url}}"],
+									"path": ["api", "jobs", "uploads"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Upload Job Status",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/jobs/uploads/{{upload_job_id}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "jobs", "uploads", "{{upload_job_id}}"]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "QStash Worker",
+					"item": [
+						{
+							"name": "Process Background Job (Webhook)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"},
+									{"key": "Upstash-Signature", "value": "signature-here", "description": "QStash signature for verification"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"taskType\": \"message\",\n  \"jobId\": \"{{message_job_id}}\",\n  \"entityType\": \"case\",\n  \"entityId\": \"{{case_id}}\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/qstash/worker",
+									"host": ["{{base_url}}"],
+									"path": ["api", "qstash", "worker"]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	]
+}
