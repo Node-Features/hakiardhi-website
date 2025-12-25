@@ -39,9 +39,7 @@ export const ActivityBeneficiaryValidation = z.object({
 export const ActivityBeneficiaryUpdateValidation = z.object({
     role_in_activity: z.string().max(100).optional(),
     attended: z.boolean().optional(),
-    feedback: z.string().max(1000).optional(),
-    target_outcome: z.string().max(500).optional(),
-    actial_outcome: z.string().max(500).optional()
+    feedback: z.string().max(1000).optional()
 
 });
 

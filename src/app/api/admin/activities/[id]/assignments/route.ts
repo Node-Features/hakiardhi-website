@@ -54,11 +54,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     .eq("assigned_to", parsed.data.assigned_to)
     .in("status", ["Pending", "Ongoing"])
 
-  if (existingAssignment) {
+  if (existingAssignment && existingAssignment.length > 0) {
     return NextResponse.json({
-      message: `This user is already assigned to this activity with ${existingAssignment[0].status} status`,
-      existing_assignment_id: existingAssignment[0].id,
-      existing_status: existingAssignment[0].status
+      message: `This user is already assigned to this activity`,
+      existing_assignment: existingAssignment
     }, { status: 409 });
   }
 
