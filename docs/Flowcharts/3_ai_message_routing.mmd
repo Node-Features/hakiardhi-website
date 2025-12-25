@@ -1,0 +1,64 @@
+%% HakiArdhi - AI Message Routing
+%% This shows how the AI chatbot processes and routes incoming messages
+
+graph TD
+    Start([Incoming WhatsApp Message]) --> A{First message<br/>from user?}
+
+    A -->|Yes| B[Send Welcome Message<br/>+ Main Menu]
+    A -->|No| C[Load conversation history<br/>last 10 messages]
+
+    B --> C
+
+    C --> D[AI PROCESSES MESSAGE<br/>OpenAI GPT-4]
+
+    D --> E[INTENT CLASSIFICATION]
+
+    E --> F{Identified Intent}
+
+    F -->|Greeting| G1[Send friendly<br/>welcome response]
+    F -->|Legal Aid| G2[Start Legal Aid<br/>request flow]
+    F -->|Incident Report| G3[Start Incident<br/>reporting flow]
+    F -->|Case Status| G4[Check case<br/>status inquiry]
+    F -->|Project Info| G5[Send project<br/>information]
+    F -->|General Question| G6[AI generates<br/>answer]
+    F -->|Unclear| G7[Escalate to<br/>human agent]
+
+    G1 --> H[ESCALATION CHECK]
+    G2 --> H
+    G3 --> H
+    G4 --> H
+    G5 --> H
+    G6 --> H
+    G7 --> I[ROUTE TO HUMAN AGENT]
+
+    H --> J{Should<br/>escalate?}
+
+    J -->|Yes| K[ROUTE TO SERVICE]
+    J -->|No| L[AI GENERATES RESPONSE]
+
+    K --> M{Service Type}
+    M -->|Legal Aid| N1[Send interactive buttons:<br/>Case Type Selection]
+    M -->|Incident Report| N2[Send interactive buttons:<br/>Incident Type Selection]
+    M -->|Human Agent| N3[Notify staff member:<br/>Citizen needs assistance]
+
+    L --> O[Generate contextual response:<br/>• Bilingual English/Swahili<br/>• Context-aware<br/>• Helpful and clear]
+
+    O --> P[Generate 3 Smart Replies<br/>Quick response options]
+
+    N1 --> Q[SEND TO USER via WhatsApp]
+    N2 --> Q
+    N3 --> Q
+    P --> Q
+    I --> Q
+
+    Q --> R[Log conversation to database:<br/>• Message content<br/>• Intent classified<br/>• Response sent<br/>• Timestamp]
+
+    R --> End([Await Next Message])
+
+    style Start fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style D fill:#2196F3,stroke:#1565C0,color:#fff
+    style E fill:#FF9800,stroke:#E65100,color:#fff
+    style K fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style L fill:#00BCD4,stroke:#0097A7,color:#fff
+    style Q fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style End fill:#4CAF50,stroke:#2E7D32,color:#fff

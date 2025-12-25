@@ -1,0 +1,85 @@
+%% HakiArdhi - System Architecture Overview
+%% This shows the complete technical architecture
+
+graph TB
+    subgraph Users["USERS & CHANNELS"]
+        U1[Citizens<br/>WhatsApp<br/>255712...]
+        U2[Field Staff<br/>Admin Portal<br/>Dashboard]
+        U3[Public Visitors<br/>Public Website<br/>Information]
+    end
+
+    subgraph API["HAKIARDHI API LAYER"]
+        API1[75+ Endpoints / 22 Modules<br/>RESTful API]
+    end
+
+    subgraph AI["AI PROCESSING LAYER"]
+        AI1[OpenAI GPT-4<br/>• Intent Classification<br/>• Response Generation<br/>• Translation En ↔ Sw]
+        AI2[Message Router<br/>• Service Escalation<br/>• Context Management]
+    end
+
+    subgraph Business["BUSINESS LOGIC LAYER"]
+        B1[Legal Aid<br/>Service]
+        B2[Incident<br/>Reporting]
+        B3[Credibility<br/>Scoring]
+        B4[Assignment<br/>Engine]
+    end
+
+    subgraph Shared["SHARED SERVICES"]
+        S1[File Management]
+        S2[Analytics & Tracking]
+        S3[Authentication]
+        S4[Validation]
+    end
+
+    subgraph Database["DATABASE LAYER - Supabase PostgreSQL"]
+        D1[Users & Roles]
+        D2[Cases & Incidents]
+        D3[Projects & Activities]
+        D4[Conversation Logs]
+        D5[Analytics Events]
+        D6[Media Files]
+    end
+
+    subgraph External["EXTERNAL INTEGRATIONS"]
+        E1[WhatsApp Business API<br/>Meta]
+        E2[Cloud Storage<br/>Files/Photos]
+        E3[SMS Gateway<br/>Notifications]
+        E4[Email Service<br/>Reports]
+    end
+
+    U1 --> API1
+    U2 --> API1
+    U3 --> API1
+
+    API1 --> AI1
+    API1 --> AI2
+
+    AI1 --> B1
+    AI1 --> B2
+    AI2 --> B3
+    AI2 --> B4
+
+    B1 --> S1
+    B2 --> S2
+    B3 --> S3
+    B4 --> S4
+
+    S1 --> D1
+    S2 --> D2
+    S3 --> D3
+    S4 --> D4
+    S1 --> D5
+    S2 --> D6
+
+    D1 --> E1
+    D2 --> E2
+    D3 --> E3
+    D4 --> E4
+
+    style Users fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style API fill:#2196F3,stroke:#1565C0,color:#fff
+    style AI fill:#FF9800,stroke:#E65100,color:#fff
+    style Business fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style Shared fill:#00BCD4,stroke:#0097A7,color:#fff
+    style Database fill:#607D8B,stroke:#37474F,color:#fff
+    style External fill:#795548,stroke:#4E342E,color:#fff

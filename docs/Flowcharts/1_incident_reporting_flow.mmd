@@ -1,0 +1,56 @@
+%% HakiArdhi - Incident Reporting Flow
+%% This flowchart shows the complete citizen journey for reporting incidents
+
+graph TD
+    Start([Citizen Reports Incident]) --> A[Citizen sends WhatsApp message:<br/>'Kuna matatizo kwenye ardhi yangu']
+    A --> B[AI identifies intent:<br/>Incident Reporting]
+    B --> C[Bot asks: What type of incident?<br/>Shows interactive buttons]
+    C --> D{Select Incident Type}
+
+    D -->|Land Encroachment| E[Collect Details]
+    D -->|Property Damage| E
+    D -->|Dispute| E
+    D -->|Theft| E
+    D -->|Other| E
+
+    E --> F[Citizen provides:<br/>• Description<br/>• Location<br/>• Photos/Evidence]
+
+    F --> G[TIER 1: AUTOMATED VALIDATION]
+    G --> H{Validation Checks}
+    H --> I[✓ Phone number verified]
+    H --> J[✓ Location coordinates valid]
+    H --> K[✓ No duplicate reports]
+    H --> L[✓ Photo metadata checked]
+
+    I --> M{Pass Tier 1?}
+    J --> M
+    K --> M
+    L --> M
+
+    M -->|No| N[FLAGGED FOR REVIEW]
+    M -->|Yes| O[TIER 2: VILLAGE LEADER VALIDATION]
+
+    O --> P[Village leader receives notification:<br/>'Please verify this incident']
+    P --> Q[Leader reviews and responds:<br/>• Confirms incident is real<br/>• Knows the person<br/>• Location is accurate]
+
+    Q --> R[Credibility Score Calculated<br/>0-100 scale]
+
+    R --> S{Score > 60?}
+    S -->|No| T[REJECTED<br/>Citizen notified]
+    S -->|Yes| U[TIER 3: FIELD OFFICER VERIFICATION]
+
+    U --> V[• Officer assigned by location<br/>• Field visit scheduled<br/>• Physical verification<br/>• Evidence collected]
+
+    V --> W[Case Created & Tracked<br/>Case #: HAK-INC-2025-XXXX]
+
+    W --> X[Citizen receives:<br/>• Case number<br/>• Status updates via WhatsApp]
+
+    X --> End([Case Tracking Begins])
+
+    style Start fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style G fill:#2196F3,stroke:#1565C0,color:#fff
+    style O fill:#FF9800,stroke:#E65100,color:#fff
+    style U fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style End fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style N fill:#f44336,stroke:#c62828,color:#fff
+    style T fill:#f44336,stroke:#c62828,color:#fff
