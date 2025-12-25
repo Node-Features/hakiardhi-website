@@ -1,0 +1,64 @@
+%% HakiArdhi - Credibility Screening Process
+%% Three-tier validation system for incident reports
+
+graph TD
+    Start([Incident Report Received]) --> Info[Phone: 255712345678<br/>Type: Land Encroachment<br/>Location: Mwanza, Tanzania<br/>Photos: 3 attached]
+
+    Info --> T1[TIER 1: AUTOMATED VALIDATION<br/>Immediate Processing]
+
+    T1 --> V1[1. Phone Verification]
+    V1 --> V1a[✓ Valid Tanzanian number<br/>✓ Format: +255...<br/>Points: +20]
+
+    V1a --> V2[2. Location Validation]
+    V2 --> V2a[✓ Coordinates valid<br/>✓ Within Tanzania<br/>✓ Matches stated region<br/>Points: +20]
+
+    V2a --> V3[3. Duplicate Detection]
+    V3 --> V3a[Check last 30 days:<br/>✓ No similar location<br/>✓ No same phone number<br/>✓ No identical description<br/>Points: +15]
+
+    V3a --> V4[4. Media Validation]
+    V4 --> V4a[✓ Photo 1: Has metadata<br/>✓ Photo 2: Recent timestamp<br/>✓ Photo 3: Matching GPS<br/>Points: +15]
+
+    V4a --> T1Score[TIER 1 SCORE: 70/100]
+
+    T1Score --> T1Pass{Pass?<br/>Score > 50}
+
+    T1Pass -->|No| Reject1[FLAGGED<br/>Low credibility]
+    T1Pass -->|Yes| T2[TIER 2: VILLAGE LEADER VALIDATION<br/>1-2 days]
+
+    T2 --> Leader[System identifies village leader:<br/>Joseph Mwangi<br/>Location: Mwanza District]
+
+    Leader --> Notify[WhatsApp notification sent:<br/>'Please verify incident report<br/>in your area. View details...']
+
+    Notify --> Review[Village Leader Reviews:<br/>✓ Do you know this person? YES<br/>✓ Is location correct? YES<br/>✓ Is incident real? YES<br/>✓ Additional notes provided]
+
+    Review --> T2Score[TIER 2 VALIDATION:<br/>Leader confirms: +20 points<br/>Knows person: +5 points<br/>Added context: +5 points<br/><br/>CUMULATIVE SCORE: 100/100]
+
+    T2Score --> T2Pass{Score > 60?}
+
+    T2Pass -->|No| Reject2[REJECTED<br/>Insufficient validation]
+    T2Pass -->|Yes| T3[TIER 3: FIELD OFFICER VERIFICATION<br/>3-7 days]
+
+    T3 --> Officer[Assign to field officer:<br/>Officer Sarah - Mwanza Region]
+
+    Officer --> Visit[Field Visit Conducted:<br/>✓ Physical site inspection<br/>✓ Interview with reporter<br/>✓ Collect additional evidence<br/>✓ Document findings]
+
+    Visit --> Verdict[Officer Verdict:<br/>Status: VERIFIED<br/><br/>Action: Create official case<br/>Case Number: HAK-INC-2025-0042]
+
+    Verdict --> Notifications[NOTIFICATIONS SENT:]
+
+    Notifications --> N1[→ Citizen: 'Your report verified.<br/>Case #HAK-INC-2025-0042']
+    Notifications --> N2[→ Admin: 'New verified case<br/>requires action']
+    Notifications --> N3[→ Village Leader: 'Thank you for<br/>verification assistance']
+
+    N1 --> End([CASE TRACKING BEGINS])
+    N2 --> End
+    N3 --> End
+
+    style Start fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style T1 fill:#2196F3,stroke:#1565C0,color:#fff
+    style T2 fill:#FF9800,stroke:#E65100,color:#fff
+    style T3 fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style End fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style Reject1 fill:#f44336,stroke:#c62828,color:#fff
+    style Reject2 fill:#f44336,stroke:#c62828,color:#fff
+    style Verdict fill:#4CAF50,stroke:#2E7D32,color:#fff

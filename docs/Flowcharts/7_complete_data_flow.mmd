@@ -1,0 +1,66 @@
+%% HakiArdhi - Complete Data Flow
+%% End-to-end journey of a message through the system
+
+graph TB
+    Start([Citizen Interaction<br/>WhatsApp]) --> Meta[META WHATSAPP API<br/>Cloud-based service]
+
+    Meta --> Webhook[Webhook POST Request<br/>HTTPS with signature verification]
+
+    Webhook --> Backend[HAKIARDHI BACKEND API<br/>/api/chatbot/webhook]
+
+    Backend --> Security{SECURITY LAYER}
+    Security --> S1[1. Verify signature]
+    Security --> S2[2. Extract message]
+    Security --> S3[3. Format phone number]
+    Security --> S4[4. Check user session]
+
+    S1 --> AI[AI PROCESSING<br/>OpenAI GPT-4]
+    S2 --> AI
+    S3 --> AI
+    S4 --> AI
+
+    AI --> AISteps[AI Actions:<br/>→ Load conversation history from DB<br/>→ Classify intent with confidence<br/>→ Determine if escalation needed<br/>→ Generate contextual response]
+
+    AISteps --> Decision{Decision Point:<br/>Escalate or<br/>AI Response?}
+
+    Decision -->|Escalate| Route[ROUTE TO SERVICE]
+    Decision -->|AI Response| Generate[AI GENERATES RESPONSE]
+
+    Route --> Services{Service Type}
+    Services -->|Legal Aid| SL[Create legal_aid_requests record]
+    Services -->|Incident| SI[Create incidents record]
+    Services -->|Case Status| SS[Query cases table]
+
+    SL --> Interactive[Generate interactive<br/>buttons/lists]
+    SI --> Interactive
+    SS --> Interactive
+
+    Generate --> Response[Generate text response<br/>+ smart reply suggestions<br/>+ save to chatbot_logs]
+
+    Interactive --> Format[FORMAT RESPONSE]
+    Response --> Format
+
+    Format --> Structure[Prepare WhatsApp message:<br/>• Message structure<br/>• Interactive components<br/>• Media if needed]
+
+    Structure --> Log[LOG TO DATABASE<br/>chatbot_logs table]
+
+    Log --> LogData[Store:<br/>• message_id<br/>• phone_number anonymized<br/>• message_text<br/>• intent_classified<br/>• response_sent<br/>• timestamp]
+
+    LogData --> Send[SEND VIA WHATSAPP API<br/>POST to Meta Graph API<br/>Authorization: Bearer token]
+
+    Send --> Deliver[Meta delivers message]
+
+    Deliver --> Citizen([CITIZEN RECEIVES RESPONSE<br/>in WhatsApp])
+
+    Citizen --> Reply[User reads & replies]
+
+    Reply -.->|Cycle repeats| Start
+
+    style Start fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style Meta fill:#00BCD4,stroke:#0097A7,color:#fff
+    style Backend fill:#2196F3,stroke:#1565C0,color:#fff
+    style Security fill:#FF9800,stroke:#E65100,color:#fff
+    style AI fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style Decision fill:#FF5722,stroke:#D84315,color:#fff
+    style Log fill:#607D8B,stroke:#37474F,color:#fff
+    style Citizen fill:#4CAF50,stroke:#2E7D32,color:#fff

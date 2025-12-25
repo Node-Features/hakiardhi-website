@@ -1,0 +1,58 @@
+%% HakiArdhi - Lawyer Assignment Logic
+%% This shows the intelligent algorithm for assigning lawyers to cases
+
+graph TD
+    Start([New Legal Aid Request]) --> Info[Case Type: Land Dispute<br/>Region: Dar es Salaam<br/>Priority: High score 75]
+
+    Info --> S1[STEP 1:<br/>Find all lawyers in system]
+
+    S1 --> S2[STEP 2: FILTER<br/>By specialization]
+
+    S2 --> F1[Lawyers with 'Land Law' specialty:<br/>• Advocate Jane 15 active cases<br/>• Advocate John 18 active cases<br/>• Advocate Mary 22 active cases ✗]
+
+    F1 --> Note1[Advocate Mary excluded:<br/>Over capacity 20 max]
+
+    Note1 --> S3[STEP 3: FILTER<br/>By capacity less than 20 cases]
+
+    S3 --> F2[Available lawyers:<br/>• Advocate Jane 15 cases<br/>• Advocate John 18 cases]
+
+    F2 --> S4[STEP 4: SCORE<br/>Each lawyer]
+
+    S4 --> Score1[Advocate Jane Scoring]
+    S4 --> Score2[Advocate John Scoring]
+
+    Score1 --> J1[• Workload: 15/20 75% = +25 pts<br/>• Region match: Yes = +30 pts<br/>• Language: Swahili = +20 pts<br/>• Availability: Yes = +25 pts]
+
+    J1 --> Total1[TOTAL SCORE: 100]
+
+    Score2 --> J2[• Workload: 18/20 90% = +10 pts<br/>• Region match: No = +0 pts<br/>• Language: Swahili = +20 pts<br/>• Availability: Yes = +25 pts]
+
+    J2 --> Total2[TOTAL SCORE: 55]
+
+    Total1 --> S5[STEP 5:<br/>Select highest scoring lawyer]
+    Total2 --> S5
+
+    S5 --> Winner{Compare<br/>Scores}
+
+    Winner --> Assigned[✓ ASSIGNED TO:<br/>Advocate Jane]
+
+    Assigned --> Actions[System Actions:]
+
+    Actions --> A1[• Update lawyer case count: 16]
+    Actions --> A2[• Send notification to lawyer]
+    Actions --> A3[• Send confirmation to citizen]
+    Actions --> A4[• Log assignment in database]
+
+    A1 --> End([Assignment Complete])
+    A2 --> End
+    A3 --> End
+    A4 --> End
+
+    style Start fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style S2 fill:#2196F3,stroke:#1565C0,color:#fff
+    style S3 fill:#FF9800,stroke:#E65100,color:#fff
+    style S4 fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style Winner fill:#00BCD4,stroke:#0097A7,color:#fff
+    style Assigned fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style End fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style Note1 fill:#f44336,stroke:#c62828,color:#fff

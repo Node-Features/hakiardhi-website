@@ -1,0 +1,76 @@
+%% HakiArdhi - Legal Aid & Cases Module Reconciliation Flow
+%% Shows the hierarchical relationship and escalation workflow
+
+graph TB
+    Start([Citizen Needs Legal Help]) --> Intake[LEGAL AID MODULE<br/>Initial Intake]
+
+    Intake --> Collect[Collect Information:<br/>• Demographics<br/>• Case details<br/>• Documents needed]
+
+    Collect --> Queue[Add to Priority Queue<br/>Generate: HAK-YYYY-NNNN]
+
+    Queue --> Assign[Assign to Legal Advisor<br/>Based on workload & specialization]
+
+    Assign --> Assess{What does<br/>beneficiary need?}
+
+    Assess -->|Documents| DocPrep[Document Preparation<br/>• Title searches<br/>• Survey reports<br/>• Affidavits]
+
+    Assess -->|Advice| LegalAdvice[Legal Advice Provided<br/>• Rights education<br/>• Process guidance<br/>• Options review]
+
+    Assess -->|Mediation| Mediation[Mediation Support<br/>• Facilitate discussion<br/>• Community resolution<br/>• Agreement drafting]
+
+    DocPrep --> Deliver[Deliver Documents<br/>Brief on submission]
+    LegalAdvice --> Deliver
+    Mediation --> CheckResolved{Issue<br/>Resolved?}
+
+    CheckResolved -->|Yes| Complete1[Complete: Resolved<br/>Close in Legal Aid]
+    Deliver --> Complete2[Complete: Documents Provided<br/>Close in Legal Aid]
+
+    CheckResolved -->|No| EscalateCheck{Needs<br/>Formal Case?}
+    Deliver --> EscalateCheck
+
+    EscalateCheck -->|No| Complete3[Complete: Unable to Assist<br/>Refer to other services]
+
+    EscalateCheck -->|Yes| EscalationTrigger{Escalation<br/>Triggers}
+
+    EscalationTrigger -->|Litigation Required| Escalate[ESCALATE TO<br/>CASES MODULE]
+    EscalationTrigger -->|Court Representation| Escalate
+    EscalationTrigger -->|Complex Multi-party| Escalate
+    EscalationTrigger -->|Long-term Tracking| Escalate
+    EscalationTrigger -->|Formal Investigation| Escalate
+
+    Escalate --> CreateCase[Create Formal Case<br/>Generate: CASE-YYYY-NNNNNN]
+
+    CreateCase --> Link[Link Records:<br/>• legal_aid.escalated_to_case_id<br/>• cases.legal_aid_request_id]
+
+    Link --> Transfer[Transfer Data:<br/>• Beneficiary info<br/>• Case history<br/>• Documents collected<br/>• Previous stages]
+
+    Transfer --> CaseManagement[CASES MODULE<br/>Formal Case Management]
+
+    CaseManagement --> Investigation[Investigation Stage<br/>• Evidence gathering<br/>• Site visits<br/>• Witness statements]
+
+    Investigation --> Legal[Legal Action Stage<br/>• Court filings<br/>• Hearings<br/>• Representations]
+
+    Legal --> Resolution{Case<br/>Outcome}
+
+    Resolution -->|Successful| Resolved[Status: Resolved<br/>Archive case]
+    Resolution -->|Ongoing| Ongoing[Status: Ongoing<br/>Continue tracking]
+    Resolution -->|Referred| Referred[Status: Referred<br/>External litigation]
+
+    Complete1 --> Stats[REPORTING<br/>Unified Statistics]
+    Complete2 --> Stats
+    Complete3 --> Stats
+    Resolved --> Stats
+    Ongoing --> Stats
+    Referred --> Stats
+
+    Stats --> Dashboard[Unified Dashboard<br/>• Total legal matters<br/>• Escalation rate<br/>• Success metrics]
+
+    style Intake fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style Queue fill:#2196F3,stroke:#1565C0,color:#fff
+    style Escalate fill:#FF9800,stroke:#E65100,color:#fff
+    style CaseManagement fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style Link fill:#00BCD4,stroke:#0097A7,color:#fff
+    style Dashboard fill:#607D8B,stroke:#37474F,color:#fff
+    style Complete1 fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style Complete2 fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style Resolved fill:#4CAF50,stroke:#2E7D32,color:#fff

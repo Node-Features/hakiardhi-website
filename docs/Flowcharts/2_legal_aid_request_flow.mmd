@@ -1,0 +1,61 @@
+%% HakiArdhi - Legal Aid Request Flow
+%% This flowchart shows how citizens request and receive legal assistance
+
+graph TD
+    Start([Citizen Requests Legal Aid]) --> A['Nahitaji msaada wa kisheria'<br/>via WhatsApp]
+    A --> B[AI recognizes<br/>legal_aid intent]
+    B --> C[Bot collects information:<br/>• Name<br/>• Phone number<br/>• Case type<br/>• Description<br/>• Urgency level]
+
+    C --> D[INTAKE STAGE<br/>Request logged in system]
+    D --> E[Case number generated:<br/>HAK-2025-XXXX]
+
+    E --> F[Priority Score<br/>Auto-calculated]
+    F --> G{Priority Factors}
+    G --> H[• Urgency level]
+    G --> I[• Has court date?]
+    G --> J[• Case complexity]
+    G --> K[• Vulnerable person?]
+
+    H --> L[QUEUE PLACEMENT]
+    I --> L
+    J --> L
+    K --> L
+
+    L --> M[Position: #5<br/>Estimated wait: 2 days]
+
+    M --> N[SMART ASSIGNMENT SYSTEM]
+    N --> O{Find Best Lawyer}
+
+    O --> P[Filter by:<br/>✓ Matching specialization<br/>✓ Available capacity less than 20 cases<br/>✓ Same region if possible<br/>✓ Language match]
+
+    P --> Q[Calculate score for each lawyer]
+    Q --> R[Select highest scoring lawyer]
+
+    R --> S[Lawyer Assigned:<br/>Advocate Jane Mwangi]
+
+    S --> T1[Citizen receives:<br/>• Lawyer name & contact<br/>• Case number<br/>• Next steps]
+    S --> T2[Lawyer receives:<br/>• Case details<br/>• Client contact<br/>• All documents]
+
+    T1 --> U[CASE PROGRESSION]
+    T2 --> U
+
+    U --> V[Stage 1: Assessment]
+    V --> W[Stage 2: Document Preparation]
+    W --> X[Stage 3: Legal Advice Provided]
+    X --> Y[Stage 4: Follow-up Support]
+    Y --> Z[Stage 5: Resolution]
+
+    Z --> AA{Outcome}
+    AA -->|Documents Provided| AB[COMPLETED]
+    AA -->|Mediation Successful| AB
+    AA -->|Referred to Litigation| AB
+
+    AB --> AC[Status updates sent<br/>via WhatsApp at each stage]
+    AC --> End([Case Completed])
+
+    style Start fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style N fill:#2196F3,stroke:#1565C0,color:#fff
+    style S fill:#FF9800,stroke:#E65100,color:#fff
+    style U fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style AB fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style End fill:#4CAF50,stroke:#2E7D32,color:#fff
