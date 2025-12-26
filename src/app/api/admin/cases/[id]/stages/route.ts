@@ -155,7 +155,8 @@ export async function GET(
   const { data, error, count } = await db
     .from("case_stages")
     .select(
-      "id, name, description, status, next_stage, created_at, updated_at",
+      `id, name, description, status, next_stage, created_at, updated_at,
+       stage_attachments(id, file_url, file_name, description, file_type, size, status, created_at)`,
       { count: "exact" }
     )
     .eq("case_id", case_id)

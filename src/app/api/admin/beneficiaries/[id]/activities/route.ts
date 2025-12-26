@@ -21,7 +21,7 @@ export async function GET(
     .from("activity_beneficiaries")
     .select(
       `
-        id, role_in_activity, attended, feedback, outcome, created_at,
+        id, role_in_activity, attended, feedback, created_at, updated_at,
         activities(id, name, start_date, projects(id, title))
       `,
       { count: "exact" }

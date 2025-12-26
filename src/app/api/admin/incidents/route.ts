@@ -277,12 +277,14 @@ export async function GET(req: NextRequest) {
     let query = db
         .from("incidents")
         .select(`
-            id, name, description, created_at, updated_at,
+            id, name, description, status, priority,
+            region_id, district_id, village_id, category_id, reported_by,
+            created_at, updated_at,
             regions(id, name),
             districts(id, name),
             villages(id, name),
             categories(id, name, type),
-            users!incidents_reported_by_fkey(id, first_name, last_name, email)
+            beneficiaries!incidents_reported_by_fkey(id, first_name, last_name, email, phone_number)
         `, { count: "exact" });
 
     // Apply filters

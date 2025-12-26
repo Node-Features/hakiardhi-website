@@ -212,7 +212,9 @@ export async function GET(req: NextRequest) {
     let query = db
         .from("cases")
         .select(`
-            id, title, reference_number, description, status, created_at, updated_at,
+            id, title, reference_number, description, status,
+            submitted_by, assigned_to, category_id,
+            created_at, updated_at,
             categories(id, name, type),
             users!cases_submitted_by_fkey(id, first_name, last_name, email),
             assigned_user:users!cases_assigned_to_fkey(id, first_name, last_name, email)

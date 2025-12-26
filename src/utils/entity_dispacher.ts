@@ -55,6 +55,7 @@ export async function dispatchFiles({
       });
       break;
     case 'stage':
+    case 'stage_attachment':
       tableName = 'stage_attachments';
       records.forEach((r) => {
         r.case_id = entityId;
