@@ -284,7 +284,7 @@ export async function GET(req: NextRequest) {
             districts(id, name),
             villages(id, name),
             categories(id, name, type),
-            beneficiaries!incidents_reported_by_fkey(id, first_name, last_name, email, phone_number)
+            beneficiaries!incidents_reported_by_fkey(id, first_name, last_name, phone_number)
         `, { count: "exact" });
 
     // Apply filters
