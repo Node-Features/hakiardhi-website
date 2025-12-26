@@ -130,7 +130,7 @@ export async function GET(
             districts(id, name),
             villages(id, name),
             categories(id, name, type, description),
-            beneficiaries!incidents_reported_by_fkey(id, first_name, last_name, email, phone_number),
+            beneficiaries!incidents_reported_by_fkey(id, first_name, last_name, phone_number),
             incident_files(id, file_url, name:file_name, description, created_at)
         `)
         .eq("id", id)
