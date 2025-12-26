@@ -18,3 +18,10 @@ export const IncidentUpdateValidation = z.object({
     description: z.string().min(20).optional(),
     category_id: z.string().uuid().optional(),
 });
+
+export const IncidentFileValidation = z.object({
+    name: z.string().min(1, { message: "File name is required." }),
+    file_data: z.string().min(1, { message: "File data is required." }),
+    file_type: z.string().min(1, { message: "File type is required." }),
+    description: z.string().optional(),
+});
