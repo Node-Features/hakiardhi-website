@@ -1,0 +1,1079 @@
+openapi: 3.0.3
+info:
+  title: HakiArdhi Public Portal API
+  description: |
+    RESTful API for the HakiArdhi Public Portal. Provides endpoints for accessing
+    programs, portfolio, news, publications, legal aid information, LRM network data,
+    and more.
+
+    ## Authentication
+    Most endpoints are public and do not require authentication.
+    Form submission endpoints may require CAPTCHA validation.
+
+    ## Rate Limiting
+    - 100 requests per minute per IP address
+    - Form submissions: 10 per hour per IP
+
+    ## Response Format
+    All responses follow a standard envelope:
+    ```json
+    {
+      "success": true,
+      "data": {...},
+      "meta": {
+        "page": 1,
+        "limit": 12,
+        "total": 100,
+        "total_pages": 9
+      }
+    }
+    ```
+  version: 1.0.0
+  contact:
+    name: HakiArdhi Development Team
+    email: dev@hakiardhi.or.tz
+  license:
+    name: Proprietary
+servers:
+  - url: http://localhost:3001/api/public/portal
+    description: Development server
+  - url: https://api.hakiardhi.or.tz/api/public/portal
+    description: Production server
+
+tags:
+  - name: Statistics
+    description: Impact statistics and metrics
+  - name: Programs
+    description: Program/project information
+  - name: Portfolio
+    description: Case studies and work showcase
+  - name: News & Events
+    description: News articles and events
+  - name: Publications
+    description: Research publications
+  - name: Research
+    description: Research areas and statistics
+  - name: Legal Aid
+    description: Legal aid services and submissions
+  - name: LRM Network
+    description: Land Rights Monitors network
+  - name: About
+    description: Organization information
+  - name: Contact
+    description: Contact and support
+  - name: Donations
+    description: Donation campaigns and processing
+  - name: Gallery
+    description: Photo gallery
+
+paths:
+  /stats:
+    get:
+      tags: [Statistics]
+      summary: Get impact statistics
+      description: Returns overall impact statistics for the homepage
+      operationId: getStats
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImpactStatsResponse'
+
+  /programs:
+    get:
+      tags: [Programs]
+      summary: List all programs
+      description: Returns a paginated list of programs with filtering
+      operationId: getPrograms
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [Pending, Ongoing, Completed, Cancelled]
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramListResponse'
+
+  /programs/featured:
+    get:
+      tags: [Programs]
+      summary: Get featured programs
+      description: Returns up to 6 featured programs for homepage
+      operationId: getFeaturedPrograms
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramListResponse'
+
+  /programs/categories:
+    get:
+      tags: [Programs]
+      summary: Get program categories
+      description: Returns list of program categories with counts
+      operationId: getProgramCategories
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryListResponse'
+
+  /programs/{slug}:
+    get:
+      tags: [Programs]
+      summary: Get program by slug
+      description: Returns detailed program information
+      operationId: getProgramBySlug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramDetailResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /portfolio:
+    get:
+      tags: [Portfolio]
+      summary: List portfolio items
+      description: Returns paginated portfolio items
+      operationId: getPortfolio
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [Case Study, Project, Initiative, Success Story, Campaign]
+        - name: year
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioListResponse'
+
+  /portfolio/{slug}:
+    get:
+      tags: [Portfolio]
+      summary: Get portfolio item by slug
+      description: Returns detailed portfolio item
+      operationId: getPortfolioBySlug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioDetailResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /news:
+    get:
+      tags: [News & Events]
+      summary: List news and events
+      description: Returns paginated news/events
+      operationId: getNews
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [News, Event, Announcement, Update]
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsListResponse'
+
+  /news/featured:
+    get:
+      tags: [News & Events]
+      summary: Get featured news
+      description: Returns featured news items
+      operationId: getFeaturedNews
+      responses:
+        '200':
+          description: Success
+
+  /events/upcoming:
+    get:
+      tags: [News & Events]
+      summary: Get upcoming events
+      description: Returns events with future dates
+      operationId: getUpcomingEvents
+      responses:
+        '200':
+          description: Success
+
+  /news/{slug}:
+    get:
+      tags: [News & Events]
+      summary: Get news item by slug
+      description: Returns detailed news/event information
+      operationId: getNewsBySlug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /publications:
+    get:
+      tags: [Publications]
+      summary: List publications
+      description: Returns paginated publications
+      operationId: getPublications
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [Report, Policy Brief, Journal Article, Working Paper, Book, Thesis]
+        - name: topic
+          in: query
+          schema:
+            type: string
+        - name: year
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationListResponse'
+
+  /publications/{id}:
+    get:
+      tags: [Publications]
+      summary: Get publication by ID
+      description: Returns detailed publication information
+      operationId: getPublicationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /publications/{id}/download:
+    post:
+      tags: [Publications]
+      summary: Track publication download
+      description: Increments download counter
+      operationId: trackDownload
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+
+  /research/stats:
+    get:
+      tags: [Research]
+      summary: Get research statistics
+      description: Returns research/publication statistics
+      operationId: getResearchStats
+      responses:
+        '200':
+          description: Success
+
+  /research/areas:
+    get:
+      tags: [Research]
+      summary: Get research areas
+      description: Returns list of research focus areas
+      operationId: getResearchAreas
+      responses:
+        '200':
+          description: Success
+
+  /research/partners:
+    get:
+      tags: [Research]
+      summary: Get research partners
+      description: Returns list of research partner organizations
+      operationId: getResearchPartners
+      responses:
+        '200':
+          description: Success
+
+  /legal-aid/stats:
+    get:
+      tags: [Legal Aid]
+      summary: Get legal aid statistics
+      description: Returns legal aid case statistics
+      operationId: getLegalAidStats
+      responses:
+        '200':
+          description: Success
+
+  /legal-aid/services:
+    get:
+      tags: [Legal Aid]
+      summary: Get legal aid services
+      description: Returns list of legal aid services offered
+      operationId: getLegalServices
+      responses:
+        '200':
+          description: Success
+
+  /legal-aid/success-stories:
+    get:
+      tags: [Legal Aid]
+      summary: Get success stories
+      description: Returns legal aid success stories
+      operationId: getSuccessStories
+      responses:
+        '200':
+          description: Success
+
+  /legal-aid/submit:
+    post:
+      tags: [Legal Aid]
+      summary: Submit legal aid case
+      description: Submit a new legal aid request
+      operationId: submitLegalAidCase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseSubmission'
+      responses:
+        '201':
+          description: Case submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseSubmissionResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /lrm/regions:
+    get:
+      tags: [LRM Network]
+      summary: Get LRM data by region
+      description: Returns LRM statistics grouped by region
+      operationId: getLRMRegions
+      responses:
+        '200':
+          description: Success
+
+  /lrm/stats:
+    get:
+      tags: [LRM Network]
+      summary: Get LRM impact statistics
+      description: Returns overall LRM network statistics
+      operationId: getLRMStats
+      responses:
+        '200':
+          description: Success
+
+  /lrm/roles:
+    get:
+      tags: [LRM Network]
+      summary: Get LRM roles
+      description: Returns list of LRM responsibilities
+      operationId: getLRMRoles
+      responses:
+        '200':
+          description: Success
+
+  /lrm/apply:
+    post:
+      tags: [LRM Network]
+      summary: Submit LRM application
+      description: Submit application to become an LRM
+      operationId: submitLRMApplication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LRMApplication'
+      responses:
+        '201':
+          description: Application submitted successfully
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /about/organization:
+    get:
+      tags: [About]
+      summary: Get organization info
+      description: Returns vision, mission, values, history
+      operationId: getOrganizationInfo
+      responses:
+        '200':
+          description: Success
+
+  /about/team:
+    get:
+      tags: [About]
+      summary: Get team members
+      description: Returns leadership, board, and staff
+      operationId: getTeamMembers
+      responses:
+        '200':
+          description: Success
+
+  /about/milestones:
+    get:
+      tags: [About]
+      summary: Get organization milestones
+      description: Returns timeline/history
+      operationId: getMilestones
+      responses:
+        '200':
+          description: Success
+
+  /contact/offices:
+    get:
+      tags: [Contact]
+      summary: Get office locations
+      description: Returns list of office addresses
+      operationId: getOffices
+      responses:
+        '200':
+          description: Success
+
+  /contact/submit:
+    post:
+      tags: [Contact]
+      summary: Submit contact form
+      description: Submit a contact/inquiry message
+      operationId: submitContactForm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactForm'
+      responses:
+        '201':
+          description: Message submitted
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /newsletter/subscribe:
+    post:
+      tags: [Contact]
+      summary: Subscribe to newsletter
+      description: Subscribe email to newsletter
+      operationId: subscribeNewsletter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsletterSubscription'
+      responses:
+        '201':
+          description: Subscribed successfully
+        '409':
+          description: Already subscribed
+
+  /faqs:
+    get:
+      tags: [Contact]
+      summary: Get FAQs
+      description: Returns frequently asked questions
+      operationId: getFAQs
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Success
+
+  /donate/campaigns:
+    get:
+      tags: [Donations]
+      summary: Get donation campaigns
+      description: Returns active fundraising campaigns
+      operationId: getDonationCampaigns
+      responses:
+        '200':
+          description: Success
+
+  /donate/options:
+    get:
+      tags: [Donations]
+      summary: Get payment methods
+      description: Returns available payment methods
+      operationId: getPaymentMethods
+      responses:
+        '200':
+          description: Success
+
+  /donate/impact:
+    get:
+      tags: [Donations]
+      summary: Get donation impact
+      description: Returns what different amounts can achieve
+      operationId: getDonationImpact
+      responses:
+        '200':
+          description: Success
+
+  /donate/process:
+    post:
+      tags: [Donations]
+      summary: Process donation
+      description: Initiate a donation transaction
+      operationId: processDonation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DonationRequest'
+      responses:
+        '201':
+          description: Donation initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonationResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /testimonials:
+    get:
+      tags: [Gallery]
+      summary: Get testimonials
+      description: Returns testimonials from beneficiaries
+      operationId: getTestimonials
+      parameters:
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Success
+
+  /partners:
+    get:
+      tags: [Gallery]
+      summary: Get partners
+      description: Returns partner organizations
+      operationId: getPartners
+      parameters:
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Success
+
+  /gallery:
+    get:
+      tags: [Gallery]
+      summary: Get gallery items
+      description: Returns photo gallery
+      operationId: getGallery
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Success
+
+components:
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    LimitParam:
+      name: limit
+      in: query
+      description: Items per page
+      schema:
+        type: integer
+        default: 12
+        minimum: 1
+        maximum: 100
+    SearchParam:
+      name: search
+      in: query
+      description: Search query
+      schema:
+        type: string
+        maxLength: 200
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+
+  schemas:
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+    ImpactStatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            completed_projects:
+              type: integer
+            cases_resolved:
+              type: integer
+            beneficiaries_reached:
+              type: integer
+            active_lrms:
+              type: integer
+            regions_covered:
+              type: integer
+            publications_count:
+              type: integer
+
+    Program:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        image:
+          type: string
+        date:
+          type: string
+          format: date
+        location:
+          type: string
+        participants:
+          type: integer
+        status:
+          type: string
+        is_featured:
+          type: boolean
+
+    ProgramListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Program'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    ProgramDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Program'
+            - type: object
+              properties:
+                full_description:
+                  type: string
+                objectives:
+                  type: array
+                  items:
+                    type: string
+                outcomes:
+                  type: array
+                  items:
+                    type: string
+                impact_metrics:
+                  type: array
+                  items:
+                    type: object
+                gallery:
+                  type: array
+                  items:
+                    type: object
+
+    CategoryListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              count:
+                type: integer
+
+    PortfolioListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    PortfolioDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+
+    NewsListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    PublicationListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    CaseSubmission:
+      type: object
+      required:
+        - name
+        - phone
+        - region_id
+        - district_id
+        - case_type
+        - description
+      properties:
+        name:
+          type: string
+          minLength: 2
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        region_id:
+          type: string
+          format: uuid
+        district_id:
+          type: string
+          format: uuid
+        village_id:
+          type: string
+          format: uuid
+        case_type:
+          type: string
+        description:
+          type: string
+          minLength: 50
+
+    CaseSubmissionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            reference_number:
+              type: string
+            message:
+              type: string
+
+    LRMApplication:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - email
+        - phone_number
+        - region_id
+        - district_id
+        - motivation
+        - languages
+        - availability
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone_number:
+          type: string
+        region_id:
+          type: string
+          format: uuid
+        district_id:
+          type: string
+          format: uuid
+        motivation:
+          type: string
+          minLength: 100
+        languages:
+          type: array
+          items:
+            type: string
+        availability:
+          type: string
+          enum: [Full-time, Part-time, Weekends]
+
+    ContactForm:
+      type: object
+      required:
+        - name
+        - email
+        - subject
+        - message
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        subject:
+          type: string
+        message:
+          type: string
+          minLength: 20
+
+    NewsletterSubscription:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        interests:
+          type: array
+          items:
+            type: string
+
+    DonationRequest:
+      type: object
+      required:
+        - amount
+        - payment_method
+        - donor_email
+      properties:
+        amount:
+          type: number
+          minimum: 1000
+        currency:
+          type: string
+          default: TZS
+        campaign_id:
+          type: string
+          format: uuid
+        frequency:
+          type: string
+          enum: [one-time, monthly, quarterly, yearly]
+        payment_method:
+          type: string
+        donor_name:
+          type: string
+        donor_email:
+          type: string
+          format: email
+        donor_phone:
+          type: string
+        is_anonymous:
+          type: boolean
+        message:
+          type: string
+
+    DonationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            transaction_reference:
+              type: string
+            payment_url:
+              type: string
+            message:
+              type: string

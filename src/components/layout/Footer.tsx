@@ -1,0 +1,245 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import Icon from '../ui/Icon';
+import Grid from '../ui/Grid';
+import LanguageSwitcher from '../ui/LanguageSwitcher';
+import { SPACING } from '@/constants/design-tokens';
+
+export default function Footer() {
+  const [currentYear, setCurrentYear] = useState(2025);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
+  return (
+    <footer className="bg-black text-white">
+      <div className={`container mx-auto ${SPACING.container.responsive} ${SPACING.section.sm}`}>
+        <Grid cols={{ base: 1, md: 2, lg: 4 }} gap="lg" className={SPACING.margin.element.lg}>
+          {/* About Column */}
+          <div>
+            <Image
+              src="/images/logo-white.png"
+              alt="HakiArdhi Logo"
+              width={180}
+              height={60}
+              className={`h-12 w-auto ${SPACING.margin.element.sm}`}
+            />
+            <p className={`text-gray-300 text-sm leading-relaxed ${SPACING.margin.element.sm}`}>
+              Land Rights Research & Resources Institute - Empowering communities since 1994.
+            </p>
+            <div className={`flex ${SPACING.gap.sm}`}>
+              <a href="https://web.facebook.com/profile.php?id=100068583082096" target="_blank" rel="noopener noreferrer" className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-300 hover:text-hakiardhi-red transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 focus-visible:ring-offset-black" aria-label="Facebook">
+                <Icon name="facebook" size="lg" />
+              </a>
+              <a href="https://x.com/_HAKIARDHI" target="_blank" rel="noopener noreferrer" className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-300 hover:text-hakiardhi-red transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 focus-visible:ring-offset-black" aria-label="X (Twitter)">
+                <Icon name="twitter" size="lg" />
+              </a>
+              <a href="https://www.instagram.com/hakiardhi/" target="_blank" rel="noopener noreferrer" className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-300 hover:text-hakiardhi-red transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 focus-visible:ring-offset-black" aria-label="Instagram">
+                <Icon name="instagram" size="lg" />
+              </a>
+              <a href="https://www.youtube.com/@hakiardhi_tv" target="_blank" rel="noopener noreferrer" className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-300 hover:text-hakiardhi-red transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 focus-visible:ring-offset-black" aria-label="YouTube">
+                <Icon name="youtube" size="lg" />
+              </a>
+              <a href="https://www.linkedin.com/in/hakiardhi-institute-0b986534a/" target="_blank" rel="noopener noreferrer" className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-300 hover:text-hakiardhi-red transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 focus-visible:ring-offset-black" aria-label="LinkedIn">
+                <Icon name="linkedin" size="lg" />
+              </a>
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="text-base font-bold mb-5 text-white uppercase tracking-wide flex items-center gap-2">
+              <span className="w-1 h-4 bg-hakiardhi-red rounded-full"></span>
+              Quick Links
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/about" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">About Us</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/what-we-do" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">What We Do</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/programs" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">Our Programs</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/portfolio" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">Portfolio</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/research" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">Research</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/news-events" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">News & Events</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Resources */}
+          <div>
+            <h3 className="text-base font-bold mb-5 text-white uppercase tracking-wide flex items-center gap-2">
+              <span className="w-1 h-4 bg-hakiardhi-red rounded-full"></span>
+              Resources
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/legal-aid" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">Legal Aid</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/resource-centre" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">Resource Centre</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/lrm-network" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">LRM Network</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/gallery" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">Gallery</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/work-with-us" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">Work With Us</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="group inline-flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-200 text-sm py-1">
+                  <Icon name="arrow-right" size="xs" className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all duration-200 text-hakiardhi-red" />
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">Contact Us</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact & Newsletter */}
+          <div>
+            <h3 className={`text-lg font-semibold ${SPACING.margin.element.sm} text-white`}>Contact & Stay Updated</h3>
+            <ul className={`${SPACING.component.default} ${SPACING.margin.element.sm}`}>
+              <li className={`flex items-start ${SPACING.gap.xs} text-sm text-gray-300`}>
+                <Icon name="phone" size="sm" className="flex-shrink-0 mt-0.5" />
+                <span>0800 711 555</span>
+              </li>
+              <li className={`flex items-start ${SPACING.gap.xs} text-sm text-gray-300`}>
+                <Icon name="mail" size="sm" className="flex-shrink-0 mt-0.5" />
+                <span>info@hakiardhi.or.tz</span>
+              </li>
+            </ul>
+
+            {/* Enhanced Newsletter Signup */}
+            <div>
+              <p className={`text-sm text-gray-300 ${SPACING.margin.element.xs} font-medium`}>Subscribe to our newsletter</p>
+              <form
+                className="relative mt-3"
+                onSubmit={(e) => e.preventDefault()}
+              >
+                <label htmlFor="newsletter-email" className="sr-only">
+                  Email address for newsletter
+                </label>
+
+                {/* Unified input-button container */}
+                <div className="relative group">
+                  {/* Outer glow effect */}
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-hakiardhi-red via-red-600 to-brand-500 rounded-full opacity-0 group-hover:opacity-50 group-focus-within:opacity-75 blur-sm transition-opacity duration-500"></div>
+
+                  {/* Main container */}
+                  <div className="relative flex items-center bg-gradient-to-r from-gray-800 to-gray-900 rounded-full border border-gray-700 group-hover:border-hakiardhi-red/50 group-focus-within:border-hakiardhi-red transition-all duration-300 shadow-lg group-hover:shadow-xl group-focus-within:shadow-hakiardhi-red/20">
+                    {/* Email icon */}
+                    <div className="pl-4 pr-2">
+                      <Icon name="mail" size="sm" className="text-gray-400 group-focus-within:text-hakiardhi-red transition-colors duration-300" />
+                    </div>
+
+                    {/* Input field */}
+                    <input
+                      id="newsletter-email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      placeholder="Enter your email address"
+                      className="flex-1 py-3 px-2 bg-transparent text-white text-sm placeholder:text-gray-500 outline-none focus:placeholder:text-gray-600 border-none"
+                      aria-label="Email address"
+                      style={{ boxShadow: 'none' }}
+                    />
+
+                    {/* Submit button - rounded only on right */}
+                    <button
+                      type="submit"
+                      className="group/button relative flex items-center gap-2 bg-gradient-to-r from-hakiardhi-red to-red-600 hover:from-red-600 hover:to-hakiardhi-red text-white px-6 py-3 rounded-r-full text-sm font-bold transition-all duration-300 transform hover:scale-x-105 active:scale-95 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-hakiardhi-red focus:ring-offset-2 focus:ring-offset-black"
+                      aria-label="Subscribe to newsletter"
+                    >
+                      <span>Subscribe</span>
+                      <Icon name="arrow-right" size="sm" className="transform group-hover/button:translate-x-1 transition-transform duration-300" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Helper text */}
+                <p className="mt-2 text-xs text-gray-500">Get updates on our latest work and impact stories</p>
+              </form>
+            </div>
+          </div>
+        </Grid>
+
+        {/* Bottom Bar */}
+        <div className={`border-t border-gray-800 ${SPACING.padding.lg}`}>
+          <div className={`flex flex-col md:flex-row justify-between items-center ${SPACING.gap.sm}`}>
+            <p className="text-sm text-gray-400">
+              &copy; {currentYear} HakiArdhi. All rights reserved.
+            </p>
+
+            <div className={`flex flex-wrap items-center justify-center ${SPACING.gap.md} text-sm`}>
+              <Link href="/privacy-policy" className="text-gray-400 hover:text-hakiardhi-red transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 focus-visible:ring-offset-black">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="text-gray-400 hover:text-hakiardhi-red transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 focus-visible:ring-offset-black">
+                Terms of Use
+              </Link>
+              <Link href="/cookie-policy" className="text-gray-400 hover:text-hakiardhi-red transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 focus-visible:ring-offset-black">
+                Cookie Policy
+              </Link>
+              <Link href="/accessibility" className="text-gray-400 hover:text-hakiardhi-red transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 focus-visible:ring-offset-black">
+                Accessibility
+              </Link>
+
+              {/* Language Switcher */}
+              <div className="border-l border-gray-700 pl-4 ml-2">
+                <LanguageSwitcher variant="dropdown" theme="dark" size="sm" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
