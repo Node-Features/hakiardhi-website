@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/database/supabase_client';
 import { redisService } from '@/lib/services/redis.service';
 
-export type FileEntityType = 'activity' | 'stage' | 'incident';
+export type FileEntityType = 'activity' | 'stage' | 'stage_attachment' | 'incident';
 
 export interface FileRecordInput {
   file_url: string;
