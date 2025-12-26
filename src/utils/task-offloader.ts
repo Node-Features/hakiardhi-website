@@ -145,7 +145,7 @@ export const offloadUploadJob = (params: {
 }) => {
   const filesArray = Array.isArray(params.files) ? params.files :
     params.files?.files?.map((f: any) => ({
-      file_name: f.name,
+      file_name: f.file_name,
       file_data: f.file_data,
       mime_type: f.file_type,
       size: f.size,

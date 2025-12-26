@@ -25,27 +25,35 @@ export async function POST(req: NextRequest) {
             media_urls,
         } = incident_data;
 
-        // Find or create user
-        let { data: user } = await db
-            .from("users")
+        // Find or create beneficiary (incidents must be reported by beneficiaries)
+        let { data: beneficiary } = await db
+            .from("beneficiaries")
             .select("id")
             .eq("phone_number", user_phone)
             .single();
 
-        if (!user) {
-            // Create anonymous user
-            const { data: newUser } = await db
-                .from("users")
+        if (!beneficiary) {
+            // Create beneficiary from chatbot reporter
+            const { data: newBeneficiary, error: beneficiaryError } = await db
+                .from("beneficiaries")
                 .insert({
                     first_name: user_name || "Anonymous",
                     last_name: "Reporter",
-                    email: `${user_phone}@reporter.temp`,
                     phone_number: user_phone,
-                    password: "temp_password",
+                    status: 'Active',
+                    role: 'Incident Reporter',
                 })
                 .select()
                 .single();
-            user = newUser;
+
+            if (beneficiaryError) {
+                console.error('Failed to create beneficiary:', beneficiaryError);
+                return NextResponse.json(
+                    { message: "Failed to register reporter" },
+                    { status: 500 }
+                );
+            }
+            beneficiary = newBeneficiary;
         }
 
         // Find incident category
@@ -81,13 +89,13 @@ export async function POST(req: NextRequest) {
             .insert({
                 name: `${incident_type} - ${location?.village || "Unknown"}`,
                 description,
-                reported_by: user?.id,
+                reported_by: beneficiary?.id,
                 category_id: category?.id,
                 region_id,
                 district_id,
                 village_id,
-                credibility_score: 0,
-                validation_tier: 0,
+                status: 'Verification Pending',
+                priority: severity || 'medium',
             })
             .select()
             .single();

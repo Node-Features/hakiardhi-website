@@ -44,11 +44,11 @@ export const StageAttachmentValidation = z.object({
     case_id: z.string().uuid({ message: "Valid case ID is required." }),
     file_data: z.string().min(1, { message: "File data is required." }),
     file_type: z.string().min(1, { message: "File type is required." }),
-    name: z.string().min(1, { message: "File name is required." }).max(255),
+    file_name: z.string().min(1, { message: "File name is required." }).max(255),
     description: z.string().max(500).optional(),
 });
 
 export const StageAttachmentUpdateValidation = z.object({
-    name: z.string().min(1).max(255).optional(),
+    file_name: z.string().min(1).max(255).optional(),
     description: z.string().max(500).optional(),
 });

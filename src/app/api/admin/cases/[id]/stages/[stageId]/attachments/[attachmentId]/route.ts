@@ -64,7 +64,7 @@ export async function GET(
     const { data, error } = await db
         .from("stage_attachments")
         .select(`
-            id, name, file_url, description, file_type, created_at, updated_at,
+            id, file_name, file_url, description, file_type, size, status, created_at, updated_at,
             case_id, stage_id
         `)
         .eq("id", attachmentId)
@@ -118,7 +118,7 @@ export async function GET(
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               file_name:
  *                 type: string
  *                 example: "updated_evidence_document.pdf"
  *               description:

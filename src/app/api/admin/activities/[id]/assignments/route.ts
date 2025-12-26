@@ -14,24 +14,25 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { data, error } = await db
     .from("activity_assignments")
     .select(`
-      id, activity_id, due_date, status, created_at, updated_at,
-      activities(id, name, start_at, end_at),
-      users(id, first_name, last_name, email, phone_number)
+      id, activity_id, project_location_id, due_date, status, created_at, updated_at,
+      activities(id, name, start_date, end_date),
+      users(id, first_name, last_name, email, phone_number),
+      project_locations(id, regions(id, name), districts(id, name), villages(id, name))
     `)
     .eq("activity_id", id);
 
   if (error) return NextResponse.json({ message: error.message }, { status: 400 });
 
-  const formatted = data?.map(a => ({
-    id: a.id,
-    activity_id: a.activity_id,
-    activity: a.activities,
-    assigned_to: a.users,
-    due_date: a.due_date,
-    status: a.status,
-    created_at: a.created_at,
-    updated_at: a.updated_at
-  })) || [];
+ const formatted = data?.map((assignment) => ({
+      id: assignment.id,
+      activity_id: assignment.activity_id,
+      assigned_to: assignment.users || null,
+      due_date: assignment.due_date,
+      status: assignment.status,
+      created_at: assignment.created_at,
+      updated_at: assignment.updated_at,
+      location: assignment.project_locations || null,
+    })) || [];
 
   return NextResponse.json({ success: true, data: formatted });
 }
