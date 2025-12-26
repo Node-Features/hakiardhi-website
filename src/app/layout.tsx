@@ -1,12 +1,10 @@
-import { Outfit } from 'next/font/google';
 import './globals.css';
 
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
-
-const outfit = Outfit({
-  subsets: ["latin"],
-});
+import { AuthProvider } from '@/context/AuthContext';
+import { ToastProvider } from '@/lib/context/ToastContext';
+import ToastContainer from '@/components/ui/Toast';
 
 export default function RootLayout({
   children,
@@ -14,10 +12,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${outfit.className} dark:bg-gray-900`}>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('theme') || 'light';
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="dark:bg-gray-900" suppressHydrationWarning>
         <ThemeProvider>
-          <SidebarProvider>{children}</SidebarProvider>
+          <AuthProvider>
+            <SidebarProvider>
+              <ToastProvider>
+                {children}
+                <ToastContainer />
+              </ToastProvider>
+            </SidebarProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

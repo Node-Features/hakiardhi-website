@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(tee:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint:*)",
+      "Bash(ls:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(npm install:*)",
+      "Bash(find:*)",
+      "Bash(node -e:*)",
+      "Bash(git config:*)",
+      "Bash(git filter-branch:*)"
+    ]
+  }
+}

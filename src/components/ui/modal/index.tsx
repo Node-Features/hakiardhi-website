@@ -1,22 +1,52 @@
 "use client";
 import React, { useRef, useEffect } from "react";
 
+type ModalSize = "sm" | "md" | "lg" | "xl" | "full";
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   className?: string;
   children: React.ReactNode;
-  showCloseButton?: boolean; // New prop to control close button visibility
-  isFullscreen?: boolean; // Default to false for backwards compatibility
+  showCloseButton?: boolean;
+  isFullscreen?: boolean;
+  size?: ModalSize;
 }
+
+interface ModalHeaderProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface ModalBodyProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface ModalFooterProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+const getSizeClasses = (size: ModalSize): string => {
+  const sizeMap: Record<ModalSize, string> = {
+    sm: "max-w-md",
+    md: "max-w-lg",
+    lg: "max-w-2xl",
+    xl: "max-w-4xl",
+    full: "max-w-full mx-4",
+  };
+  return sizeMap[size];
+};
 
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
   children,
-  className,
-  showCloseButton = true, // Default to true for backwards compatibility
+  className = "",
+  showCloseButton = true,
   isFullscreen = false,
+  size = "lg",
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -52,10 +82,10 @@ export const Modal: React.FC<ModalProps> = ({
 
   const contentClasses = isFullscreen
     ? "w-full h-full"
-    : "relative w-full rounded-3xl bg-white  dark:bg-gray-900";
+    : `relative w-full ${getSizeClasses(size)} rounded-3xl bg-white dark:bg-gray-900 max-h-[90vh] overflow-hidden flex flex-col shadow-xl`;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-y-auto modal z-99999">
+    <div className="fixed inset-0 flex items-center justify-center p-4 modal z-99999">
       {!isFullscreen && (
         <div
           className="fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px]"
@@ -64,7 +94,7 @@ export const Modal: React.FC<ModalProps> = ({
       )}
       <div
         ref={modalRef}
-        className={`${contentClasses}  ${className}`}
+        className={`${contentClasses} ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
         {showCloseButton && (
@@ -88,8 +118,41 @@ export const Modal: React.FC<ModalProps> = ({
             </svg>
           </button>
         )}
-        <div>{children}</div>
+        <div className="flex-1 overflow-y-auto">{children}</div>
       </div>
+    </div>
+  );
+};
+
+export const ModalHeader: React.FC<ModalHeaderProps> = ({
+  children,
+  className = "",
+}) => {
+  return (
+    <div
+      className={`border-b border-gray-200 px-6 py-4 dark:border-gray-700 ${className}`}
+    >
+      {children}
+    </div>
+  );
+};
+
+export const ModalBody: React.FC<ModalBodyProps> = ({
+  children,
+  className = "",
+}) => {
+  return <div className={`flex-1 px-6 py-6 ${className}`}>{children}</div>;
+};
+
+export const ModalFooter: React.FC<ModalFooterProps> = ({
+  children,
+  className = "",
+}) => {
+  return (
+    <div
+      className={`border-t border-gray-200 px-6 py-4 dark:border-gray-700 ${className}`}
+    >
+      {children}
     </div>
   );
 };
