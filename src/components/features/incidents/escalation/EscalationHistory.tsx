@@ -163,13 +163,11 @@ export default function EscalationHistory({
 interface ActiveEscalationCardProps {
   escalation: EscalationResponse;
   onViewDetails?: (escalation: EscalationResponse) => void;
-  onResolve?: (escalation: EscalationResponse) => void;
 }
 
 function ActiveEscalationCard({
   escalation,
   onViewDetails,
-  onResolve,
 }: ActiveEscalationCardProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const deadlineUrgency = getDeadlineUrgency(escalation.deadline);
