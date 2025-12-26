@@ -57,7 +57,7 @@ export class UploadJobService {
           file_type: processedFile.fileType,
           size: processedFile.fileSize,
           description: file.description || null,
-          status: 'processed',
+          status: 'completed',
         });
       } else {
         failCount++;

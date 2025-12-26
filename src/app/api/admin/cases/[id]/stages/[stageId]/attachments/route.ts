@@ -288,7 +288,7 @@ export async function POST(
                 file_type,
                 size: fileSize,
                 description: description || null,
-                status: 'processed',
+                status: 'completed',
             })
             .select()
             .single();

@@ -28,7 +28,7 @@ interface ProcessedFile {
   file_path: string;
   mime_type: string;
   size: number;
-  status: 'pending' | 'processed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
 /**

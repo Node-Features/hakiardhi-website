@@ -9,7 +9,7 @@ export interface FileRecordInput {
   file_type?: string;
   size?: number;
   description?: string;
-  status?: 'pending' | 'processing' | 'processed' | 'failed';
+  status?: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
 export interface FileDispatcherOptions {
@@ -41,7 +41,7 @@ export async function dispatchFiles({
     file_type: f.file_type || 'image',
     size: f.size || 0,
     description: f.description || null,
-    status: f.status || 'processed',
+    status: f.status || 'completed',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }));
