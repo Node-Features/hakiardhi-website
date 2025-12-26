@@ -33,7 +33,7 @@ export interface EscalationModalProps {
   isOpen: boolean;
   onClose: () => void;
   incident: IncidentResponse;
-  onEscalationCreated?: (escalation: EscalationResponse) => void;
+  onEscalationCreated?: (escalation: EscalationResponse, createdCase?: any) => void;
 }
 
 interface EscalationFormData {
@@ -44,6 +44,9 @@ interface EscalationFormData {
   description: string;
   priority: EscalationPriority;
   deadline?: string;
+  create_case: boolean;
+  case_title?: string;
+  case_description?: string;
 }
 
 export default function EscalationModal({
@@ -60,6 +63,9 @@ export default function EscalationModal({
     description: '',
     priority: 'medium',
     deadline: '',
+    create_case: false,
+    case_title: '',
+    case_description: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -112,6 +118,9 @@ export default function EscalationModal({
       description: '',
       priority: 'medium',
       deadline: '',
+      create_case: false,
+      case_title: '',
+      case_description: '',
     });
     setErrors({});
   };
@@ -171,6 +180,25 @@ export default function EscalationModal({
       newErrors.priority = 'Priority is required';
     }
 
+    // Validate case fields if create_case is enabled
+    if (formData.create_case) {
+      if (!formData.case_title?.trim()) {
+        newErrors.case_title = 'Case title is required when creating a case';
+      } else if (formData.case_title.trim().length < 10) {
+        newErrors.case_title = 'Case title must be at least 10 characters';
+      } else if (formData.case_title.trim().length > 200) {
+        newErrors.case_title = 'Case title must not exceed 200 characters';
+      }
+
+      if (!formData.case_description?.trim()) {
+        newErrors.case_description = 'Case description is required when creating a case';
+      } else if (formData.case_description.trim().length < 50) {
+        newErrors.case_description = 'Case description must be at least 50 characters';
+      } else if (formData.case_description.trim().length > 5000) {
+        newErrors.case_description = 'Case description must not exceed 5000 characters';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -185,12 +213,17 @@ export default function EscalationModal({
     setIsSubmitting(true);
 
     try {
-      const requestData: CreateEscalationRequest = {
+      const requestData: CreateEscalationRequest & {
+        create_case?: boolean;
+        case_title?: string;
+        case_description?: string;
+      } = {
         incident_id: incident.id,
         escalation_level: formData.escalation_level,
         reason: formData.reason,
         description: formData.description.trim(),
         priority: formData.priority,
+        create_case: formData.create_case,
       };
 
       // Add optional fields
@@ -204,12 +237,30 @@ export default function EscalationModal({
         requestData.deadline = formData.deadline;
       }
 
+      // Add case fields if creating a case
+      if (formData.create_case) {
+        if (formData.case_title?.trim()) {
+          requestData.case_title = formData.case_title.trim();
+        }
+        if (formData.case_description?.trim()) {
+          requestData.case_description = formData.case_description.trim();
+        }
+      }
+
       const response = await escalationsService.create(requestData);
 
-      toast.success('Incident escalated successfully');
+      // Show success message based on whether a case was created
+      if (response.case) {
+        toast.success(
+          `Escalation created successfully! Case #${response.case.reference_number || 'N/A'} has been opened.`,
+          { duration: 5000 }
+        );
+      } else {
+        toast.success('Incident escalated successfully');
+      }
 
       if (onEscalationCreated) {
-        onEscalationCreated(response.data);
+        onEscalationCreated(response.data, response.case);
       }
 
       onClose();
@@ -484,6 +535,113 @@ export default function EscalationModal({
                 Set a deadline for response or action on this escalation
               </p>
             </div>
+
+            {/* Case Creation Section */}
+            <div className="rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50/50 p-5 dark:border-zinc-700 dark:bg-zinc-800/50">
+              <div className="mb-4">
+                <h3 className="mb-2 flex items-center gap-2 text-base font-bold text-zinc-900 dark:text-white">
+                  <svg className="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Case Management
+                </h3>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Open a formal case for legal or complex incidents requiring structured resolution
+                </p>
+              </div>
+
+              {/* Auto-create info banner for admin/executive */}
+              {['admin', 'executive'].includes(formData.escalation_level) && (
+                <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900/30 dark:bg-blue-900/10">
+                  <div className="flex items-start gap-2">
+                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-xs text-blue-700 dark:text-blue-400">
+                      <span className="font-semibold">Auto-create enabled:</span> {formData.escalation_level === 'admin' ? 'Administrator' : 'Executive'} level escalations automatically create a case for formal tracking.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Create Case Checkbox */}
+              <div className="mb-4">
+                <label className="flex cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={formData.create_case || ['admin', 'executive'].includes(formData.escalation_level)}
+                    onChange={(e) => handleChange('create_case', e.target.checked)}
+                    disabled={isSubmitting || ['admin', 'executive'].includes(formData.escalation_level)}
+                    className="mt-0.5 h-5 w-5 cursor-pointer rounded border-zinc-300 text-red-600 focus:ring-2 focus:ring-red-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800"
+                  />
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                      Create a formal case from this escalation
+                    </span>
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      Cases provide structured resolution tracking, legal documentation, and stage management
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Conditional Case Fields */}
+              {(formData.create_case || ['admin', 'executive'].includes(formData.escalation_level)) && (
+                <div className="space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+                  {/* Case Title */}
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-zinc-900 dark:text-white">
+                      Case Title <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.case_title || ''}
+                      onChange={(e) => handleChange('case_title', e.target.value)}
+                      disabled={isSubmitting}
+                      placeholder={`Case: ${incident.name}`}
+                      maxLength={200}
+                      className={`w-full rounded-lg border px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-800 dark:text-white ${
+                        errors.case_title
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                          : 'border-zinc-300 focus:border-red-500 focus:ring-red-500/20 dark:border-zinc-600'
+                      }`}
+                    />
+                    {errors.case_title && (
+                      <p className="mt-1 text-xs text-red-600">{errors.case_title}</p>
+                    )}
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      {formData.case_title?.length || 0}/200 characters (minimum 10)
+                    </p>
+                  </div>
+
+                  {/* Case Description */}
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-zinc-900 dark:text-white">
+                      Case Description <span className="text-red-600">*</span>
+                    </label>
+                    <textarea
+                      value={formData.case_description || ''}
+                      onChange={(e) => handleChange('case_description', e.target.value)}
+                      disabled={isSubmitting}
+                      placeholder="Provide a comprehensive description of the case, including background, current situation, expected outcomes, and any legal or regulatory considerations..."
+                      rows={5}
+                      maxLength={5000}
+                      className={`w-full resize-none rounded-lg border px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-800 dark:text-white ${
+                        errors.case_description
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                          : 'border-zinc-300 focus:border-red-500 focus:ring-red-500/20 dark:border-zinc-600'
+                      }`}
+                    />
+                    {errors.case_description && (
+                      <p className="mt-1 text-xs text-red-600">{errors.case_description}</p>
+                    )}
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      {formData.case_description?.length || 0}/5000 characters (minimum 50)
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </ModalBody>
 
@@ -492,6 +650,7 @@ export default function EscalationModal({
             <Button
               type="button"
               variant="secondary"
+              shape="pill"
               onClick={onClose}
               disabled={isSubmitting}
             >
@@ -499,16 +658,25 @@ export default function EscalationModal({
             </Button>
             <Button
               type="submit"
+              shape="pill"
               disabled={isSubmitting}
-              className="bg-brand-600 hover:bg-brand-700"
+              className="bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <LoadingSpinner size="sm" />
-                  <span>Submitting...</span>
+                  <span>
+                    {formData.create_case || ['admin', 'executive'].includes(formData.escalation_level)
+                      ? 'Creating Escalation & Case...'
+                      : 'Submitting Escalation...'}
+                  </span>
                 </div>
               ) : (
-                'Submit Escalation'
+                <>
+                  {formData.create_case || ['admin', 'executive'].includes(formData.escalation_level)
+                    ? 'Create Escalation & Case'
+                    : 'Submit Escalation'}
+                </>
               )}
             </Button>
           </div>

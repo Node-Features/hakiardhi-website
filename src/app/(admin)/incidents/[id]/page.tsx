@@ -1,26 +1,23 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Tabs from '@/components/ui/tabs/Tabs';
 import Badge from '@/components/ui/badge/Badge';
 import Button from '@/components/ui/button/Button';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
-import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui/modal';
 import { Skeleton, SkeletonCard, SkeletonStatsCard } from '@/components/ui/loading';
 import { PageTransition } from '@/components/ui/transition';
 import { incidentsService } from '@/lib/api/services/incidents';
 import { IncidentResponse } from '@/types/api';
 import { useToast } from '@/lib/context/ToastContext';
-import IncidentProgressFlow from '@/components/features/incidents/IncidentProgressFlow';
 import EscalationHistory from '@/components/features/incidents/escalation/EscalationHistory';
 import EscalationModal from '@/components/features/incidents/escalation/EscalationModal';
 import EscalationDetailModal from '@/components/features/incidents/escalation/EscalationDetailModal';
 import IncidentReminders from '@/components/features/incidents/IncidentReminders';
 import IncidentNotifications from '@/components/features/incidents/IncidentNotifications';
 import IncidentFiles from '@/components/features/incidents/IncidentFiles';
-import IncidentNotes from '@/components/features/incidents/IncidentNotes';
 import type { EscalationResponse } from '@/types/escalation';
 
 export default function IncidentDetailsPage() {
@@ -316,25 +313,13 @@ export default function IncidentDetailsPage() {
         animate="visible"
       >
         <div className="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-900">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/40">
-                <svg className="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Incident Information</h3>
-            </div>
-            <button
-              onClick={loadIncidentDetails.bind(null, true)}
-              disabled={isRefreshing}
-              className="flex items-center gap-2 rounded-lg border border-brand-300 bg-white px-4 py-2 text-sm font-medium text-brand-600 transition-colors hover:border-brand-400 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-brand-600 dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-brand-900/20"
-            >
-              <svg className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/40">
+              <svg className="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              Refresh
-            </button>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Incident Information</h3>
           </div>
         </div>
         <div className="p-6">
@@ -575,13 +560,6 @@ export default function IncidentDetailsPage() {
     </div>
   );
 
-  // Progress Flow Tab
-  const progressFlowTab = incident ? (
-    <Suspense fallback={<SkeletonCard lines={10} />}>
-      <IncidentProgressFlow incidentId={incidentId} />
-    </Suspense>
-  ) : null;
-
   // Escalations Tab
   const escalationsTab = incident ? (
     <Suspense fallback={<SkeletonCard lines={10} />}>
@@ -600,86 +578,108 @@ export default function IncidentDetailsPage() {
     </Suspense>
   ) : null;
 
-  // Notes Tab
-  const notesTab = incident ? (
-    <Suspense fallback={<SkeletonCard lines={10} />}>
-      <IncidentNotes incidentId={incidentId} />
-    </Suspense>
+  // Notifications Tab (Reminders + Notifications)
+  const notificationsTab = incident ? (
+    <div className="space-y-6">
+      <IncidentReminders incidentId={incidentId} />
+      <IncidentNotifications incidentId={incidentId} />
+    </div>
   ) : null;
-
-  const tabs = [
-    { id: 'overview', label: 'Overview', content: overviewTab },
-    { id: 'progress-flow', label: 'Progress Flow', content: progressFlowTab },
-    { id: 'escalations', label: 'Escalations', content: escalationsTab },
-    { id: 'files', label: 'Evidence Files', content: filesTab },
-    { id: 'notes', label: 'Notes', content: notesTab },
-  ];
 
   return (
     <PageTransition>
       <div className="space-y-6">
-        {/* Breadcrumb */}
-        {!isLoading && incident && (
-          <Breadcrumb
-            items={[
-              { label: 'Incidents', href: '/incidents' },
-              { label: incident.name || 'Incident Details' },
-            ]}
-          />
-        )}
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            {
+              label: 'Dashboard',
+              href: '/dashboard',
+              icon: (
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              ),
+            },
+            {
+              label: 'Incidents',
+              href: '/incidents',
+            },
+            {
+              label: incident ? incident.name : 'Loading...',
+            },
+          ]}
+        />
 
         {/* Page Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            {isLoading ? (
-              <>
-                <Skeleton width="w-64" height="h-8" className="mb-2" />
-                <Skeleton width="w-48" height="h-4" />
-              </>
-            ) : incident ? (
-              <>
+        {isLoading || !incident ? (
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <Skeleton width="w-48" height="h-10" className="mb-3" rounded="full" />
+              <Skeleton width="w-64" height="h-8" className="mb-2" />
+              <Skeleton width="w-96" height="h-4" />
+            </div>
+            <Skeleton width="w-20" height="h-6" rounded="full" />
+          </div>
+        ) : (
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <Button
+                onClick={() => router.push('/incidents')}
+                variant="pill"
+                shape="pill"
+                className="mb-3"
+                startIcon={
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                }
+              >
+                Back to Incidents
+              </Button>
+              <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
                   {incident.name}
                 </h1>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Reported on {new Date(incident.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
-              </>
-            ) : null}
+                <button
+                  onClick={() => loadIncidentDetails(true)}
+                  disabled={isRefreshing}
+                  className="group flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 bg-white transition-all duration-200 hover:border-brand-500 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-brand-500 dark:hover:bg-brand-900/30"
+                  title={isRefreshing ? "Refreshing..." : "Refresh incident data"}
+                >
+                  <svg
+                    className={`h-4 w-4 text-gray-600 transition-all duration-300 group-hover:text-brand-600 dark:text-gray-400 dark:group-hover:text-brand-400 ${
+                      isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+              </div>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Incident Details and Management
+              </p>
+            </div>
+            <Badge variant="light" color={getStatusBadgeColor(incident.status) as any}>
+              {incident.status}
+            </Badge>
           </div>
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={() => router.push('/incidents')}
-              className="flex items-center gap-2"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to List
-            </Button>
-          </div>
-        </div>
+        )}
 
         {/* Tabs */}
-        {!isLoading && incident && (
-          <Tabs
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-        )}
-
-        {/* Notification Components */}
-        {incident && (
-          <>
-            <IncidentReminders incidentId={incidentId} />
-            <IncidentNotifications incidentId={incidentId} />
-          </>
-        )}
+        <Tabs
+          tabs={[
+            { id: 'overview', label: 'Overview', content: overviewTab },
+            { id: 'escalations', label: 'Escalations', content: escalationsTab },
+            { id: 'files', label: 'Evidence Files', content: filesTab },
+            { id: 'notifications', label: 'Notifications', content: notificationsTab },
+          ]}
+          defaultTab="overview"
+          onChange={(tabId) => setActiveTab(tabId)}
+        />
 
         {/* Modals */}
         {incident && (
@@ -687,7 +687,11 @@ export default function IncidentDetailsPage() {
             <EscalationModal
               isOpen={isEscalationModalOpen}
               onClose={() => setIsEscalationModalOpen(false)}
-              incidentId={incidentId}
+              incident={incident}
+              onEscalationCreated={() => {
+                setIsEscalationModalOpen(false);
+                loadIncidentDetails(true);
+              }}
             />
             {selectedEscalation && (
               <EscalationDetailModal

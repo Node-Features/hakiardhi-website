@@ -74,11 +74,35 @@ export interface UpdateEscalationRequest {
 }
 
 /**
+ * Attachment file for an escalation
+ */
+export interface EscalationAttachment {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_type: string;
+  file_size?: number;
+  uploaded_at: string;
+}
+
+/**
  * API response for escalation data
  */
 export interface EscalationResponse {
   id: string;
   incident_id: string;
+
+  // Case linkage (for escalations that created formal cases)
+  case_id?: string; // Reference to the legal case
+  case_reference_number?: string; // Case reference number for display
+  case_status?: string; // Current status of the linked case
+
+  // Lawyer assignment (auto-assigned based on capacity)
+  assigned_lawyer_id?: string; // Lawyer assigned to the case
+  assigned_lawyer_name?: string; // Lawyer name for display
+  lawyer_assigned_at?: string; // When lawyer was assigned
+  assignment_method?: 'auto' | 'manual' | 'escalation'; // How assignment was made
+
   escalated_by: string; // User ID
   escalated_by_name: string;
   escalated_to?: string; // User ID (for supervisor/admin)
@@ -90,11 +114,12 @@ export interface EscalationResponse {
   description: string;
   priority: EscalationPriority;
   deadline?: string;
-  status: EscalationStatus;
-  resolution_notes?: string;
-  resolved_at?: string;
+  status: EscalationStatus; // Auto-synced from case status if case_id exists
+  resolution_notes?: string; // Auto-populated from case resolution
+  resolved_at?: string; // Auto-populated from case closure
   created_at: string;
   updated_at: string;
+  attachments?: EscalationAttachment[];
 }
 
 /**
@@ -204,6 +229,24 @@ export const MOCK_ESCALATIONS: EscalationResponse[] = [
     status: 'pending',
     created_at: '2025-12-10T09:00:00Z',
     updated_at: '2025-12-10T09:00:00Z',
+    attachments: [
+      {
+        id: 'att-001',
+        file_name: 'boundary_map.pdf',
+        file_url: 'https://example.com/files/boundary_map.pdf',
+        file_type: 'application/pdf',
+        file_size: 2048576,
+        uploaded_at: '2025-12-10T09:00:00Z',
+      },
+      {
+        id: 'att-002',
+        file_name: 'community_petition.pdf',
+        file_url: 'https://example.com/files/community_petition.pdf',
+        file_type: 'application/pdf',
+        file_size: 1524288,
+        uploaded_at: '2025-12-10T09:05:00Z',
+      },
+    ],
   },
   {
     id: 'esc-002',
@@ -221,6 +264,7 @@ export const MOCK_ESCALATIONS: EscalationResponse[] = [
     status: 'acknowledged',
     created_at: '2025-12-08T14:30:00Z',
     updated_at: '2025-12-09T10:15:00Z',
+    attachments: [],
   },
   {
     id: 'esc-003',
@@ -237,6 +281,16 @@ export const MOCK_ESCALATIONS: EscalationResponse[] = [
     status: 'in_review',
     created_at: '2025-12-07T11:20:00Z',
     updated_at: '2025-12-08T09:45:00Z',
+    attachments: [
+      {
+        id: 'att-003',
+        file_name: 'land_title_A.pdf',
+        file_url: 'https://example.com/files/land_title_A.pdf',
+        file_type: 'application/pdf',
+        file_size: 987654,
+        uploaded_at: '2025-12-07T11:20:00Z',
+      },
+    ],
   },
   {
     id: 'esc-004',
@@ -255,6 +309,7 @@ export const MOCK_ESCALATIONS: EscalationResponse[] = [
     resolved_at: '2025-12-05T15:30:00Z',
     created_at: '2025-12-01T08:00:00Z',
     updated_at: '2025-12-05T15:30:00Z',
+    attachments: [],
   },
   {
     id: 'esc-005',
@@ -273,6 +328,32 @@ export const MOCK_ESCALATIONS: EscalationResponse[] = [
     resolved_at: '2025-12-09T16:00:00Z',
     created_at: '2025-12-06T13:45:00Z',
     updated_at: '2025-12-09T16:00:00Z',
+    attachments: [
+      {
+        id: 'att-004',
+        file_name: 'mediation_agreement.pdf',
+        file_url: 'https://example.com/files/mediation_agreement.pdf',
+        file_type: 'application/pdf',
+        file_size: 654321,
+        uploaded_at: '2025-12-09T15:00:00Z',
+      },
+      {
+        id: 'att-005',
+        file_name: 'stakeholder_list.xlsx',
+        file_url: 'https://example.com/files/stakeholder_list.xlsx',
+        file_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        file_size: 123456,
+        uploaded_at: '2025-12-09T15:05:00Z',
+      },
+      {
+        id: 'att-006',
+        file_name: 'site_photo.jpg',
+        file_url: 'https://example.com/files/site_photo.jpg',
+        file_type: 'image/jpeg',
+        file_size: 3145728,
+        uploaded_at: '2025-12-09T15:10:00Z',
+      },
+    ],
   },
 ];
 

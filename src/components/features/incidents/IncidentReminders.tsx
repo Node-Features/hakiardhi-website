@@ -10,7 +10,7 @@ import type {
 import Badge from '@/components/ui/badge/Badge';
 import Button from '@/components/ui/button/Button';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui/modal';
-import { LoadingSpinner } from '@/components/ui/loading';
+import { SkeletonCard } from '@/components/ui/loading';
 import { toast } from 'react-hot-toast';
 
 export interface IncidentRemindersProps {
@@ -233,11 +233,9 @@ export default function IncidentReminders({ incidentId }: IncidentRemindersProps
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <LoadingSpinner size="md" />
-        <span className="ml-3 text-sm text-gray-500 dark:text-gray-400">
-          Loading reminders...
-        </span>
+      <div className="space-y-3">
+        <SkeletonCard lines={3} />
+        <SkeletonCard lines={3} />
       </div>
     );
   }
@@ -255,6 +253,7 @@ export default function IncidentReminders({ incidentId }: IncidentRemindersProps
         <Button
           onClick={handleOpenCreateModal}
           size="sm"
+          shape="pill"
           startIcon={
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -368,7 +367,7 @@ export default function IncidentReminders({ incidentId }: IncidentRemindersProps
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             Create your first reminder to track important dates and follow-ups
           </p>
-          <Button onClick={handleOpenCreateModal} className="mt-6">
+          <Button onClick={handleOpenCreateModal} shape="pill" className="mt-6">
             Add First Reminder
           </Button>
         </div>
@@ -507,12 +506,13 @@ export default function IncidentReminders({ incidentId }: IncidentRemindersProps
               <Button
                 type="button"
                 variant="secondary"
+                shape="pill"
                 onClick={() => setIsCreateModalOpen(false)}
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" shape="pill" disabled={isSubmitting}>
                 {isSubmitting ? 'Creating...' : 'Create Reminder'}
               </Button>
             </div>
