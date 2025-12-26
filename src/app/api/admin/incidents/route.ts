@@ -177,6 +177,43 @@ export async function POST(req: NextRequest) {
  *           type: string
  *           format: uuid
  *         description: Filter by reporter user ID
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filter by status
+ *       - in: query
+ *         name: priority
+ *         schema:
+ *           type: string
+ *         description: Filter by priority (low, medium, high, urgent)
+ *       - in: query
+ *         name: created_from
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter by created date from (YYYY-MM-DD)
+ *       - in: query
+ *         name: created_to
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter by created date to (YYYY-MM-DD)
+ *       - in: query
+ *         name: month
+ *         schema:
+ *           type: string
+ *         description: Filter by month (1-12, requires year)
+ *       - in: query
+ *         name: quarter
+ *         schema:
+ *           type: string
+ *         description: Filter by quarter (Q1, Q2, Q3, Q4, requires year)
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: string
+ *         description: Filter by year (YYYY)
  *     responses:
  *       200:
  *         description: Incidents retrieved successfully
@@ -266,11 +303,18 @@ export async function GET(req: NextRequest) {
     const page = Number(searchParams.get("page")) || 1;
     const limit = Number(searchParams.get("limit")) || 10;
     const search = searchParams.get("search");
+    const status = searchParams.get("status");
+    const priority = searchParams.get("priority");
     const region_id = searchParams.get("region_id");
     const district_id = searchParams.get("district_id");
     const village_id = searchParams.get("village_id");
     const category_id = searchParams.get("category_id");
     const reported_by = searchParams.get("reported_by");
+    const created_from = searchParams.get("created_from");
+    const created_to = searchParams.get("created_to");
+    const month = searchParams.get("month");
+    const quarter = searchParams.get("quarter");
+    const year = searchParams.get("year");
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
@@ -287,9 +331,15 @@ export async function GET(req: NextRequest) {
             beneficiaries!incidents_reported_by_fkey(id, first_name, last_name, phone_number)
         `, { count: "exact" });
 
-    // Apply filters
+    // Apply basic filters
     if (search) {
         query = query.ilike("name", `%${search}%`);
+    }
+    if (status) {
+        query = query.eq("status", status);
+    }
+    if (priority) {
+        query = query.eq("priority", priority);
     }
     if (region_id) {
         query = query.eq("region_id", region_id);
@@ -305,6 +355,64 @@ export async function GET(req: NextRequest) {
     }
     if (reported_by) {
         query = query.eq("reported_by", reported_by);
+    }
+
+    // Apply date range filters
+    if (created_from) {
+        query = query.gte("created_at", created_from);
+    }
+    if (created_to) {
+        // Add one day to include the entire end date
+        const endDate = new Date(created_to);
+        endDate.setDate(endDate.getDate() + 1);
+        query = query.lt("created_at", endDate.toISOString());
+    }
+
+    // Apply time dimension filters
+    if (year) {
+        const yearNum = parseInt(year);
+        const yearStart = new Date(yearNum, 0, 1).toISOString();
+        const yearEnd = new Date(yearNum + 1, 0, 1).toISOString();
+        query = query.gte("created_at", yearStart).lt("created_at", yearEnd);
+    }
+
+    if (quarter && year) {
+        const yearNum = parseInt(year);
+        let startMonth, endMonth;
+
+        switch (quarter) {
+            case 'Q1':
+                startMonth = 0; // January
+                endMonth = 3;   // April
+                break;
+            case 'Q2':
+                startMonth = 3; // April
+                endMonth = 6;   // July
+                break;
+            case 'Q3':
+                startMonth = 6; // July
+                endMonth = 9;   // October
+                break;
+            case 'Q4':
+                startMonth = 9;  // October
+                endMonth = 12;   // January of next year
+                break;
+            default:
+                startMonth = 0;
+                endMonth = 12;
+        }
+
+        const quarterStart = new Date(yearNum, startMonth, 1).toISOString();
+        const quarterEnd = new Date(yearNum, endMonth, 1).toISOString();
+        query = query.gte("created_at", quarterStart).lt("created_at", quarterEnd);
+    }
+
+    if (month && year) {
+        const yearNum = parseInt(year);
+        const monthNum = parseInt(month) - 1; // JavaScript months are 0-indexed
+        const monthStart = new Date(yearNum, monthNum, 1).toISOString();
+        const monthEnd = new Date(yearNum, monthNum + 1, 1).toISOString();
+        query = query.gte("created_at", monthStart).lt("created_at", monthEnd);
     }
 
     const { data, error, count } = await query
