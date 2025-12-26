@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/database/supabase_client";
 import { StageAttachmentValidation } from "@/lib/cases/validation";
 import { formatZodError } from "@/utils/error_formatter";
+import { uploadFile, StorageBuckets } from "@/lib/services/storage.service";
 import { log } from "@/utils/logger";
 
 const db = supabase(true);
@@ -193,76 +194,99 @@ export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ id: string; stageId: string }> }
 ) {
+    const startTime = Date.now();
     const { id: case_id, stageId: stage_id } = await params;
-    const body = await req.json();
 
-    // Add case_id and stage_id to the body
-    body.case_id = case_id;
-    body.stage_id = stage_id;
-
-    const parsed = StageAttachmentValidation.safeParse(body);
-
-    if (!parsed.success) {
-        const errors = formatZodError(parsed.error);
-        return NextResponse.json({ errors }, { status: 400 });
-    }
-
-    const { file_data, file_type, file_name, description } = parsed.data;
+    log.request('POST', `/api/admin/cases/${case_id}/stages/${stage_id}/attachments`, { case_id, stage_id });
 
     try {
-        // 1. Decode base64 file data
-        let fileBuffer: Buffer;
-        const base64Match = file_data.match(/^data:([^;]+);base64,(.+)$/);
+        const body = await req.json();
 
-        if (base64Match) {
-            // Data URL format
-            fileBuffer = Buffer.from(base64Match[2], 'base64');
-        } else if (/^[A-Za-z0-9+/=]+$/.test(file_data)) {
-            // Plain base64 string
-            fileBuffer = Buffer.from(file_data, 'base64');
-        } else {
-            return NextResponse.json({
-                message: 'Invalid file data format'
-            }, { status: 400 });
+        // Add case_id and stage_id to the body
+        body.case_id = case_id;
+        body.stage_id = stage_id;
+
+        const parsed = StageAttachmentValidation.safeParse(body);
+
+        if (!parsed.success) {
+            const errors = formatZodError(parsed.error);
+            log.validation('Attachment validation failed', errors);
+            const duration = Date.now() - startTime;
+            log.response('POST', `/api/admin/cases/${case_id}/stages/${stage_id}/attachments`, 400, duration);
+            return NextResponse.json({ errors }, { status: 400 });
         }
 
-        // 2. Generate unique file path
-        const timestamp = Date.now();
-        const randomString = Math.random().toString(36).substring(7);
-        const fileExtension = file_name.split('.').pop();
-        const storagePath = `cases/${case_id}/stages/${stage_id}/${timestamp}-${randomString}.${fileExtension}`;
+        const { file_data, file_type, file_name, description } = parsed.data;
 
-        // 3. Upload to Supabase Storage
-        const { data: uploadData, error: uploadError } = await db.storage
-            .from('case-attachments')
-            .upload(storagePath, fileBuffer, {
-                contentType: file_type,
-                upsert: false
-            });
+        log.info('Processing attachment upload', {
+            case_id,
+            stage_id,
+            fileName: file_name,
+            fileType: file_type,
+            hasDescription: !!description,
+            dataLength: file_data.length
+        }, 'STAGE_ATTACHMENTS');
 
-        if (uploadError) {
-            log.error('Failed to upload file to storage', uploadError, 'STAGE_ATTACHMENTS');
+        // Upload base64 file to Supabase Storage using centralized service
+        const uploadResult = await uploadFile(
+            file_data,
+            file_type,
+            {
+                bucket: StorageBuckets.CASES,
+                folder: `cases/${case_id}/stages/${stage_id}`,
+                fileName: `${Date.now()}_${file_name.replace(/[^a-zA-Z0-9.-]/g, '_')}`,
+                makePublic: true
+            }
+        );
+
+        if (!uploadResult.success || !uploadResult.url) {
+            log.error('Storage upload failed', uploadResult.error, 'STAGE_ATTACHMENTS');
+
+            // Check if it's an RLS policy error
+            const isRLSError = uploadResult.error?.includes('row-level security') ||
+                               uploadResult.error?.includes('policy');
+
+            const duration = Date.now() - startTime;
+            log.response('POST', `/api/admin/cases/${case_id}/stages/${stage_id}/attachments`, 500, duration);
+
+            if (isRLSError) {
+                log.warn('RLS policy error detected - policies need to be configured', { success: false }, 'STAGE_ATTACHMENTS');
+                return NextResponse.json({
+                    message: 'File upload failed due to storage permissions',
+                    error: uploadResult.error,
+                    hint: 'Row-Level Security policies need to be configured for the storage bucket.',
+                    quickFix: 'Run this SQL in Supabase Dashboard: CREATE POLICY "Allow uploads" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = \'cases\');'
+                }, { status: 500 });
+            }
+
             return NextResponse.json({
-                message: 'Failed to upload file to storage',
-                error: uploadError.message
+                message: 'File upload failed',
+                error: uploadResult.error
             }, { status: 500 });
         }
 
-        // 4. Get public URL
-        const { data: urlData } = db.storage
-            .from('case-attachments')
-            .getPublicUrl(storagePath);
+        log.info('File uploaded to storage, saving metadata', {
+            case_id,
+            stage_id,
+            fileName: file_name,
+            fileUrl: uploadResult.url,
+            filePath: uploadResult.path
+        }, 'STAGE_ATTACHMENTS');
 
-        // 5. Insert attachment record into database
+        // Calculate file size from base64 data
+        const base64Data = file_data.replace(/^data:.*?;base64,/, '');
+        const fileSize = Buffer.from(base64Data, 'base64').length;
+
+        // Save attachment metadata with URL to database
         const { data: attachment, error: dbError } = await db
             .from('stage_attachments')
             .insert({
                 case_id,
                 stage_id,
-                file_url: urlData.publicUrl,
+                file_url: uploadResult.url,
                 file_name,
                 file_type,
-                size: fileBuffer.length,
+                size: fileSize,
                 description: description || null,
                 status: 'processed',
             })
@@ -270,22 +294,26 @@ export async function POST(
             .single();
 
         if (dbError) {
-            // Rollback: Delete uploaded file
-            await db.storage.from('case-attachments').remove([storagePath]);
-
             log.error('Failed to create attachment record', dbError, 'STAGE_ATTACHMENTS');
+            const duration = Date.now() - startTime;
+            log.response('POST', `/api/admin/cases/${case_id}/stages/${stage_id}/attachments`, 400, duration);
             return NextResponse.json({
                 message: 'Failed to create attachment record',
                 error: dbError.message
-            }, { status: 500 });
+            }, { status: 400 });
         }
 
-        log.info('Stage attachment created successfully', {
-            attachment_id: attachment.id,
-            file_name,
+        const duration = Date.now() - startTime;
+        log.info('✅ Attachment upload completed successfully', {
             case_id,
-            stage_id
+            stage_id,
+            attachment_id: attachment.id,
+            fileName: file_name,
+            fileUrl: uploadResult.url,
+            duration: `${duration}ms`
         }, 'STAGE_ATTACHMENTS');
+
+        log.response('POST', `/api/admin/cases/${case_id}/stages/${stage_id}/attachments`, 201, duration);
 
         return NextResponse.json({
             success: true,
@@ -295,6 +323,8 @@ export async function POST(
 
     } catch (error: any) {
         log.error('Unexpected error uploading attachment', error, 'STAGE_ATTACHMENTS');
+        const duration = Date.now() - startTime;
+        log.response('POST', `/api/admin/cases/${case_id}/stages/${stage_id}/attachments`, 500, duration);
         return NextResponse.json({
             message: 'Failed to upload attachment',
             error: error.message || 'Unknown error'

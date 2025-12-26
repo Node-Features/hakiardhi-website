@@ -105,7 +105,7 @@ export async function DELETE(
         // You can also keep files in storage for audit purposes
         try {
             const urlParts = fileData.file_url.split('/');
-            const bucketIndex = urlParts.findIndex(part => part === 'incidents');
+            const bucketIndex = urlParts.findIndex((part: string) => part === 'incidents');
             if (bucketIndex !== -1) {
                 const storagePath = urlParts.slice(bucketIndex + 1).join('/');
                 const storageClient = supabase(false);
@@ -116,7 +116,7 @@ export async function DELETE(
             }
         } catch (storageError) {
             // Log but don't fail - database record is already deleted
-            log.warn('Failed to delete file from storage (non-critical)', storageError, 'INCIDENT_FILES');
+            log.warn('Failed to delete file from storage (non-critical)', { error: storageError }, 'INCIDENT_FILES');
         }
 
         const duration = Date.now() - startTime;
