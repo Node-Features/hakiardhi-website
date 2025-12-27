@@ -14,7 +14,7 @@ import {getAuthUser} from '@/utils/session'
  *     tags:
  *       - Admin - Roles
  *     summary: Create a new role
- *     description: Create a new role in the system
+ *     description: Create a new role in the system with optional permissions
  *     requestBody:
  *       required: true
  *       content:
@@ -27,15 +27,19 @@ import {getAuthUser} from '@/utils/session'
  *               name:
  *                 type: string
  *                 example: Administrator
+ *               permission_ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *     responses:
- *       200:
+ *       201:
  *         description: Role created successfully
  *       400:
  *         description: Validation error or creation failed
  */
 export async function POST(req: NextRequest) {
   const body = await req.json();
- 
+
   const parsed = RoleSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -44,6 +48,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { name } = parsed.data;
+  const { permission_ids } = body;
 
   const auth_user = await getAuthUser(req)
 
@@ -60,7 +65,52 @@ export async function POST(req: NextRequest) {
     return Response.json({ message: error.message }, { status: 400 });
   }
 
-  return Response.json({ message: "Role created successfully", role: data });
+  // Assign permissions if provided
+  if (permission_ids && Array.isArray(permission_ids) && permission_ids.length > 0) {
+    const rolePermissions = permission_ids.map((permission_id: string) => ({
+      role_id: data.id,
+      permission_id
+    }));
+
+    const { error: permError } = await db
+      .from("role_permissions")
+      .insert(rolePermissions);
+
+    if (permError) {
+      console.error("Error assigning permissions:", permError);
+    }
+  }
+
+  // Fetch the created role with permissions
+  const { data: createdRole } = await db
+    .from("roles")
+    .select(`
+      id,
+      name,
+      role_permissions (
+        permissions (
+          id,
+          name,
+          description
+        )
+      )
+    `)
+    .eq("id", data.id)
+    .single();
+
+  const rolePermissions = createdRole?.role_permissions || [];
+  const permissions = Array.isArray(rolePermissions)
+    ? rolePermissions.map((rp: any) => rp.permissions).filter(Boolean)
+    : [];
+
+  const transformedRole = {
+    id: createdRole?.id,
+    name: createdRole?.name,
+    permissions,
+    permissions_count: permissions.length
+  };
+
+  return Response.json({ message: "Role created successfully", role: transformedRole }, { status: 201 });
 }
 
 /**
@@ -70,7 +120,7 @@ export async function POST(req: NextRequest) {
  *     tags:
  *       - Admin - Roles
  *     summary: List all roles
- *     description: Get paginated list of roles
+ *     description: Get paginated list of roles with permissions
  *     parameters:
  *       - in: query
  *         name: page
@@ -98,7 +148,18 @@ export async function GET(req: Request) {
 
    const { data, error, count } = await db
   .from("roles")
-  .select("*", { count: "exact" })
+  .select(`
+    id,
+    name,
+    role_permissions (
+      permissions (
+        id,
+        name,
+        description
+      )
+    )
+  `, { count: "exact" })
+  .order('name', { ascending: true })
   .range(from, to);
 
 
@@ -106,8 +167,23 @@ if (error) {
   return Response.json({ message: error.message }, { status: 400 });
 }
 
+// Transform data to include permissions array and counts
+const transformedData = data?.map(role => {
+  const rolePermissions = role.role_permissions || [];
+  const permissions = Array.isArray(rolePermissions)
+    ? rolePermissions.map((rp: any) => rp.permissions).filter(Boolean)
+    : [];
+
+  return {
+    id: role.id,
+    name: role.name,
+    permissions,
+    permissions_count: permissions.length
+  };
+});
+
 return Response.json({
-  data,
+  data: transformedData,
   meta: {
     page,
     limit,

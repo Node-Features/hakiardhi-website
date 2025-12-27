@@ -39,13 +39,39 @@ export async function GET(
       return Response.json({ message: "Missing ID" }, { status: 400 });
     }
 
-    const { data, error } = await db.from("roles").select("*").eq("id", id).single();
+    const { data, error } = await db.from("roles")
+      .select(`
+        id,
+        name,
+        role_permissions (
+          permissions (
+            id,
+            name,
+            description
+          )
+        )
+      `)
+      .eq("id", id)
+      .single();
 
     if (error) {
       return Response.json({ message: error.message }, { status: 404 });
     }
 
-    return Response.json({ role: data }, { status: 200 });
+    // Transform data to include permissions array
+    const rolePermissions = data?.role_permissions || [];
+    const permissions = Array.isArray(rolePermissions)
+      ? rolePermissions.map((rp: any) => rp.permissions).filter(Boolean)
+      : [];
+
+    const transformedRole = {
+      id: data.id,
+      name: data.name,
+      permissions,
+      permissions_count: permissions.length
+    };
+
+    return Response.json({ role: transformedRole }, { status: 200 });
   } catch (err) {
     return Response.json({ message: "Server error" }, { status: 500 });
   }

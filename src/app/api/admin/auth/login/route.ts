@@ -41,6 +41,7 @@ export async function POST(req: Request) {
       phone_number,
       sex,
       age_group,
+      status,
       user_roles (
         roles (
           id,
@@ -57,6 +58,14 @@ export async function POST(req: Request) {
         { message: "Account error: Profile not found" },
         { status: 404 }
     );
+    }
+
+    // Check if user account is active
+    if (userData.status !== 'Active') {
+      return Response.json(
+        { message: "Your account is inactive. Please contact an administrator to activate your account." },
+        { status: 403 }
+      );
     }
 
     // Extract role information
