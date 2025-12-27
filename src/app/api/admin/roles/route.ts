@@ -86,9 +86,7 @@ export async function POST(req: NextRequest) {
         permissions (
           id,
           name,
-          description,
-          created_at,
-          updated_at
+          description
         )
       )
     `)
@@ -103,8 +101,6 @@ export async function POST(req: NextRequest) {
   const transformedRole = {
     id: createdRole?.id,
     name: createdRole?.name,
-    created_at: createdRole?.created_at,
-    updated_at: createdRole?.updated_at,
     permissions,
     permissions_count: permissions.length
   };
@@ -156,9 +152,7 @@ export async function GET(req: Request) {
       permissions (
         id,
         name,
-        description,
-        created_at,
-        updated_at
+        description
       )
     )
   `, { count: "exact" })
