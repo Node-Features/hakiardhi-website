@@ -43,6 +43,7 @@ const db = supabase(true);
  *               submitted_by:
  *                 type: string
  *                 format: uuid
+ *                 description: Beneficiary ID (case submitter)
  *               assigned_to:
  *                 type: string
  *                 format: uuid
@@ -150,6 +151,7 @@ export async function POST(req: NextRequest) {
  *         schema:
  *           type: string
  *           format: uuid
+ *         description: Filter by beneficiary ID (case submitter)
  *       - name: reference_number
  *         in: query
  *         schema:
@@ -216,7 +218,7 @@ export async function GET(req: NextRequest) {
             submitted_by, assigned_to, category_id,
             created_at, updated_at,
             categories(id, name, type),
-            users!cases_submitted_by_fkey(id, first_name, last_name, email),
+            beneficiaries!cases_submitted_by_fkey(id, first_name, last_name, phone_number),
             assigned_user:users!cases_assigned_to_fkey(id, first_name, last_name, email)
         `, { count: "exact" });
 

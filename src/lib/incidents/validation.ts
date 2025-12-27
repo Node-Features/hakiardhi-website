@@ -8,6 +8,8 @@ export const IncidentValidation = z.object({
     description: z.string().min(20, { message: "Description must be at least 20 characters." }),
     reported_by: z.string().uuid({ message: "Valid user ID is required." }),
     category_id: z.string().uuid({ message: "Valid category ID is required." }),
+    priority: z.enum(['low', 'medium', 'high', 'urgent']).optional().default('medium'),
+    status: z.string().optional().default('Verification Pending'),
 });
 
 export const IncidentUpdateValidation = z.object({
@@ -17,6 +19,8 @@ export const IncidentUpdateValidation = z.object({
     village_id: z.string().uuid().optional(),
     description: z.string().min(20).optional(),
     category_id: z.string().uuid().optional(),
+    priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+    status: z.string().optional(),
 });
 
 export const IncidentFileValidation = z.object({

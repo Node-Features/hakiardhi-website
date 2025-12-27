@@ -52,7 +52,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             submitted_by, assigned_to, category_id,
             created_at, updated_at,
             categories(id, name, type, description),
-            users!cases_submitted_by_fkey(id, first_name, last_name, email),
+            beneficiaries!cases_submitted_by_fkey(id, first_name, last_name, phone_number),
             assigned_user:users!cases_assigned_to_fkey(id, first_name, last_name, email),
             case_stages(id, case_id, name, description, status, next_stage, created_at, updated_at)
         `)
@@ -175,7 +175,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             submitted_by, assigned_to, category_id,
             created_at, updated_at,
             categories(id, name),
-            submitted_user:users!cases_submitted_by_fkey(id, first_name, last_name, phone_number),
+            submitted_user:beneficiaries!cases_submitted_by_fkey(id, first_name, last_name, phone_number),
             assigned_user:users!cases_assigned_to_fkey(id, first_name, last_name, phone_number)
         `)
         .single();

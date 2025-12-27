@@ -7,7 +7,7 @@ export const CaseValidation = z.object({
     reference_number: z.string().optional(), // Auto-generated if not provided
     description: z.string().min(50, { message: "Description must be at least 50 characters." }).max(5000),
     category_id: z.string().uuid({ message: "Valid category ID is required." }),
-    submitted_by: z.string().uuid({ message: "Valid user ID is required." }),
+    submitted_by: z.string().uuid({ message: "Valid beneficiary ID is required." }),
     assigned_to: z.string().uuid({ message: "Valid user ID is required." }).optional(),
     status: z.enum(CASE_STATUSES).default("Open"),
 });
