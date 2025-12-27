@@ -1,74 +1,9 @@
+import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/database/supabase_client";
-import { RoleSchema } from "@/lib/roles/validation";
+import { PermissionSchema } from "@/lib/roles/validation";
 import { formatZodError } from "@/utils/error_formatter";
 
-const db = supabase(false)
-
-import { NextRequest } from "next/server";
-
-/**
- * @swagger
- * /api/admin/permissions/{id}:
- *   post:
- *     tags:
- *       - Admin - Permissions
- *     summary: Assign permission to role
- *     description: Assign a permission to a role
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Permission ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - role_id
- *             properties:
- *               role_id:
- *                 type: string
- *     responses:
- *       200:
- *         description: Permission assigned successfully
- *       400:
- *         description: Missing ID
- *       404:
- *         description: Permission not found
- *       500:
- *         description: Assignment failed
- */
-export async function POST(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-
-       const { id } = await params;
-
-       const { role_id } = await req.json()
-
-
-    if (!id || !role_id) {
-      return Response.json({ message: "Missing ID" }, { status: 400 });
-    }
-
-       const { data, error } = await db.from("permissions").select("*").eq("id", id).single();
-
-    if (error || !data) {
-      return Response.json({ message: error ? error.message : 'Permission does not exists' }, { status: 404 });
-    }
-
-    const { data: assigned, error: assign_error } = await db.from('role_permissions')
-    .insert({ role_id, permission_id: id}).select().single()
-
-    if(assign_error) return Response.json({ message: 'Assignment failed', assign_error }, { status: 500 })   
-
-    return Response.json({ message: 'Permission has successfully assigned to role', data: assigned})
-}
+const db = supabase(false);
 
 /**
  * @swagger
@@ -91,29 +26,30 @@ export async function POST(
  *         description: Missing ID
  *       404:
  *         description: Permission not found
- *       500:
- *         description: Server error
  */
 export async function GET(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Await params
     const { id } = await params;
     if (!id) {
-      return Response.json({ message: "Missing ID" }, { status: 400 });
+      return NextResponse.json({ message: "Missing ID" }, { status: 400 });
     }
 
-    const { data, error } = await db.from("permissions").select("*").eq("id", id).single();
+    const { data, error } = await db
+      .from("permissions")
+      .select("*")
+      .eq("id", id)
+      .single();
 
     if (error) {
-      return Response.json({ message: error.message }, { status: 404 });
+      return NextResponse.json({ message: error.message }, { status: 404 });
     }
 
-    return Response.json({ role: data }, { status: 200 });
+    return NextResponse.json({ permission: data }, { status: 200 });
   } catch (err) {
-    return Response.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
 
@@ -137,10 +73,10 @@ export async function GET(
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - name
  *             properties:
  *               name:
+ *                 type: string
+ *               description:
  *                 type: string
  *     responses:
  *       200:
@@ -149,28 +85,47 @@ export async function GET(
  *         description: Validation error or update failed
  */
 export async function PUT(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  try {
+    const { id } = await params;
     if (!id) {
-      return Response.json({ message: "Missing ID" }, { status: 400 });
+      return NextResponse.json({ message: "Missing ID" }, { status: 400 });
     }
 
-  const body = await req.json();
+    const body = await req.json();
 
-  const parsed = RoleSchema.safeParse(body);
-  if (!parsed.success) {
-    const errors = formatZodError(parsed.error);
-    return Response.json({ errors }, { status: 400 });
+    const parsed = PermissionSchema.safeParse(body);
+    if (!parsed.success) {
+      const errors = formatZodError(parsed.error);
+      return NextResponse.json({ errors }, { status: 400 });
+    }
+
+    const { name } = parsed.data;
+    const { description } = body;
+
+    const { data, error } = await db
+      .from("permissions")
+      .update({ name, description })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ message: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      message: "Permission updated successfully",
+      permission: data
+    });
+  } catch (err: any) {
+    return NextResponse.json(
+      { message: err.message || "Server error" },
+      { status: 500 }
+    );
   }
-
-  const { name } = parsed.data;
-
-  const { data, error } = await db.from("permissions").update({ name }).eq("id", id).select().single();
-
-  if (error) return Response.json({ message: error.message }, { status: 400 });
-  return Response.json({ message: "Role updated successfully", role: data });
 }
 
 /**
@@ -194,17 +149,23 @@ export async function PUT(
  *         description: Missing ID or deletion failed
  */
 export async function DELETE(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-    
-  const { id } = await params;
+  try {
+    const { id } = await params;
     if (!id) {
-      return Response.json({ message: "Missing ID" }, { status: 400 });
+      return NextResponse.json({ message: "Missing ID" }, { status: 400 });
     }
 
-  const { error } = await db.from("permissions").delete().eq("id", id);
+    const { error } = await db.from("permissions").delete().eq("id", id);
 
-  if (error) return Response.json({ message: error.message }, { status: 400 });
-  return Response.json({ message: "Role deleted successfully" });
+    if (error) {
+      return NextResponse.json({ message: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ message: "Permission deleted successfully" });
+  } catch (err) {
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
 }
