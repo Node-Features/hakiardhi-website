@@ -11,7 +11,7 @@ CREATE TABLE public.incidents (
   district_id uuid,
   village_id uuid,
   description text,
-  reported_by uuid,
+  reported_by uuid,  -- References beneficiaries.id (allows anyone to report incidents)
   category_id uuid,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
@@ -21,9 +21,12 @@ CREATE TABLE public.incidents (
   CONSTRAINT incidents_region_id_fkey FOREIGN KEY (region_id) REFERENCES public.regions(id),
   CONSTRAINT incidents_district_id_fkey FOREIGN KEY (district_id) REFERENCES public.districts(id),
   CONSTRAINT incidents_village_id_fkey FOREIGN KEY (village_id) REFERENCES public.villages(id),
-  CONSTRAINT incidents_reported_by_fkey FOREIGN KEY (reported_by) REFERENCES public.users(id),
+  CONSTRAINT incidents_reported_by_fkey FOREIGN KEY (reported_by) REFERENCES public.beneficiaries(id),  -- CHANGED: Now references beneficiaries instead of users
   CONSTRAINT incidents_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
 );
+
+-- Index for better query performance
+CREATE INDEX IF NOT EXISTS idx_incidents_reported_by ON public.incidents(reported_by);
 
 CREATE TABLE public.incident_files (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/database/supabase_client";
 import { BeneficiaryUpdateValidation } from "@/lib/beneficiaries/validation";
 import { formatZodError } from "@/utils/error_formatter";
+import { normalizePhoneForDB } from "@/utils/phone_formatter";
 
 const db = supabase(true);
 
@@ -59,12 +60,18 @@ export async function PUT(
     return NextResponse.json({ errors }, { status: 400 });
   }
 
+  // Normalize phone number (remove '+' prefix for database storage)
+  const beneficiaryData = {
+    ...parsed.data,
+    phone_number: parsed.data.phone_number ? normalizePhoneForDB(parsed.data.phone_number) : undefined
+  };
+
   // Check for duplicate phone number if being updated
-  if (parsed.data.phone_number) {
+  if (beneficiaryData.phone_number) {
     const { data: existing } = await db
       .from("beneficiaries")
       .select("id")
-      .eq("phone_number", parsed.data.phone_number)
+      .eq("phone_number", beneficiaryData.phone_number)
       .neq("id", id)
       .single();
 
@@ -80,7 +87,7 @@ export async function PUT(
 
   const { data, error } = await db
     .from("beneficiaries")
-    .update(parsed.data)
+    .update(beneficiaryData)
     .eq("id", id)
     .select()
     .single();

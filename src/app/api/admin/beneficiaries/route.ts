@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/database/supabase_client";
 import { BeneficiaryValidation } from "@/lib/beneficiaries/validation";
 import { formatZodError } from "@/utils/error_formatter";
+import { normalizePhoneForDB } from "@/utils/phone_formatter";
 
 const db = supabase(true);
 
@@ -15,12 +16,18 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ errors }, { status: 400 });
     }
 
+    // Normalize phone number (remove '+' prefix for database storage)
+    const beneficiaryData = {
+        ...parsed.data,
+        phone_number: parsed.data.phone_number ? normalizePhoneForDB(parsed.data.phone_number) : undefined
+    };
+
     // Check for duplicate phone number if provided
-    if (parsed.data.phone_number) {
+    if (beneficiaryData.phone_number) {
         const { data: existing } = await db
             .from("beneficiaries")
             .select("id")
-            .eq("phone_number", parsed.data.phone_number)
+            .eq("phone_number", beneficiaryData.phone_number)
             .single();
 
         if (existing) {
@@ -30,11 +37,11 @@ export async function POST(req: NextRequest) {
         }
     }
 
-    console.log('Creating beneficiary with data:', parsed.data);
+    console.log('Creating beneficiary with data:', beneficiaryData);
 
     const { data, error } = await db
         .from("beneficiaries")
-        .insert([parsed.data])
+        .insert([beneficiaryData])
         .select()
         .single();
 
@@ -92,7 +99,9 @@ export async function GET(req: NextRequest) {
         query = query.eq("is_pwd", is_pwd === "true");
     }
     if (status) {
-        query = query.eq("status", status);
+        // Capitalize first letter to match enum type (Active, Inactive, etc.)
+        const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+        query = query.eq("status", formattedStatus);
     }
     if (photo_consent !== null && photo_consent !== undefined) {
         query = query.eq("photo_consent", photo_consent === "true");
