@@ -6,6 +6,76 @@ const db = supabase(false);
 /**
  * @swagger
  * /api/admin/roles/{id}/permissions:
+ *   get:
+ *     tags:
+ *       - Admin - Roles
+ *     summary: Get role permissions
+ *     description: Retrieve all permissions assigned to a role
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Permissions retrieved successfully
+ *       400:
+ *         description: Failed to retrieve permissions
+ */
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: role_id } = await params;
+
+    if (!role_id) {
+      return NextResponse.json(
+        { message: "Missing role ID" },
+        { status: 400 }
+      );
+    }
+
+    // Get role with permissions
+    const { data: role, error } = await db
+      .from("roles")
+      .select(`
+        id,
+        name,
+        role_permissions (
+          permissions (
+            id,
+            name,
+            description,
+            category
+          )
+        )
+      `)
+      .eq("id", role_id)
+      .single();
+
+    if (error) throw error;
+
+    // Extract permissions array
+    const rolePerms = role?.role_permissions || [];
+    const permissions = Array.isArray(rolePerms)
+      ? rolePerms.map((rp: any) => rp.permissions).filter(Boolean)
+      : [];
+
+    return NextResponse.json(permissions);
+  } catch (error: any) {
+    console.error("Error fetching role permissions:", error);
+    return NextResponse.json(
+      { message: error.message || "Failed to fetch permissions" },
+      { status: 400 }
+    );
+  }
+}
+
+/**
+ * @swagger
+ * /api/admin/roles/{id}/permissions:
  *   post:
  *     tags:
  *       - Admin - Roles

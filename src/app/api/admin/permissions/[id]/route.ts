@@ -102,12 +102,11 @@ export async function PUT(
       return NextResponse.json({ errors }, { status: 400 });
     }
 
-    const { name } = parsed.data;
-    const { description } = body;
+    const { name, description, category } = parsed.data;
 
     const { data, error } = await db
       .from("permissions")
-      .update({ name, description })
+      .update({ name, description, category })
       .eq("id", id)
       .select()
       .single();

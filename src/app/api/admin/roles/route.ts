@@ -3,9 +3,8 @@ import { RoleSchema } from "@/lib/roles/validation";
 import { formatZodError } from "@/utils/error_formatter";
 import { supabase } from "@/lib/database/supabase_client";
 import { NextRequest } from 'next/server';
-import {getAuthUser} from '@/utils/session'
 
- const db = supabase(true)
+const db = supabase(false)
 
 /**
  * @swagger
@@ -50,14 +49,8 @@ export async function POST(req: NextRequest) {
   const { name } = parsed.data;
   const { permission_ids } = body;
 
-  const auth_user = await getAuthUser(req)
-
-  if(!auth_user.success) {
-    return Response.json({ message: auth_user.message })
-  }
-
   const { data, error } = await db.from("roles")
-  .insert({ name, user_id: auth_user.data?.user.id }).select().single();
+  .insert({ name }).select().single();
 
   console.log(data, error)
 
@@ -87,11 +80,16 @@ export async function POST(req: NextRequest) {
     .select(`
       id,
       name,
+      created_at,
+      updated_at,
       role_permissions (
         permissions (
           id,
           name,
-          description
+          description,
+          category,
+          created_at,
+          updated_at
         )
       )
     `)
@@ -106,6 +104,8 @@ export async function POST(req: NextRequest) {
   const transformedRole = {
     id: createdRole?.id,
     name: createdRole?.name,
+    created_at: createdRole?.created_at,
+    updated_at: createdRole?.updated_at,
     permissions,
     permissions_count: permissions.length
   };
@@ -151,11 +151,16 @@ export async function GET(req: Request) {
   .select(`
     id,
     name,
+    created_at,
+    updated_at,
     role_permissions (
       permissions (
         id,
         name,
-        description
+        description,
+        category,
+        created_at,
+        updated_at
       )
     )
   `, { count: "exact" })
@@ -177,6 +182,8 @@ const transformedData = data?.map(role => {
   return {
     id: role.id,
     name: role.name,
+    created_at: role.created_at,
+    updated_at: role.updated_at,
     permissions,
     permissions_count: permissions.length
   };

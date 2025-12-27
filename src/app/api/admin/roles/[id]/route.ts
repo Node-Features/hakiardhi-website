@@ -43,11 +43,16 @@ export async function GET(
       .select(`
         id,
         name,
+        created_at,
+        updated_at,
         role_permissions (
           permissions (
             id,
             name,
-            description
+            description,
+            category,
+            created_at,
+            updated_at
           )
         )
       `)
@@ -67,6 +72,8 @@ export async function GET(
     const transformedRole = {
       id: data.id,
       name: data.name,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
       permissions,
       permissions_count: permissions.length
     };
