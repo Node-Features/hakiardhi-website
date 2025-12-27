@@ -234,17 +234,19 @@ export default function CasesPage() {
     switch (status) {
       case 'Open':
         return 'primary';
-      case 'Under Review':
-        return 'warning';
-      case 'Investigation':
-        return 'warning';
-      case 'Legal Action':
-        return 'error';
-      case 'Mediation':
-        return 'info';
       case 'Ongoing':
         return 'primary';
+      case 'In Progress':
+        return 'warning';
+      case 'Referred':
+        return 'warning';
+      case 'Completed':
+        return 'success';
+      case 'Cancelled':
+        return 'error';
       case 'Resolved':
+        return 'success';
+      case 'Won':
         return 'success';
       case 'Closed':
         return 'light';
@@ -633,7 +635,7 @@ export default function CasesPage() {
                   </TableCell>
                   <TableCell
                     isHeader
-                    className="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-700 dark:text-gray-300"
+                    className="px-4 py-3 text-center text-xs font-semibold uppercase text-gray-700 dark:text-gray-300"
                   >
                     ACTIONS
                   </TableCell>
@@ -661,21 +663,38 @@ export default function CasesPage() {
                       key={caseItem.id}
                       className="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50"
                     >
+                      {/* Case Title */}
                       <TableCell className="px-4 py-3">
-                        <div className="max-w-xs">
-                          <p className="font-medium text-gray-800 dark:text-white/90">
-                            {caseItem.title}
-                          </p>
-                          {caseItem.description && (
-                            <p className="mt-1 truncate text-xs text-gray-500 dark:text-gray-400">
-                              {caseItem.description}
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/30 dark:to-brand-800/20">
+                            <svg className="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                            </svg>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-gray-900 dark:text-white/90">
+                              {caseItem.title}
                             </p>
-                          )}
+                            {caseItem.description && (
+                              <p className="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
+                                {caseItem.description}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
-                      <TableCell className="px-4 py-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                        {caseItem.reference_number || '-'}
+
+                      {/* Reference Number */}
+                      <TableCell className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 font-mono text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                          <svg className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                          </svg>
+                          {caseItem.reference_number || 'N/A'}
+                        </span>
                       </TableCell>
+
+                      {/* Status */}
                       <TableCell className="px-4 py-3">
                         <Badge
                           variant="light"
@@ -685,20 +704,62 @@ export default function CasesPage() {
                           {caseItem.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {caseItem.assigned_user
-                          ? `${caseItem.assigned_user.first_name} ${caseItem.assigned_user.last_name}`
-                          : 'Unassigned'}
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {new Date(caseItem.created_at).toLocaleDateString()}
-                      </TableCell>
+
+                      {/* Assigned User */}
                       <TableCell className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-2">
+                        {caseItem.assigned_user ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20">
+                              <svg className="h-4 w-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {`${caseItem.assigned_user.first_name} ${caseItem.assigned_user.last_name}`}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                              <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                              </svg>
+                            </div>
+                            <span className="text-sm italic text-gray-400 dark:text-gray-500">
+                              Unassigned
+                            </span>
+                          </div>
+                        )}
+                      </TableCell>
+
+                      {/* Created Date */}
+                      <TableCell className="px-4 py-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span>{new Date(caseItem.created_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}</span>
+                        </div>
+                      </TableCell>
+
+                      {/* Actions */}
+                      <TableCell className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => router.push(`/cases/${caseItem.id}`)}
-                            className="text-xs text-brand-500 hover:text-brand-600 dark:text-brand-400"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-400 dark:hover:bg-brand-900/50"
+                            title="View case details"
                           >
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
                             View
                           </button>
                           <button
@@ -706,8 +767,12 @@ export default function CasesPage() {
                               setSelectedCase(caseItem);
                               setIsEditModalOpen(true);
                             }}
-                            className="text-xs text-gray-600 hover:text-gray-700 dark:text-gray-400"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                            title="Edit case"
                           >
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
                             Edit
                           </button>
                           <button
@@ -715,8 +780,12 @@ export default function CasesPage() {
                               setSelectedCase(caseItem);
                               setIsReferModalOpen(true);
                             }}
-                            className="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-brand-600 to-brand-700 px-3 py-1.5 text-xs font-medium text-white transition-all hover:from-brand-700 hover:to-brand-800 hover:shadow-md"
+                            title="Refer case"
                           >
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
                             Refer
                           </button>
                         </div>

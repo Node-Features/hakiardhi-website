@@ -56,8 +56,8 @@ export default function CaseDetailsPage() {
       const caseData = (response as any).data || response;
 
       // Handle array responses from Supabase relationships
-      if (caseData.users && Array.isArray(caseData.users)) {
-        caseData.users = caseData.users[0];
+      if (caseData.beneficiaries && Array.isArray(caseData.beneficiaries)) {
+        caseData.beneficiaries = caseData.beneficiaries[0];
       }
       if (caseData.assigned_user && Array.isArray(caseData.assigned_user)) {
         caseData.assigned_user = caseData.assigned_user[0];
@@ -107,16 +107,19 @@ export default function CaseDetailsPage() {
     switch (status) {
       case 'Open':
         return 'primary';
-      case 'Under Review':
-      case 'Investigation':
-        return 'warning';
-      case 'Legal Action':
-        return 'error';
-      case 'Mediation':
-        return 'info';
       case 'Ongoing':
         return 'primary';
+      case 'In Progress':
+        return 'warning';
+      case 'Referred':
+        return 'warning';
+      case 'Completed':
+        return 'success';
+      case 'Cancelled':
+        return 'error';
       case 'Resolved':
+        return 'success';
+      case 'Won':
         return 'success';
       case 'Closed':
         return 'light';
@@ -349,7 +352,7 @@ export default function CaseDetailsPage() {
                 Submitted By
               </div>
               <p className="mt-2 text-base font-medium text-gray-900 dark:text-white">
-                {caseData.users ? `${caseData.users.first_name} ${caseData.users.last_name}` : 'Not specified'}
+                {caseData.beneficiaries ? `${caseData.beneficiaries.first_name} ${caseData.beneficiaries.last_name}` : 'Not specified'}
               </p>
             </div>
 

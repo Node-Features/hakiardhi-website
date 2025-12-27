@@ -137,6 +137,7 @@ export const usersService = {
       total: number;
       active: number;
       inactive: number;
+      suspended: number;
       byRole: Record<string, number>;
       recentlyAdded: number;
     }>('/api/admin/users/stats');
@@ -166,6 +167,35 @@ export const usersService = {
    */
   getPermissions: async (userId: string) => {
     return authApi.get<string[]>(`/api/admin/users/${userId}/permissions`);
+  },
+
+  /**
+   * Get user with full details (role + permissions)
+   * GET /api/admin/users/:id/full
+   */
+  getUserWithDetails: async (id: string) => {
+    return authApi.get(`/api/admin/users/${id}/full`);
+  },
+
+  /**
+   * Bulk update user status
+   * POST /api/admin/users/bulk/status
+   */
+  bulkUpdateStatus: async (userIds: string[], status: string) => {
+    return authApi.post('/api/admin/users/bulk/status', {
+      user_ids: userIds,
+      status,
+    });
+  },
+
+  /**
+   * Reset user password (admin action)
+   * POST /api/admin/users/:id/reset-password
+   */
+  resetPassword: async (userId: string, newPassword: string) => {
+    return authApi.post(`/api/admin/users/${userId}/reset-password`, {
+      new_password: newPassword,
+    });
   },
 };
 

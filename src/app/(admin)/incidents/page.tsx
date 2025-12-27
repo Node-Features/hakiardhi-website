@@ -649,12 +649,6 @@ export default function IncidentsPage() {
                     isHeader
                     className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-700 dark:text-gray-300"
                   >
-                    PRIORITY
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-700 dark:text-gray-300"
-                  >
                     STATUS
                   </TableCell>
                   <TableCell
@@ -671,7 +665,7 @@ export default function IncidentsPage() {
                   </TableCell>
                   <TableCell
                     isHeader
-                    className="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-700 dark:text-gray-300"
+                    className="px-4 py-3 text-center text-xs font-semibold uppercase text-gray-700 dark:text-gray-300"
                   >
                     ACTIONS
                   </TableCell>
@@ -680,14 +674,14 @@ export default function IncidentsPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="py-16">
+                    <TableCell colSpan={7} className="py-16">
                       <LoadingSpinner size="lg" text="Loading incidents..." />
                     </TableCell>
                   </TableRow>
                 ) : incidents.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={7}
                       className="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
                     >
                       No incidents found
@@ -701,57 +695,51 @@ export default function IncidentsPage() {
                     >
                       {/* Incident Name */}
                       <TableCell className="px-4 py-3">
-                        <div className="max-w-xs">
-                          <p className="font-medium text-gray-800 dark:text-white/90">
-                            {incident.name}
-                          </p>
-                          {incident.description && (
-                            <p className="mt-1 truncate text-xs text-gray-500 dark:text-gray-400">
-                              {incident.description}
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-red-100 to-red-50 dark:from-red-900/30 dark:to-red-800/20">
+                            <svg className="h-5 w-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-gray-900 dark:text-white/90">
+                              {incident.name}
                             </p>
-                          )}
+                            {incident.description && (
+                              <p className="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
+                                {incident.description}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
 
                       {/* Category */}
                       <TableCell className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <svg className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="inline-flex items-center gap-1.5 rounded-md bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                           </svg>
-                          <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {getNestedName(incident.categories)}
-                          </span>
+                          {getNestedName(incident.categories)}
                         </div>
                       </TableCell>
 
                       {/* Location */}
                       <TableCell className="px-4 py-3">
                         <div className="flex items-start gap-1.5">
-                          <svg className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
-                          <div className="text-sm">
-                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-gray-700 dark:text-gray-300">
                               {getNestedName(incident.villages)}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
                               {getNestedName(incident.districts)}, {getNestedName(incident.regions)}
                             </p>
                           </div>
                         </div>
-                      </TableCell>
-
-                      {/* Priority */}
-                      <TableCell className="px-4 py-3">
-                        <Badge
-                          variant="light"
-                          color={getPriorityBadgeColor(incident.priority || 'medium') as any}
-                          size="sm"
-                        >
-                          {(incident.priority || 'medium').charAt(0).toUpperCase() + (incident.priority || 'medium').slice(1)}
-                        </Badge>
                       </TableCell>
 
                       {/* Status */}
@@ -773,8 +761,8 @@ export default function IncidentsPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                           </div>
-                          <div className="text-sm">
-                            <p className="font-medium text-gray-700 dark:text-gray-300">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-gray-700 dark:text-gray-300">
                               {getBeneficiaryName(incident.beneficiaries)}
                             </p>
                           </div>
@@ -782,21 +770,32 @@ export default function IncidentsPage() {
                       </TableCell>
 
                       {/* Date */}
-                      <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {new Date(incident.created_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
+                      <TableCell className="px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <svg className="h-4 w-4 flex-shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {new Date(incident.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </div>
                       </TableCell>
 
                       {/* Actions */}
                       <TableCell className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => router.push(`/incidents/${incident.id}`)}
-                            className="text-xs font-medium text-brand-500 transition-colors hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-400 dark:hover:bg-brand-900/50"
                           >
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
                             View
                           </button>
                           <button
@@ -804,14 +803,20 @@ export default function IncidentsPage() {
                               setSelectedIncident(incident);
                               setIsEditModalOpen(true);
                             }}
-                            className="text-xs font-medium text-gray-600 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                           >
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
                             Edit
                           </button>
                           <button
                             onClick={() => handleDeleteIncident(incident.id)}
-                            className="text-xs font-medium text-error-500 transition-colors hover:text-error-600 dark:hover:text-error-400"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
                           >
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                             Delete
                           </button>
                         </div>

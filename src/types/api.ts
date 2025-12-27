@@ -166,7 +166,7 @@ export interface LegalAidResponse {
 // Cases Module
 // ============================================
 
-export type CaseStatus = 'Open' | 'In Progress' | 'Under Review' | 'Investigation' | 'Legal Action' | 'Mediation' | 'Ongoing' | 'Resolved' | 'Closed';
+export type CaseStatus = 'Open' | 'Ongoing' | 'Referred' | 'Completed' | 'Cancelled' | 'Resolved' | 'Won' | 'Closed' | 'In Progress';
 
 export interface CreateCaseRequest {
   title: string;
@@ -200,16 +200,17 @@ export interface CaseResponse {
     id: string;
     name: string;
   }>;
-  users?: {
+  // Beneficiary who submitted the case
+  beneficiaries?: {
     id: string;
     first_name: string;
     last_name: string;
-    email: string;
+    phone_number: string;
   } | Array<{
     id: string;
     first_name: string;
     last_name: string;
-    email: string;
+    phone_number: string;
   }>;
   assigned_user?: {
     id: string;
@@ -411,7 +412,7 @@ export interface IncidentReminder {
 export interface CreateBeneficiaryRequest {
   first_name: string;
   last_name: string;
-  sex?: 'male' | 'female' | 'other';
+  sex?: 'Male' | 'Female' | 'Other';
   role?: string;
   age_group?: string;
   is_pwd?: boolean;
@@ -428,7 +429,7 @@ export interface BeneficiaryResponse {
   id: string;
   first_name: string;
   last_name: string;
-  sex?: 'male' | 'female' | 'other';
+  sex?: 'Male' | 'Female' | 'Other';
   role?: string;
   age_group?: string;
   is_pwd: boolean;
@@ -463,8 +464,8 @@ export interface SignUpRequest {
   email: string;
   password: string;
   phone_number?: string;
-  sex?: 'male' | 'female' | 'other';
-  age_group?: number;
+  sex?: 'Male' | 'Female' | 'Other';
+  age_group?: string;
   photo_consent: boolean;
   role_id: string;
 }
@@ -475,8 +476,8 @@ export interface CreateUserRequest {
   email: string;
   password: string;
   phone_number?: string;
-  sex?: 'male' | 'female' | 'other';
-  age_group?: number;
+  sex?: 'Male' | 'Female' | 'Other';
+  age_group?: string;
   photo_consent?: boolean;
   role_id: string;
   status?: 'Active' | 'Inactive' | 'Suspended';
@@ -487,8 +488,8 @@ export interface UpdateUserRequest {
   first_name?: string;
   last_name?: string;
   phone_number?: string;
-  sex?: 'male' | 'female' | 'other';
-  age_group?: number;
+  sex?: 'Male' | 'Female' | 'Other';
+  age_group?: string;
   role_id?: string;
   is_active?: boolean;
   status?: 'Active' | 'Inactive' | 'Suspended';
@@ -501,11 +502,14 @@ export interface UserResponse {
   email: string;
   phone_number: string | null;
   sex: string | null;
-  age_group: number | null;
+  age_group: string | null;
   photo_consent: boolean;
   status: string;
   created_at: string;
   updated_at: string;
+  role?: RoleResponse; // Optional - included when fetched with full details
+  roles?: RoleResponse; // Alternative field name some endpoints might use
+  role_id?: string; // Role ID if included
 }
 
 export interface AuthResponse {
@@ -562,4 +566,99 @@ export interface UploadJobResponse {
   failed_count: number;
   created_at: string;
   completed_at: string | null;
+}
+
+// ============================================
+// Roles Module
+// ============================================
+
+export interface RoleResponse {
+  id: string;
+  name: string;
+  description?: string | null;
+  created_at: string;
+  updated_at: string;
+  permissions?: PermissionResponse[];
+  users_count?: number;
+  permissions_count?: number;
+}
+
+export interface CreateRoleRequest {
+  name: string;
+  description?: string;
+  permission_ids?: string[];
+}
+
+export interface UpdateRoleRequest {
+  name?: string;
+  description?: string;
+}
+
+export interface RoleWithPermissions extends RoleResponse {
+  permissions: PermissionResponse[];
+}
+
+export interface RoleWithUsers extends RoleResponse {
+  users: UserResponse[];
+}
+
+// ============================================
+// Permissions Module
+// ============================================
+
+export interface PermissionResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  created_at?: string;
+  updated_at?: string;
+  roles_count?: number;
+}
+
+export interface CreatePermissionRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UpdatePermissionRequest {
+  name?: string;
+  description?: string;
+}
+
+export interface PermissionWithRoles extends PermissionResponse {
+  roles: RoleResponse[];
+}
+
+// ============================================
+// User Administration
+// ============================================
+
+export interface UserWithRole extends UserResponse {
+  roles?: RoleResponse;
+  permissions?: string[];
+}
+
+export interface UserStats {
+  total: number;
+  active: number;
+  inactive: number;
+  suspended: number;
+  byRole: Record<string, number>;
+  recentlyAdded: number;
+}
+
+export interface AssignRoleRequest {
+  user_id: string;
+  role_id: string;
+}
+
+export interface AssignPermissionsRequest {
+  role_id: string;
+  permission_ids: string[];
+}
+
+export interface ChangePasswordRequest {
+  user_id: string;
+  new_password: string;
+  confirm_password: string;
 }

@@ -44,6 +44,51 @@ export const beneficiariesService = {
   },
 
   /**
+   * Lookup beneficiary by phone number
+   * GET /api/admin/beneficiaries/lookup?phone_number={phone}
+   */
+  lookupByPhone: async (phoneNumber: string): Promise<{ exists: boolean; data: BeneficiaryResponse | null; message: string }> => {
+    const response = await authApi.get<any>(
+      `/api/admin/beneficiaries/lookup?phone_number=${encodeURIComponent(phoneNumber)}`
+    );
+
+    console.log('🔍 Raw API response type:', typeof response);
+    console.log('🔍 Raw API response:', response);
+    console.log('🔍 Has exists field:', 'exists' in response);
+    console.log('🔍 Has id field:', 'id' in response);
+
+    // Handle two possible response formats from backend:
+    // 1. Wrapped: { success: true, exists: true, data: {...beneficiary...}, message: "..." }
+    // 2. Direct: {...beneficiary...} (when found) or null/error (when not found)
+
+    if (response && typeof response === 'object') {
+      // Check if response has the wrapped format
+      if ('exists' in response && 'data' in response) {
+        // Format 1: Wrapped response
+        return {
+          exists: response.exists,
+          data: response.data,
+          message: response.message || ''
+        };
+      } else if ('id' in response && 'phone_number' in response) {
+        // Format 2: Direct beneficiary object (found)
+        return {
+          exists: true,
+          data: response,
+          message: 'Beneficiary found'
+        };
+      }
+    }
+
+    // Not found or invalid response
+    return {
+      exists: false,
+      data: null,
+      message: 'Beneficiary not found'
+    };
+  },
+
+  /**
    * Create new beneficiary
    * POST /api/admin/beneficiaries
    */

@@ -11,7 +11,7 @@ export interface Beneficiary {
   id: string;
   first_name: string;
   last_name: string;
-  sex?: 'male' | 'female' | 'other';
+  sex?: 'Male' | 'Female' | 'Other';
   role?: string;
   age_group?: string;
   is_pwd: boolean;
@@ -33,7 +33,7 @@ export interface Beneficiary {
 export interface CreateBeneficiaryData {
   first_name: string;
   last_name: string;
-  sex?: 'male' | 'female' | 'other';
+  sex?: 'Male' | 'Female' | 'Other';
   role?: string;
   age_group?: string;
   is_pwd: boolean;
@@ -48,7 +48,7 @@ export interface CreateBeneficiaryData {
 export interface UpdateBeneficiaryData {
   first_name?: string;
   last_name?: string;
-  sex?: 'male' | 'female' | 'other';
+  sex?: 'Male' | 'Female' | 'Other';
   role?: string;
   age_group?: string;
   is_pwd?: boolean;
@@ -358,9 +358,9 @@ export default function BeneficiaryForm({
             <Select
               options={[
                 { value: '', label: 'Select sex' },
-                { value: 'male', label: 'Male' },
-                { value: 'female', label: 'Female' },
-                { value: 'other', label: 'Other' },
+                { value: 'Male', label: 'Male' },
+                { value: 'Female', label: 'Female' },
+                { value: 'Other', label: 'Other' },
               ]}
               placeholder="Select sex"
               defaultValue={formData.sex || ''}

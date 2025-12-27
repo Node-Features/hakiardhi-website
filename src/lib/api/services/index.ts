@@ -13,7 +13,9 @@ export { legalAidService } from './legal-aid';
 export { casesService } from './cases';
 export { incidentsService } from './incidents';
 export { beneficiariesService } from './beneficiaries';
-export { usersService, rolesService } from './users';
+export { usersService } from './users';
+export { rolesService } from './roles';
+export { permissionsService } from './permissions';
 export { uploadsService } from './uploads';
 export {
   settingsService,

@@ -588,12 +588,6 @@ export default function ActivitiesPage() {
                     isHeader
                     className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-700 dark:text-gray-300"
                   >
-                    ENABLED
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-700 dark:text-gray-300"
-                  >
                     START DATE
                   </TableCell>
                   <TableCell
@@ -616,7 +610,7 @@ export default function ActivitiesPage() {
                   </TableCell>
                   <TableCell
                     isHeader
-                    className="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-700 dark:text-gray-300"
+                    className="px-4 py-3 text-center text-xs font-semibold uppercase text-gray-700 dark:text-gray-300"
                   >
                     ACTIONS
                   </TableCell>
@@ -625,14 +619,14 @@ export default function ActivitiesPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="py-16">
+                    <TableCell colSpan={8} className="py-16">
                       <LoadingSpinner size="lg" text="Loading activities..." />
                     </TableCell>
                   </TableRow>
                 ) : activities.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={8}
                       className="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
                     >
                       No activities found
@@ -644,19 +638,44 @@ export default function ActivitiesPage() {
                       key={activity.id}
                       className="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50"
                     >
+                      {/* Activity Name */}
                       <TableCell className="px-4 py-3">
-                        <p className="font-medium text-gray-800 dark:text-white/90">
-                          {activity.name}
-                        </p>
-                        {activity.categories && (
-                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            {activity.categories.name}
-                          </p>
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20">
+                            <svg className="h-5 w-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-gray-900 dark:text-white/90">
+                              {activity.name}
+                            </p>
+                            {activity.categories && (
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                {activity.categories.name}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* Project */}
+                      <TableCell className="px-4 py-3">
+                        {activity.projects?.title ? (
+                          <div className="flex items-center gap-1.5">
+                            <svg className="h-4 w-4 flex-shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {activity.projects.title}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400 dark:text-gray-500">-</span>
                         )}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {activity.projects?.title || '-'}
-                      </TableCell>
+
+                      {/* Status */}
                       <TableCell className="px-4 py-3">
                         <Badge
                           variant="light"
@@ -666,31 +685,67 @@ export default function ActivitiesPage() {
                           {activity.status}
                         </Badge>
                       </TableCell>
+
+                      {/* Start Date */}
                       <TableCell className="px-4 py-3">
-                        <Switch
-                          label=""
-                          defaultChecked={activity.status === 'Ongoing' || activity.status === 'Completed'}
-                          onChange={(checked) => handleStatusToggle(activity, checked)}
-                        />
+                        <div className="flex items-center gap-1.5">
+                          <svg className="h-4 w-4 flex-shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {new Date(activity.start_date).toLocaleDateString()}
+                          </span>
+                        </div>
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {new Date(activity.start_date).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {activity.locations?.length || 0}
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {activity.beneficiaries_count || 0}
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {activity.assignments_count || 0}
-                      </TableCell>
+
+                      {/* Locations */}
                       <TableCell className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          {activity.locations?.length || 0}
+                        </div>
+                      </TableCell>
+
+                      {/* Beneficiaries */}
+                      <TableCell className="px-4 py-3">
+                        <div className="inline-flex items-center gap-1.5 rounded-md bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                          </svg>
+                          {activity.beneficiaries_count || 0}
+                        </div>
+                      </TableCell>
+
+                      {/* Assignments */}
+                      <TableCell className="px-4 py-3">
+                        <div className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                          </svg>
+                          {activity.assignments_count || 0}
+                        </div>
+                      </TableCell>
+
+                      {/* Actions */}
+                      <TableCell className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <Switch
+                            label=""
+                            defaultChecked={activity.status === 'Ongoing' || activity.status === 'Completed'}
+                            onChange={(checked) => handleStatusToggle(activity, checked)}
+                          />
+                          <div className="h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
                           <button
                             onClick={() => router.push(`/activities/${activity.id}`)}
-                            className="text-xs text-brand-500 hover:text-brand-600 dark:text-brand-400"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-400 dark:hover:bg-brand-900/50"
                           >
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
                             View
                           </button>
                           <button
@@ -698,8 +753,11 @@ export default function ActivitiesPage() {
                               setSelectedActivity(activity);
                               setIsEditModalOpen(true);
                             }}
-                            className="text-xs text-gray-600 hover:text-gray-700 dark:text-gray-400"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                           >
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
                             Edit
                           </button>
                           <button
@@ -711,8 +769,11 @@ export default function ActivitiesPage() {
                               });
                               setIsRescheduleModalOpen(true);
                             }}
-                            className="text-xs text-warning-500 hover:text-warning-600"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50"
                           >
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
                             Reschedule
                           </button>
                         </div>

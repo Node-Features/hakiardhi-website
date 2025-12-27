@@ -152,7 +152,7 @@ const othersItems: NavItem[] = [
     name: "Roles & Permissions",
     path: "/roles",
     icon: <LockIcon />,
-    permission: "role_manage",
+    permission: "role_view",
   },
 
   // === SETTINGS ===

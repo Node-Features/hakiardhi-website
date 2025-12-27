@@ -10,7 +10,7 @@ import { LoadingSpinner } from '@/components/ui/loading';
 import { CaseResponse, CreateCaseRequest, UpdateCaseRequest } from '@/types/api';
 import { categoriesService, Category } from '@/lib/api/services/categories';
 import { usersService } from '@/lib/api/services/users';
-import { beneficiariesService } from '@/lib/api/services/beneficiaries';
+import { beneficiariesService, BeneficiaryResponse } from '@/lib/api/services/beneficiaries';
 
 export interface CaseFormProps {
   formId: string;
@@ -39,13 +39,67 @@ export default function CaseForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [categories, setCategories] = useState<Category[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+
+  // Beneficiary lookup states
+  const [beneficiaryPhone, setBeneficiaryPhone] = useState('');
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [beneficiaryExists, setBeneficiaryExists] = useState(false);
+  const [beneficiaryData, setBeneficiaryData] = useState<BeneficiaryResponse | null>(null);
+  const [isCreatingBeneficiary, setIsCreatingBeneficiary] = useState(false);
+  const [beneficiary, setBeneficiary] = useState({
+    first_name: '',
+    last_name: '',
+    national_id: '',
+    phone_number: '',
+    email: '',
+    date_of_birth: '',
+    sex: '',
+    age_group: '',
+    is_pwd: false,
+    photo_consent: false,
+  });
+
+  // Track if we're in edit mode
+  const isEditMode = !!initialData?.id;
 
   // Load dropdown data on mount
   useEffect(() => {
     loadDropdownData();
   }, []);
+
+  // Load existing beneficiary data when editing
+  useEffect(() => {
+    const loadExistingBeneficiary = async () => {
+      if (isEditMode && initialData?.submitted_by) {
+        try {
+          console.log('🔍 Loading existing beneficiary:', initialData.submitted_by);
+
+          // Check if beneficiary data is already included in initialData
+          if (initialData.beneficiaries) {
+            const beneficiaryInfo = Array.isArray(initialData.beneficiaries)
+              ? initialData.beneficiaries[0]
+              : initialData.beneficiaries;
+
+            console.log('✅ Beneficiary data found in initialData:', beneficiaryInfo);
+            setBeneficiaryData(beneficiaryInfo as any);
+            setBeneficiaryExists(true);
+          } else {
+            // Fetch beneficiary data if not included
+            const response = await beneficiariesService.getById(initialData.submitted_by);
+            const beneficiaryInfo = response.data || response;
+            console.log('✅ Beneficiary data fetched:', beneficiaryInfo);
+            setBeneficiaryData(beneficiaryInfo);
+            setBeneficiaryExists(true);
+          }
+        } catch (error) {
+          console.error('❌ Failed to load beneficiary:', error);
+        }
+      }
+    };
+
+    loadExistingBeneficiary();
+  }, [isEditMode, initialData]);
 
   const loadDropdownData = async () => {
     setLoadingData(true);
@@ -57,15 +111,131 @@ export default function CaseForm({
       // Load users for assignment - ONLY active users
       const usersResponse = await usersService.getAll({ limit: 1000, status: 'Active' });
       setUsers(usersResponse.data || []);
-
-      // Load beneficiaries for submitted_by - ONLY active beneficiaries
-      const beneficiariesResponse = await beneficiariesService.getAll({ limit: 1000, status: 'Active' });
-      setBeneficiaries(beneficiariesResponse.data || []);
     } catch (error) {
       console.error('Failed to load dropdown data:', error);
     } finally {
       setLoadingData(false);
     }
+  };
+
+  // Helper to map age group from API format to form format
+  const mapAgeGroup = (apiAgeGroup: string): string => {
+    if (!apiAgeGroup) return '';
+    // Try to extract age range like "18-35" from formats like "Youth (18-35)"
+    const match = apiAgeGroup.match(/(\d+-?\d*\+?)/);
+    if (match) {
+      return match[1]; // Returns "18-35", "0-17", "36-59", or "60+"
+    }
+    // If already in correct format, return as-is
+    if (['0-17', '18-35', '36-59', '60+'].includes(apiAgeGroup)) {
+      return apiAgeGroup;
+    }
+    console.warn('⚠️ Unknown age_group format:', apiAgeGroup);
+    return apiAgeGroup;
+  };
+
+  // Beneficiary lookup by phone
+  const handleBeneficiaryLookup = async () => {
+    console.log('🎯 lookupBeneficiary CALLED with:', beneficiaryPhone);
+
+    // Trim whitespace and normalize phone number
+    let trimmedPhone = beneficiaryPhone.trim();
+
+    console.log('📏 Phone length:', trimmedPhone.length);
+
+    if (trimmedPhone.length < 10) {
+      alert('Please enter a valid phone number (at least 10 digits)');
+      setBeneficiaryExists(false);
+      setBeneficiaryData(null);
+      return;
+    }
+
+    // Normalize phone: remove + if present, keep country code
+    if (trimmedPhone.startsWith('+')) {
+      trimmedPhone = trimmedPhone.substring(1);
+      console.log('📞 Removed + prefix. Normalized phone number:', trimmedPhone);
+    }
+
+    console.log('🔍 Starting lookup for phone:', trimmedPhone);
+    setIsLookingUp(true);
+
+    try {
+      const result = await beneficiariesService.lookupByPhone(trimmedPhone);
+      console.log('📞 Lookup response:', result);
+      console.log('📊 Response structure:', {
+        hasExistsField: 'exists' in result,
+        existsValue: result.exists,
+        hasDataField: 'data' in result,
+        dataValue: result.data,
+        dataId: result.data?.id,
+      });
+
+      if (result && result.exists === true && result.data && result.data.id) {
+        // Beneficiary found - auto-populate
+        console.log('✅ Beneficiary found with ID:', result.data.id);
+        console.log('✅ Beneficiary full data:', result.data);
+
+        setBeneficiaryExists(true);
+        setBeneficiaryData(result.data);
+
+        // Populate form with existing beneficiary data
+        const updatedBeneficiary = {
+          phone_number: trimmedPhone,
+          first_name: result.data.first_name || '',
+          last_name: result.data.last_name || '',
+          national_id: result.data.national_id || '',
+          email: result.data.email || '',
+          date_of_birth: result.data.date_of_birth || '',
+          sex: result.data.sex || '',
+          age_group: mapAgeGroup(result.data.age_group || ''),
+          is_pwd: Boolean(result.data.is_pwd),
+          photo_consent: Boolean(result.data.photo_consent),
+        };
+
+        console.log('📝 Setting form beneficiary data:', updatedBeneficiary);
+        console.log('📝 Original age_group:', result.data.age_group, '→ Mapped:', updatedBeneficiary.age_group);
+        console.log('📝 Original photo_consent:', result.data.photo_consent, '→ Mapped:', updatedBeneficiary.photo_consent);
+
+        setBeneficiary(updatedBeneficiary);
+
+        console.log('✅ Form auto-populated with:', {
+          beneficiaryId: result.data.id,
+          name: `${result.data.first_name} ${result.data.last_name}`,
+          phone: trimmedPhone
+        });
+      } else {
+        // Not found
+        console.log('ℹ️ No beneficiary found. New profile will be created.');
+        console.log('ℹ️ Response details:', {
+          exists: result?.exists,
+          hasData: !!result?.data,
+          dataId: result?.data?.id
+        });
+        setBeneficiaryExists(false);
+        setBeneficiaryData(null);
+
+        // Pre-fill phone number for new beneficiary
+        setBeneficiary(prev => ({
+          ...prev,
+          phone_number: trimmedPhone,
+        }));
+      }
+    } catch (error) {
+      console.error('❌ Error looking up beneficiary:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        phone: trimmedPhone
+      });
+      setBeneficiaryExists(false);
+      setBeneficiaryData(null);
+      alert('Failed to lookup beneficiary. Please try again.');
+    } finally {
+      setIsLookingUp(false);
+    }
+  };
+
+  const handleBeneficiaryChange = (field: string, value: any) => {
+    setBeneficiary(prev => ({ ...prev, [field]: value }));
   };
 
   const validateForm = () => {
@@ -94,17 +264,37 @@ export default function CaseForm({
       newErrors.category_id = 'Category is required';
     }
 
-    // Submitted by validation
-    if (!formData.submitted_by) {
-      newErrors.submitted_by = 'Beneficiary (Submitted by) is required';
+    // Beneficiary validation (only for create mode)
+    if (!isEditMode) {
+      if (!beneficiaryPhone) {
+        newErrors.submitted_by = 'Case submitter phone number is required';
+      } else if (!beneficiaryExists && !beneficiary.first_name) {
+        newErrors.submitted_by = 'Please fill in beneficiary first name';
+      } else if (!beneficiaryExists && !beneficiary.last_name) {
+        newErrors.submitted_by = 'Please fill in beneficiary last name';
+      } else if (!beneficiaryExists && !beneficiary.sex) {
+        newErrors.submitted_by = 'Please select beneficiary sex';
+      } else if (!beneficiaryExists && !beneficiary.age_group) {
+        newErrors.submitted_by = 'Please select beneficiary age group';
+      }
+    } else {
+      // In edit mode, just ensure submitted_by exists
+      if (!formData.submitted_by) {
+        newErrors.submitted_by = 'Case submitter is required';
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isLoading || isCreatingBeneficiary) {
+      console.log('⚠️ Already processing, please wait...');
+      return;
+    }
 
     console.log('📝 CaseForm: Raw form data before validation:', formData);
 
@@ -122,8 +312,68 @@ export default function CaseForm({
       delete submitData.assigned_to;
     }
 
-    console.log('✅ CaseForm: Submitting validated data:', submitData);
-    onSubmit(submitData);
+    try {
+      // Handle beneficiary ID based on mode
+      if (isEditMode) {
+        // EDIT MODE: Preserve existing beneficiary ID
+        console.log('✏️ Edit mode: Preserving beneficiary ID:', submitData.submitted_by);
+        // submitted_by is already in submitData from formData, no changes needed
+      } else {
+        // CREATE MODE: Create or link beneficiary
+        let beneficiaryId: string;
+
+        if (beneficiaryExists && beneficiaryData?.id) {
+          // Use existing beneficiary
+          beneficiaryId = beneficiaryData.id;
+          console.log('✅ Using existing beneficiary ID:', beneficiaryId);
+        } else if (beneficiary.phone_number) {
+          // Create new beneficiary
+          console.log('➕ Creating new beneficiary...');
+          setIsCreatingBeneficiary(true);
+
+          try {
+            const newBeneficiaryData = {
+              first_name: beneficiary.first_name,
+              last_name: beneficiary.last_name,
+              national_id: beneficiary.national_id || undefined,
+              phone_number: beneficiary.phone_number,
+              email: beneficiary.email || undefined,
+              date_of_birth: beneficiary.date_of_birth || undefined,
+              sex: beneficiary.sex,
+              age_group: beneficiary.age_group,
+              is_pwd: beneficiary.is_pwd,
+              photo_consent: beneficiary.photo_consent,
+            };
+
+            const response = await beneficiariesService.create(newBeneficiaryData);
+            const createdBeneficiary = response.data || response;
+            beneficiaryId = createdBeneficiary.id;
+
+            if (!beneficiaryId) {
+              throw new Error('Failed to create beneficiary: No ID returned');
+            }
+
+            console.log('✅ Beneficiary created with ID:', beneficiaryId);
+            setBeneficiaryExists(true);
+            setBeneficiaryData(createdBeneficiary);
+          } finally {
+            setIsCreatingBeneficiary(false);
+          }
+        } else {
+          throw new Error('No beneficiary information provided');
+        }
+
+        // Set the beneficiary ID for new cases
+        submitData.submitted_by = beneficiaryId;
+      }
+
+      console.log('✅ CaseForm: Submitting validated data:', submitData);
+      await onSubmit(submitData);
+    } catch (error) {
+      console.error('❌ Error in form submission:', error);
+      setIsCreatingBeneficiary(false);
+      throw error;
+    }
   };
 
   const handleChange = (field: keyof CreateCaseRequest, value: any) => {
@@ -137,13 +387,14 @@ export default function CaseForm({
   const getStatusColor = (status: string) => {
     const colors: Record<string, 'primary' | 'success' | 'warning' | 'error'> = {
       Open: 'primary',
-      'Under Review': 'warning',
-      Investigation: 'warning',
-      'Legal Action': 'error',
-      Mediation: 'primary',
       Ongoing: 'primary',
+      Referred: 'warning',
+      Completed: 'success',
+      Cancelled: 'error',
       Resolved: 'success',
+      Won: 'success',
       Closed: 'primary',
+      'In Progress': 'warning',
     };
     return colors[status] || 'primary';
   };
@@ -271,13 +522,14 @@ export default function CaseForm({
                 <Select
                   options={[
                     { value: 'Open', label: 'Open' },
-                    { value: 'Under Review', label: 'Under Review' },
-                    { value: 'Investigation', label: 'Investigation' },
-                    { value: 'Legal Action', label: 'Legal Action' },
-                    { value: 'Mediation', label: 'Mediation' },
                     { value: 'Ongoing', label: 'Ongoing' },
+                    { value: 'Referred', label: 'Referred' },
+                    { value: 'Completed', label: 'Completed' },
+                    { value: 'Cancelled', label: 'Cancelled' },
                     { value: 'Resolved', label: 'Resolved' },
+                    { value: 'Won', label: 'Won' },
                     { value: 'Closed', label: 'Closed' },
+                    { value: 'In Progress', label: 'In Progress' },
                   ]}
                   placeholder="Select status"
                   value={formData.status || 'Open'}
@@ -316,41 +568,273 @@ export default function CaseForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          {/* Submitted By - Beneficiary Dropdown */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-zinc-900 dark:text-white">
-              Submitted By (Plaintiff/Beneficiary) <span className="text-red-600">*</span>
-            </label>
-            {loadingData ? (
-              <div className="flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 py-3 dark:border-zinc-700 dark:bg-zinc-800">
-                <LoadingSpinner size="sm" />
-                <span className="ml-2 text-sm text-zinc-500">Loading beneficiaries...</span>
+        {/* Beneficiary Section - Different UI for Edit vs Create */}
+        {isEditMode && beneficiaryData ? (
+          /* READ-ONLY BENEFICIARY INFO FOR EDIT MODE */
+          <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+            <div className="mb-3 flex items-center gap-2">
+              <svg className="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">Case Submitter (Beneficiary)</h4>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Name:</span>
+                <span className="text-sm font-semibold text-zinc-900 dark:text-white">
+                  {beneficiaryData.first_name} {beneficiaryData.last_name}
+                </span>
               </div>
-            ) : (
-              <Select
-                options={[
-                  { value: '', label: 'Select beneficiary' },
-                  ...beneficiaries.map((ben) => ({
-                    value: ben.id,
-                    label: `${ben.first_name} ${ben.last_name}${ben.national_id ? ` (${ben.national_id})` : ''}`,
-                  })),
-                ]}
-                placeholder="Select the case submitter"
-                value={formData.submitted_by}
-                onChange={(value) => handleChange('submitted_by', value)}
-                disabled={isLoading}
-                className={errors.submitted_by ? 'border-red-500' : ''}
-              />
-            )}
-            {errors.submitted_by && (
-              <p className="mt-1 text-xs text-red-600">{errors.submitted_by}</p>
-            )}
+              {beneficiaryData.phone_number && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Phone:</span>
+                  <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                    {beneficiaryData.phone_number}
+                  </span>
+                </div>
+              )}
+              {beneficiaryData.national_id && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">National ID:</span>
+                  <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                    {beneficiaryData.national_id}
+                  </span>
+                </div>
+              )}
+            </div>
+            <p className="mt-3 text-xs italic text-zinc-500 dark:text-zinc-400">
+              ℹ️ Case submitter cannot be changed when editing
+            </p>
+          </div>
+        ) : (
+          /* PHONE LOOKUP FOR CREATE MODE */
+          <div className="space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-zinc-900 dark:text-white">
+                Case Submitter Phone Number <span className="text-red-600">*</span>
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  type="tel"
+                  placeholder="Enter phone number (e.g., 0712345678)"
+                  value={beneficiaryPhone}
+                  onChange={(e) => setBeneficiaryPhone(e.target.value)}
+                  disabled={isLookingUp || beneficiaryExists}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  onClick={handleBeneficiaryLookup}
+                  disabled={isLookingUp || !beneficiaryPhone || beneficiaryExists}
+                  className="whitespace-nowrap"
+                >
+                  {isLookingUp ? (
+                    <div className="flex items-center gap-2">
+                      <LoadingSpinner size="sm" />
+                      <span>Searching...</span>
+                    </div>
+                  ) : (
+                    'Lookup'
+                  )}
+                </Button>
+                {beneficiaryExists && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setBeneficiaryExists(false);
+                      setBeneficiaryData(null);
+                      setBeneficiaryPhone('');
+                      setBeneficiary({
+                        first_name: '',
+                        last_name: '',
+                        national_id: '',
+                        phone_number: '',
+                        email: '',
+                        date_of_birth: '',
+                        sex: '',
+                        age_group: '',
+                        is_pwd: false,
+                        photo_consent: false,
+                      });
+                    }}
+                    className="bg-gray-500 hover:bg-gray-600"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
             <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-              The beneficiary who reported or submitted this case
+              Search for existing beneficiary by phone number
             </p>
           </div>
 
+          {/* Beneficiary Status Message */}
+          {beneficiaryPhone && !isLookingUp && (
+            <div className={`rounded-lg border p-3 ${
+              beneficiaryExists
+                ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+                : 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20'
+            }`}>
+              <p className={`text-sm font-medium ${
+                beneficiaryExists
+                  ? 'text-green-800 dark:text-green-200'
+                  : 'text-yellow-800 dark:text-yellow-200'
+              }`}>
+                {beneficiaryExists
+                  ? '✅ Existing beneficiary found! Details populated below.'
+                  : '➕ No beneficiary found with this phone. Please fill in details to create a new profile.'
+                }
+              </p>
+            </div>
+          )}
+
+          {/* Beneficiary Form Fields */}
+          {beneficiaryPhone && !isLookingUp && (
+            <div className="space-y-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+              <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                {beneficiaryExists ? 'Beneficiary Information' : 'New Beneficiary Details'}
+              </h4>
+
+              {/* Name Fields */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    First Name <span className="text-red-600">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    value={beneficiary.first_name}
+                    onChange={(e) => handleBeneficiaryChange('first_name', e.target.value)}
+                    disabled={beneficiaryExists}
+                    placeholder="Enter first name"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Last Name <span className="text-red-600">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    value={beneficiary.last_name}
+                    onChange={(e) => handleBeneficiaryChange('last_name', e.target.value)}
+                    disabled={beneficiaryExists}
+                    placeholder="Enter last name"
+                  />
+                </div>
+              </div>
+
+              {/* National ID and Sex */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    National ID
+                  </label>
+                  <Input
+                    type="text"
+                    value={beneficiary.national_id}
+                    onChange={(e) => handleBeneficiaryChange('national_id', e.target.value)}
+                    disabled={beneficiaryExists}
+                    placeholder="Enter national ID"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Sex <span className="text-red-600">*</span>
+                  </label>
+                  <Select
+                    options={[
+                      { value: '', label: 'Select sex' },
+                      { value: 'Male', label: 'Male' },
+                      { value: 'Female', label: 'Female' },
+                    ]}
+                    value={beneficiary.sex}
+                    onChange={(value) => handleBeneficiaryChange('sex', value)}
+                    disabled={beneficiaryExists}
+                  />
+                </div>
+              </div>
+
+              {/* Email and Date of Birth */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Email
+                  </label>
+                  <Input
+                    type="email"
+                    value={beneficiary.email}
+                    onChange={(e) => handleBeneficiaryChange('email', e.target.value)}
+                    disabled={beneficiaryExists}
+                    placeholder="Enter email"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Date of Birth
+                  </label>
+                  <Input
+                    type="date"
+                    value={beneficiary.date_of_birth}
+                    onChange={(e) => handleBeneficiaryChange('date_of_birth', e.target.value)}
+                    disabled={beneficiaryExists}
+                  />
+                </div>
+              </div>
+
+              {/* Age Group */}
+              <div>
+                <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  Age Group <span className="text-red-600">*</span>
+                </label>
+                <Select
+                  options={[
+                    { value: '', label: 'Select age group' },
+                    { value: '0-17', label: 'Children (0-17)' },
+                    { value: '18-35', label: 'Youth (18-35)' },
+                    { value: '36-59', label: 'Adults (36-59)' },
+                    { value: '60+', label: 'Elderly (60+)' },
+                  ]}
+                  value={beneficiary.age_group}
+                  onChange={(value) => handleBeneficiaryChange('age_group', value)}
+                  disabled={beneficiaryExists}
+                />
+              </div>
+
+              {/* Checkboxes */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="is_pwd"
+                    checked={beneficiary.is_pwd}
+                    onChange={(e) => handleBeneficiaryChange('is_pwd', e.target.checked)}
+                    disabled={beneficiaryExists}
+                    className="h-4 w-4 rounded border-zinc-300 text-brand-600 focus:ring-brand-500"
+                  />
+                  <label htmlFor="is_pwd" className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Person with Disability (PWD)
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="photo_consent"
+                    checked={beneficiary.photo_consent}
+                    onChange={(e) => handleBeneficiaryChange('photo_consent', e.target.checked)}
+                    disabled={beneficiaryExists}
+                    className="h-4 w-4 rounded border-zinc-300 text-brand-600 focus:ring-brand-500"
+                  />
+                  <label htmlFor="photo_consent" className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Photo Consent
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-1">
           {/* Assigned To - User Dropdown */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-zinc-900 dark:text-white">
@@ -433,16 +917,26 @@ export default function CaseForm({
         <div className="flex items-center justify-end gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
           <Button
             type="submit"
-            disabled={isLoading || loadingData}
+            disabled={isLoading || loadingData || isCreatingBeneficiary}
             className="min-w-32"
           >
-            {isLoading ? (
+            {isCreatingBeneficiary ? (
+              <div className="flex items-center gap-2">
+                <LoadingSpinner size="sm" />
+                <span>Creating Submitter...</span>
+              </div>
+            ) : isLoading ? (
               <div className="flex items-center gap-2">
                 <LoadingSpinner size="sm" />
                 <span>{initialData ? 'Updating...' : 'Creating...'}</span>
               </div>
             ) : (
-              <span>{initialData ? 'Update Case' : 'Create Case'}</span>
+              <div className="flex items-center gap-2">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>{initialData ? 'Update Case' : 'Create Case'}</span>
+              </div>
             )}
           </Button>
         </div>
