@@ -40,24 +40,10 @@ export async function GET(req: NextRequest) {
     // Calculate unassigned
     const unassignedCount = (totalPermissions || 0) - assignedCount;
 
-    // Get permissions by category
-    const { data: categoriesData, error: categoriesError } = await db
-      .from("permissions")
-      .select("category");
-
-    if (categoriesError) throw categoriesError;
-
-    const byCategory: Record<string, number> = {};
-    categoriesData?.forEach((perm: any) => {
-      const category = perm.category || 'Uncategorized';
-      byCategory[category] = (byCategory[category] || 0) + 1;
-    });
-
     return NextResponse.json({
       total: totalPermissions || 0,
       assigned: assignedCount,
       unassigned: Math.max(0, unassignedCount),
-      byCategory,
     });
   } catch (error: any) {
     console.error("Error fetching permission statistics:", error);

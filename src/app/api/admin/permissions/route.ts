@@ -102,11 +102,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ errors }, { status: 400 });
     }
 
-    const { name, description, category } = parsed.data;
+    const { name, description } = parsed.data;
 
     const { data: permission, error } = await db
       .from("permissions")
-      .insert({ name, description, category })
+      .insert({ name, description })
       .select()
       .single();
 

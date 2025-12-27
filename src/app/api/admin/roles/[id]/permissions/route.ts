@@ -47,8 +47,7 @@ export async function GET(
           permissions (
             id,
             name,
-            description,
-            category
+            description
           )
         )
       `)

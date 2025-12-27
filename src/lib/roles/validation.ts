@@ -8,7 +8,6 @@ export const RoleSchema = z.object({
 export const PermissionSchema = z.object({
   name: z.string().min(2, "Permission name must be at least 2 characters"),
   description: z.string().optional(),
-  category: z.string().optional(),
 });
 
 export type PermissionInput = z.infer<typeof PermissionSchema>;

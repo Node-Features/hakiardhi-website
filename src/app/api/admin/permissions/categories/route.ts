@@ -19,21 +19,9 @@ const db = supabase(false);
  */
 export async function GET(req: NextRequest) {
   try {
-    // Get all permissions with categories
-    const { data: permissions, error } = await db
-      .from("permissions")
-      .select("category");
-
-    if (error) throw error;
-
-    // Extract unique categories and filter out null/empty values
-    const categories = [...new Set(
-      permissions
-        ?.map(p => p.category)
-        .filter(cat => cat && cat.trim() !== '')
-    )].sort();
-
-    return NextResponse.json(categories || []);
+    // Categories column has been removed from permissions table
+    // Return empty array for backwards compatibility
+    return NextResponse.json([]);
   } catch (error: any) {
     console.error("Error fetching permission categories:", error);
     return NextResponse.json(
