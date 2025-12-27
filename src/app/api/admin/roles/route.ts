@@ -157,7 +157,6 @@ export async function GET(req: Request) {
         id,
         name,
         description,
-        category,
         created_at,
         updated_at
       )
