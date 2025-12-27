@@ -144,8 +144,6 @@ export async function GET(req: Request) {
   .select(`
     id,
     name,
-    created_at,
-    updated_at,
     role_permissions (
       permissions (
         id,
