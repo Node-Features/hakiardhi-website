@@ -191,15 +191,77 @@ export async function GET(
     req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-    
+
   const { id } = await params;
     if (!id) {
       return Response.json({ message: "Missing ID" }, { status: 400 });
     }
 
-  const { data: user, error } = await db.from("users").select().eq("id", id).single();
+  const { data: user, error } = await db.from("users")
+    .select(`
+      id,
+      first_name,
+      last_name,
+      email,
+      phone_number,
+      sex,
+      age_group,
+      photo_consent,
+      created_at,
+      updated_at,
+      status,
+      user_roles (
+        role_id,
+        roles (
+          id,
+          name,
+          role_permissions (
+            permissions (
+              id,
+              name,
+              description
+            )
+          )
+        )
+      )
+    `)
+    .eq("id", id)
+    .single();
 
   if (error) return NextResponse.json({ message: error.message }, { status: 400 });
 
-  return NextResponse.json({ user });
+  // Transform the data to flatten the role and permissions structure
+  const userRole = user.user_roles?.[0];
+  const roleData = userRole?.roles;
+
+  // Handle both array and object formats from Supabase
+  const role = Array.isArray(roleData) ? roleData[0] : roleData;
+
+  // Extract permissions safely
+  const rolePermissions = role?.role_permissions;
+  const permissions = Array.isArray(rolePermissions)
+    ? rolePermissions.map((rp: any) => rp.permissions)
+    : [];
+
+  const transformedUser = {
+    id: user.id,
+    first_name: user.first_name,
+    last_name: user.last_name,
+    email: user.email,
+    phone_number: user.phone_number,
+    sex: user.sex,
+    age_group: user.age_group,
+    photo_consent: user.photo_consent,
+    created_at: user.created_at,
+    updated_at: user.updated_at,
+    status: user.status,
+    role: role ? {
+      id: role.id,
+      name: role.name
+    } : null,
+    role_id: role?.id || null,
+    permissions: permissions
+  };
+
+  return NextResponse.json({ user: transformedUser });
 }

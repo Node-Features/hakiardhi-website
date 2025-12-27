@@ -125,17 +125,33 @@ export async function GET(req: NextRequest) {
   const to = from + limit - 1;
 
   const { data, error, count } = await db.from("users")
-    .select(`id,
-    first_name,
-    last_name,
-    email,
-    phone_number,
-    sex,
-    age_group,
-    photo_consent,
-    created_at,
-    updated_at,
-    status`, { count: "exact" })
+    .select(`
+      id,
+      first_name,
+      last_name,
+      email,
+      phone_number,
+      sex,
+      age_group,
+      photo_consent,
+      created_at,
+      updated_at,
+      status,
+      user_roles (
+        role_id,
+        roles (
+          id,
+          name,
+          role_permissions (
+            permissions (
+              id,
+              name,
+              description
+            )
+          )
+        )
+      )
+    `, { count: "exact" })
     .order('created_at', { ascending: false})
     .range(from, to);
 
@@ -143,8 +159,43 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
 
+  // Transform the data to flatten the role and permissions structure
+  const transformedData = data?.map(user => {
+    const userRole = user.user_roles?.[0]; // Get first role (assuming one role per user)
+    const roleData = userRole?.roles;
+
+    // Handle both array and object formats from Supabase
+    const role = Array.isArray(roleData) ? roleData[0] : roleData;
+
+    // Extract permissions safely
+    const rolePermissions = role?.role_permissions;
+    const permissions = Array.isArray(rolePermissions)
+      ? rolePermissions.map((rp: any) => rp.permissions)
+      : [];
+
+    return {
+      id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      phone_number: user.phone_number,
+      sex: user.sex,
+      age_group: user.age_group,
+      photo_consent: user.photo_consent,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+      status: user.status,
+      role: role ? {
+        id: role.id,
+        name: role.name
+      } : null,
+      role_id: role?.id || null,
+      permissions: permissions
+    };
+  });
+
   return NextResponse.json({
-    data,
+    data: transformedData,
     meta: {
       page,
       limit,

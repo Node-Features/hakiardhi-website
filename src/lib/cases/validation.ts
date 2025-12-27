@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const CASE_STATUSES = ["Open", "Under Review", "Investigation", "Legal Action", "Mediation", "Ongoing", "Resolved", "Closed"] as const;
+const CASE_STATUSES = ["Open", "Ongoing", "Referred", "Completed", "Cancelled", "Resolved", "Won", "Closed", "In Progress"] as const;
 
 export const CaseValidation = z.object({
     title: z.string().min(10, { message: "Title must be at least 10 characters." }).max(200),
