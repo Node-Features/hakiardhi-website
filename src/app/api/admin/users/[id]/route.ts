@@ -100,10 +100,11 @@ export async function PUT(
     age_group: updateData.age_group,
     photo_consent: updateData.photo_consent,
     updated_at: toEAT(),
-    status: updateData.status
+    status: updateData.status,
+    image_url: updateData.image_url
     })
     .eq("id", id)
-    .select('first_name, last_name, email, phone_number, status, created_at, updated_at')
+    .select('first_name, last_name, email, phone_number, status, created_at, updated_at, image_url')
     .single();
 
   if (error) {
@@ -210,6 +211,7 @@ export async function GET(
       created_at,
       updated_at,
       status,
+      image_url,
       user_roles (
         role_id,
         roles (
@@ -255,6 +257,7 @@ export async function GET(
     created_at: user.created_at,
     updated_at: user.updated_at,
     status: user.status,
+    image_url: user.image_url,
     role: role ? {
       id: role.id,
       name: role.name

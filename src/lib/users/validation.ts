@@ -100,4 +100,10 @@ export const UserUpdateSchema = z.object({
     .min(6, { message: "Role is required" })
     .max(128, { message: "Valid role ID is required" })
     .optional(),
+
+  image_url: z
+    .string()
+    .url({ message: "Image URL must be a valid URL" })
+    .optional()
+    .nullable(),
 });

@@ -72,6 +72,37 @@ export async function POST(req: Request) {
     const userRole = userData.user_roles?.[0]?.roles[0]?.name || null;
     const roleId = userData.user_roles?.[0]?.roles[0]?.id || null;
 
+    // Fetch user permissions through role
+    let permissions: string[] = [];
+    let roles: string[] = [];
+
+    if (userData.user_roles && userData.user_roles.length > 0) {
+      // Get all roles
+      roles = userData.user_roles.map((ur: any) => ur.roles[0]?.name).filter(Boolean);
+
+      // Get all permissions for all user's roles
+      const roleIds = userData.user_roles.map((ur: any) => ur.roles[0]?.id).filter(Boolean);
+
+      if (roleIds.length > 0) {
+        const { data: rolePermissions, error: permError } = await db
+          .from('role_permissions')
+          .select(`
+            permissions (
+              name
+            )
+          `)
+          .in('role_id', roleIds);
+
+        if (!permError && rolePermissions) {
+          // Extract unique permission names
+          const permissionNames = rolePermissions
+            .map((rp: any) => rp.permissions?.name)
+            .filter(Boolean);
+          permissions = [...new Set(permissionNames)]; // Remove duplicates
+        }
+      }
+    }
+
     // Format user data for response
     const userResponse = {
       id: userData.id,
@@ -83,6 +114,8 @@ export async function POST(req: Request) {
       age_group: userData.age_group,
       role: userRole,
       role_id: roleId,
+      roles: roles, // All user roles
+      permissions: permissions, // All user permissions
     };
 
 

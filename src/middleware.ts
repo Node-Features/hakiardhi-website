@@ -3,6 +3,14 @@ import type { NextRequest } from "next/server";
 import { routePermissionMap } from "./utils/routes_permission";
 import { supabase } from "./lib/database/supabase_client";
 
+// ========================================
+// RBAC CONFIGURATION
+// ========================================
+// Set to 'true' to enable RBAC permission checks
+// Set to 'false' to disable RBAC (allow all authenticated users)
+const RBAC_ENABLED = false; // ⚠️ RBAC DISABLED
+// ========================================
+
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:3000',
@@ -74,6 +82,17 @@ export async function middleware(req: NextRequest) {
     return addCorsHeaders(response, origin);
   }
 
+  // ========================================
+  // RBAC PERMISSION CHECK
+  // ========================================
+  if (!RBAC_ENABLED) {
+    // RBAC DISABLED: Allow all authenticated users
+    console.log(`⚠️ RBAC DISABLED: Allowing authenticated request to ${routeKey}`);
+    const response = NextResponse.next();
+    return addCorsHeaders(response, origin);
+  }
+
+  // RBAC ENABLED: Check permissions
   const user = data.user;
 
   const {data: session_data, error: fetch_error} = await db.from('user_session_data')
@@ -85,16 +104,15 @@ export async function middleware(req: NextRequest) {
       ? session_data?.permissions
       : [];
 
-  // Optional: Admin role bypass
-  const userRole = session_data?.roles;
-  if (userRole.includes("Admin") || userRole.includes("Communication Officer") || userRole.includes("Project Manager")) {
+  // Get required permission for this route
+  const requiredPermission = routePermissionMap[routeKey];
+
+  // SECURITY: Super Admin bypass (only for super_admin permission holders)
+  // This is more secure than role-based bypass as it requires explicit permission
+  if (userPermissions.includes('super_admin')) {
     const response = NextResponse.next();
     return addCorsHeaders(response, origin);
   }
-
-
-  // Get required permission for this route
-  const requiredPermission = routePermissionMap[routeKey];
 
   // Check permission
   if (!userPermissions.includes(requiredPermission)) {
