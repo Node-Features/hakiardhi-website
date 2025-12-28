@@ -1,11 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Input from '@/components/ui/form/input/InputField';
 import Select from '@/components/ui/form/Select';
 import Button from '@/components/ui/button/Button';
 import { rolesService } from '@/lib/api/services';
 import { CreateUserRequest, UpdateUserRequest, UserResponse, RoleResponse } from '@/types/api';
+import { api } from '@/lib/api/client';
+import { useToast } from '@/lib/context/ToastContext';
+import Image from 'next/image';
 
 interface UserFormProps {
   formId?: string;

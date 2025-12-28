@@ -111,4 +111,76 @@ export const locationsService = {
 
     return authApi.get<LocationsListResponse<Village>>(url);
   },
+
+  /**
+   * Create a new region
+   * POST /api/admin/regions
+   */
+  createRegion: async (data: { name: string }): Promise<Region> => {
+    return authApi.post<Region>('/api/admin/regions', data);
+  },
+
+  /**
+   * Update a region
+   * PUT /api/admin/regions/:id
+   */
+  updateRegion: async (id: string, data: { name: string }): Promise<Region> => {
+    return authApi.put<Region>(`/api/admin/regions/${id}`, data);
+  },
+
+  /**
+   * Delete a region
+   * DELETE /api/admin/regions/:id
+   */
+  deleteRegion: async (id: string): Promise<void> => {
+    return authApi.delete(`/api/admin/regions/${id}`);
+  },
+
+  /**
+   * Create a new district
+   * POST /api/admin/districts
+   */
+  createDistrict: async (data: { name: string; region_id: string }): Promise<District> => {
+    return authApi.post<District>('/api/admin/districts', data);
+  },
+
+  /**
+   * Update a district
+   * PUT /api/admin/districts/:id
+   */
+  updateDistrict: async (id: string, data: { name: string; region_id: string }): Promise<District> => {
+    return authApi.put<District>(`/api/admin/districts/${id}`, data);
+  },
+
+  /**
+   * Delete a district
+   * DELETE /api/admin/districts/:id
+   */
+  deleteDistrict: async (id: string): Promise<void> => {
+    return authApi.delete(`/api/admin/districts/${id}`);
+  },
+
+  /**
+   * Create a new village
+   * POST /api/admin/villages
+   */
+  createVillage: async (data: { name: string; district_id: string }): Promise<Village> => {
+    return authApi.post<Village>('/api/admin/villages', data);
+  },
+
+  /**
+   * Update a village
+   * PUT /api/admin/villages/:id
+   */
+  updateVillage: async (id: string, data: { name: string; district_id: string }): Promise<Village> => {
+    return authApi.put<Village>(`/api/admin/villages/${id}`, data);
+  },
+
+  /**
+   * Delete a village
+   * DELETE /api/admin/villages/:id
+   */
+  deleteVillage: async (id: string): Promise<void> => {
+    return authApi.delete(`/api/admin/villages/${id}`);
+  },
 };

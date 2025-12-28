@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../../context/SidebarContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   CalenderIcon,
   ChevronDownIcon,
@@ -148,12 +149,6 @@ const othersItems: NavItem[] = [
     icon: <UserIcon />,
     permission: "user_view",
   },
-  {
-    name: "Roles & Permissions",
-    path: "/roles",
-    icon: <LockIcon />,
-    permission: "role_view",
-  },
 
   // === SETTINGS ===
   {
@@ -162,25 +157,81 @@ const othersItems: NavItem[] = [
   },
   {
     name: "Settings",
-    path: "/settings",
     icon: <SettingsIcon />,
     permission: "settings_manage",
+    subItems: [
+      {
+        name: "Roles & Permissions",
+        path: "/settings/roles",
+        icon: <LockIcon />,
+        permission: "role_view",
+      },
+      {
+        name: "Constants",
+        path: "/settings/constants",
+        permission: "settings_manage",
+      },
+      {
+        name: "Locations",
+        path: "/settings/locations",
+        permission: "settings_manage",
+      },
+    ],
   },
 ];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const { can } = usePermissions();
+
+  // State declarations
+  const [openSubmenu, setOpenSubmenu] = useState<{
+    type: "main" | "others";
+    index: number;
+  } | null>(null);
+  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
+    {}
+  );
+  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // isActive callback
+  const isActive = useCallback((path: string) => path === pathname, [pathname]);
+
+  // Filter nav items based on permissions
+  const filterNavItems = (items: NavItem[]): NavItem[] => {
+    return items.filter(item => {
+      // Always show dividers
+      if (item.divider) return true;
+
+      // Check if user has permission for this item
+      if (item.permission && !can(item.permission)) return false;
+
+      // Filter sub-items based on permissions
+      if (item.subItems) {
+        item.subItems = item.subItems.filter(subItem =>
+          !subItem.permission || can(subItem.permission)
+        );
+        // Hide parent if all sub-items are filtered out
+        return item.subItems.length > 0;
+      }
+
+      return true;
+    });
+  };
 
   const renderMenuItems = (
     navItems: NavItem[],
     menuType: "main" | "others"
-  ) => (
-    <ul className="flex flex-col gap-4">
-      {navItems.map((nav, index) => (
-        <li key={nav.name}>
-          {/* Section Divider */}
-          {nav.divider ? (
+  ) => {
+    const filteredItems = filterNavItems(navItems);
+
+    return (
+      <ul className="flex flex-col gap-4">
+        {filteredItems.map((nav, index) => (
+          <li key={nav.name}>
+            {/* Section Divider */}
+            {nav.divider ? (
             <h2
               className={`mb-2 mt-4 text-xs uppercase flex leading-[20px] text-gray-400 font-semibold ${
                 !isExpanded && !isHovered
@@ -289,19 +340,8 @@ const AppSidebar: React.FC = () => {
         </li>
       ))}
     </ul>
-  );
-
-  const [openSubmenu, setOpenSubmenu] = useState<{
-    type: "main" | "others";
-    index: number;
-  } | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
-    {}
-  );
-  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  // const isActive = (path: string) => path === pathname;
-   const isActive = useCallback((path: string) => path === pathname, [pathname]);
+    );
+  };
 
   useEffect(() => {
     // Check if the current path matches any submenu item

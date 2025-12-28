@@ -707,7 +707,7 @@ export default function CasesPage() {
 
                       {/* Assigned User */}
                       <TableCell className="px-4 py-3">
-                        {caseItem.assigned_user ? (
+                        {caseItem.assigned_user && !Array.isArray(caseItem.assigned_user) ? (
                           <div className="flex items-center gap-2">
                             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20">
                               <svg className="h-4 w-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

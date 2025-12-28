@@ -70,6 +70,8 @@ export const authService = {
         age_group?: string;
         role?: string;
         role_id?: string;
+        roles?: string[]; // All user roles
+        permissions?: string[]; // All user permissions
       };
     }>('/api/admin/auth/login', data);
 

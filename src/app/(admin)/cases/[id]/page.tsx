@@ -232,8 +232,8 @@ export default function CaseDetailsPage() {
             <div className="flex-1">
               <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Category</p>
               <p className="mt-2 text-base font-bold text-gray-900 dark:text-white">
-                {caseData.categories?.name || 'Not specified'}
-              </p>
+                  {Array.isArray(caseData.categories) ? caseData.categories[0]?.name || 'Not specified' : caseData.categories?.name || 'Not specified'}
+                </p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40">
               <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -339,7 +339,7 @@ export default function CaseDetailsPage() {
                 Category
               </div>
               <p className="mt-2 text-base font-medium text-gray-900 dark:text-white">
-                {caseData.categories?.name || 'Not specified'}
+                {Array.isArray(caseData.categories) ? caseData.categories[0]?.name || 'Not specified' : caseData.categories?.name || 'Not specified'}
               </p>
             </div>
 
@@ -352,7 +352,11 @@ export default function CaseDetailsPage() {
                 Submitted By
               </div>
               <p className="mt-2 text-base font-medium text-gray-900 dark:text-white">
-                {caseData.beneficiaries ? `${caseData.beneficiaries.first_name} ${caseData.beneficiaries.last_name}` : 'Not specified'}
+                {caseData.beneficiaries ? (
+                  Array.isArray(caseData.beneficiaries) 
+                    ? `${caseData.beneficiaries[0]?.first_name} ${caseData.beneficiaries[0]?.last_name}` 
+                    : `${caseData.beneficiaries.first_name} ${caseData.beneficiaries.last_name}`
+                ) : 'Not specified'}
               </p>
             </div>
 
@@ -366,7 +370,9 @@ export default function CaseDetailsPage() {
               </div>
               <p className="mt-2 text-base font-medium text-gray-900 dark:text-white">
                 {caseData.assigned_user ? (
-                  `${caseData.assigned_user.first_name} ${caseData.assigned_user.last_name}`
+                  Array.isArray(caseData.assigned_user)
+                    ? `${caseData.assigned_user[0]?.first_name} ${caseData.assigned_user[0]?.last_name}`
+                    : `${caseData.assigned_user.first_name} ${caseData.assigned_user.last_name}`
                 ) : (
                   <span className="text-gray-400 dark:text-gray-500">Unassigned</span>
                 )}
@@ -440,7 +446,7 @@ export default function CaseDetailsPage() {
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">The case is currently:</p>
               <div className="mt-2">
-                <Badge variant="light" color={getStatusBadgeColor(caseData.status) as any} size="lg">
+                <Badge variant="light" color={getStatusBadgeColor(caseData.status) as any} size="md">
                   {caseData.status}
                 </Badge>
               </div>

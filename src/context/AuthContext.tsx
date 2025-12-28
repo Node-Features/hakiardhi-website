@@ -17,9 +17,11 @@ export interface User {
   photo_consent?: boolean;
   status?: string;
   created_at?: string;
-  role?: string;
-  role_id?: string;
+  role?: string; // Primary role name
+  role_id?: string; // Primary role ID
+  roles?: string[]; // All user roles (for users with multiple roles)
   image_url?: string | null;
+  permissions?: string[]; // All user permissions (from all roles)
 }
 
 type AuthContextType = {

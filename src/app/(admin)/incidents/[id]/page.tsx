@@ -267,7 +267,7 @@ export default function IncidentDetailsPage() {
             <div className="flex-1">
               <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Category</p>
               <p className="mt-2 text-base font-bold text-gray-900 dark:text-white">
-                {incident.categories?.name || 'Not specified'}
+                {Array.isArray(incident.categories) ? incident.categories[0]?.name || 'Not specified' :   incident.categories?.name || 'Not specified'}
               </p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40">
@@ -346,9 +346,9 @@ export default function IncidentDetailsPage() {
                 Category
               </div>
               <p className="mt-2 text-base font-medium text-gray-900 dark:text-white">
-                {incident.categories?.name || 'Not specified'}
+                {Array.isArray(incident.categories) ? incident.categories[0]?.name || 'Not specified' : incident.categories?.name || 'Not specified'}
               </p>
-              {incident.categories?.description && (
+              {Array.isArray(incident.categories) ? incident.categories[0]?.description : incident.categories?.description && (
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {incident.categories.description}
                 </p>
@@ -365,12 +365,18 @@ export default function IncidentDetailsPage() {
               </div>
               <p className="mt-2 text-base font-medium text-gray-900 dark:text-white">
                 {incident.beneficiaries
-                  ? `${incident.beneficiaries.first_name} ${incident.beneficiaries.last_name}`
+                  ? Array.isArray(incident.beneficiaries)
+                    ? `${incident.beneficiaries[0]?.first_name} ${incident.beneficiaries[0]?.last_name}`
+                    : `${incident.beneficiaries.first_name} ${incident.beneficiaries.last_name}`
                   : 'Anonymous'}
               </p>
-              {incident.beneficiaries?.phone_number && (
+              {(Array.isArray(incident.beneficiaries)
+                ? incident.beneficiaries[0]?.phone_number
+                : incident.beneficiaries?.phone_number) && (
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {incident.beneficiaries.phone_number}
+                  {Array.isArray(incident.beneficiaries)
+                    ? incident.beneficiaries[0]?.phone_number
+                    : incident.beneficiaries?.phone_number}
                 </p>
               )}
             </div>
@@ -441,7 +447,7 @@ export default function IncidentDetailsPage() {
                 Region
               </div>
               <p className="mt-2 text-base font-medium text-gray-900 dark:text-white">
-                {incident.regions?.name?.trim() || 'Not specified'}
+                {Array.isArray(incident.regions) ? incident.regions[0]?.name?.trim() || 'Not specified' : incident.regions?.name?.trim() || 'Not specified'}
               </p>
             </div>
 
@@ -454,7 +460,7 @@ export default function IncidentDetailsPage() {
                 District
               </div>
               <p className="mt-2 text-base font-medium text-gray-900 dark:text-white">
-                {incident.districts?.name || 'Not specified'}
+                {Array.isArray(incident.districts) ? incident.districts[0]?.name || 'Not specified' : incident.districts?.name || 'Not specified'}
               </p>
             </div>
 
@@ -467,7 +473,7 @@ export default function IncidentDetailsPage() {
                 Village
               </div>
               <p className="mt-2 text-base font-medium text-gray-900 dark:text-white">
-                {incident.villages?.name || 'Not specified'}
+                {Array.isArray(incident.villages) ? incident.villages[0]?.name || 'Not specified' : incident.villages?.name || 'Not specified'}
               </p>
             </div>
           </div>

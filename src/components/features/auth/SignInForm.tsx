@@ -29,6 +29,16 @@ export default function SignInForm() {
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
+  // Check if user is already authenticated
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      // User is already logged in, redirect to dashboard
+      const redirectUrl = searchParams.get('redirect') || '/';
+      router.replace(redirectUrl);
+    }
+  }, [router, searchParams]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
