@@ -33,11 +33,11 @@ export default function UserForm({
     email: initialData?.email || '',
     password: '',
     phone_number: initialData?.phone_number || '',
-    sex: initialData?.sex || '',
+    sex: (initialData?.sex as 'male' | 'female' | 'other' | undefined) || undefined,
     age_group: initialData?.age_group || '',
     photo_consent: initialData?.photo_consent || false,
     role_id: initialData?.role_id || (initialData as any)?.role?.id || (initialData as any)?.roles?.id || '',
-    status: initialData?.status || 'Active',
+    status: (initialData?.status as 'Active' | 'Inactive' | 'Suspended' | undefined) || 'Active',
   });
 
   const [roles, setRoles] = useState<RoleResponse[]>([]);
@@ -52,8 +52,7 @@ export default function UserForm({
     setLoadingRoles(true);
     try {
       const response = await rolesService.getAll();
-      const data = response.data || response;
-      setRoles(Array.isArray(data) ? data : data.data || []);
+      setRoles(response.data || []);
     } catch (error) {
       console.error('Failed to load roles:', error);
     } finally {
@@ -148,7 +147,7 @@ export default function UserForm({
               value={formData.first_name}
               onChange={(e) => handleChange('first_name', e.target.value)}
               placeholder="John"
-              error={errors.first_name}
+              error={!!errors.first_name}
             />
           </div>
 
@@ -161,7 +160,7 @@ export default function UserForm({
               value={formData.last_name}
               onChange={(e) => handleChange('last_name', e.target.value)}
               placeholder="Doe"
-              error={errors.last_name}
+              error={!!errors.last_name}
             />
           </div>
 
@@ -174,7 +173,7 @@ export default function UserForm({
               value={formData.email}
               onChange={(e) => handleChange('email', e.target.value)}
               placeholder="john.doe@example.com"
-              error={errors.email}
+              error={!!errors.email}
             />
           </div>
 
@@ -199,9 +198,9 @@ export default function UserForm({
               onChange={(value) => handleChange('sex', value)}
               options={[
                 { value: '', label: 'Select sex' },
-                { value: 'Male', label: 'Male' },
-                { value: 'Female', label: 'Female' },
-                { value: 'Other', label: 'Other' }
+                { value: 'male', label: 'Male' },
+                { value: 'female', label: 'Female' },
+                { value: 'other', label: 'Other' }
               ]}
               placeholder="Select sex"
             />
@@ -242,7 +241,7 @@ export default function UserForm({
               value={formData.password}
               onChange={(e) => handleChange('password', e.target.value)}
               placeholder={isEditMode ? 'Leave blank to keep current' : 'Enter password'}
-              error={errors.password}
+              error={!!errors.password}
             />
             {formData.password && (
               <p className="mt-1 text-xs text-gray-500">

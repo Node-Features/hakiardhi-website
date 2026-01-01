@@ -417,11 +417,9 @@ export default function IncidentForm({
           console.log('📝 New beneficiary data:', newBeneficiaryData);
 
           // Create the beneficiary
-          const response = await beneficiariesService.create(newBeneficiaryData);
-          console.log('📦 Beneficiary creation response:', response);
+          const createdBeneficiary = await beneficiariesService.create(newBeneficiaryData);
+          console.log('📦 Beneficiary creation response:', createdBeneficiary);
 
-          // Extract the beneficiary from the response
-          const createdBeneficiary = response.data || response;
           beneficiaryId = createdBeneficiary.id;
 
           console.log('✅ Beneficiary created successfully');
@@ -800,17 +798,6 @@ export default function IncidentForm({
                         // Reset beneficiary state when phone changes
                         setBeneficiaryExists(false);
                         setBeneficiaryData(null);
-                      }}
-                      onBlur={(e) => {
-                        if (e.target.value.trim().length >= 10) {
-                          lookupBeneficiary(e.target.value);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          lookupBeneficiary(formData.beneficiary.phone_number);
-                        }
                       }}
                       disabled={isLoading}
                       className={errors['beneficiary.phone_number'] ? 'border-error-500' : ''}

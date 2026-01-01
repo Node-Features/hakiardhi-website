@@ -9,7 +9,7 @@ interface CaseFlowDiagramProps {
 }
 
 interface FlowStage {
-  status: CaseStatus;
+  status: string;
   label: string;
   description: string;
   icon: React.ReactNode;

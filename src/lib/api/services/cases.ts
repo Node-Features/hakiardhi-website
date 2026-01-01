@@ -89,7 +89,7 @@ export const casesService = {
    */
   updateStatus: async (
     caseId: string,
-    status: 'Open' | 'In Progress' | 'Pending' | 'Resolved' | 'Closed'
+    status: 'Open' | 'Ongoing' | 'Pending' | 'Resolved' | 'Closed'
   ) => {
     return authApi.patch<CaseResponse>(`/api/admin/cases/${caseId}/status`, {
       status,

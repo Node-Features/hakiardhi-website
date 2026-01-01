@@ -412,7 +412,7 @@ export interface IncidentReminder {
 export interface CreateBeneficiaryRequest {
   first_name: string;
   last_name: string;
-  sex?: 'Male' | 'Female' | 'Other';
+  sex?: 'male' | 'female' | 'other';
   role?: string;
   age_group?: string;
   is_pwd?: boolean;
@@ -429,7 +429,7 @@ export interface BeneficiaryResponse {
   id: string;
   first_name: string;
   last_name: string;
-  sex?: 'Male' | 'Female' | 'Other';
+  sex?: 'male' | 'female' | 'other';
   role?: string;
   age_group?: string;
   is_pwd: boolean;
@@ -464,7 +464,7 @@ export interface SignUpRequest {
   email: string;
   password: string;
   phone_number?: string;
-  sex?: 'Male' | 'Female' | 'Other';
+  sex?: 'male' | 'female' | 'other';
   age_group?: string;
   photo_consent: boolean;
   role_id: string;
@@ -476,7 +476,7 @@ export interface CreateUserRequest {
   email: string;
   password: string;
   phone_number?: string;
-  sex?: 'Male' | 'Female' | 'Other';
+  sex?: 'male' | 'female' | 'other';
   age_group?: string;
   photo_consent?: boolean;
   role_id: string;
@@ -488,7 +488,7 @@ export interface UpdateUserRequest {
   first_name?: string;
   last_name?: string;
   phone_number?: string;
-  sex?: 'Male' | 'Female' | 'Other';
+  sex?: 'male' | 'female' | 'other';
   age_group?: string;
   role_id?: string;
   is_active?: boolean;

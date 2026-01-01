@@ -572,7 +572,6 @@ export default function IncidentDetailsPage() {
       <EscalationHistory
         incidentId={incidentId}
         onViewDetails={handleViewEscalationDetails}
-        onResolve={handleViewEscalationDetails}
       />
     </Suspense>
   ) : null;
@@ -585,10 +584,18 @@ export default function IncidentDetailsPage() {
   ) : null;
 
   // Notifications Tab (Reminders + Notifications)
-  const notificationsTab = incident ? (
+  const notificationsTab = incident && incident.reported_by ? (
     <div className="space-y-6">
       <IncidentReminders incidentId={incidentId} />
-      <IncidentNotifications incidentId={incidentId} />
+      <IncidentNotifications
+        incidentId={incidentId}
+        reporterId={incident.reported_by}
+        reporterName={
+          incident.beneficiaries && !Array.isArray(incident.beneficiaries)
+            ? `${incident.beneficiaries.first_name} ${incident.beneficiaries.last_name}`
+            : undefined
+        }
+      />
     </div>
   ) : null;
 

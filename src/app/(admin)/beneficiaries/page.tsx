@@ -133,7 +133,12 @@ export default function BeneficiariesPage() {
     setError(null);
     try {
       const response = await beneficiariesService.getAll(filters);
-      setBeneficiaries(response.data);
+      // Normalize sex field to capitalized format
+      const normalizedData = response.data.map((beneficiary: any) => ({
+        ...beneficiary,
+        sex: beneficiary.sex ? (beneficiary.sex.charAt(0).toUpperCase() + beneficiary.sex.slice(1).toLowerCase()) : undefined,
+      }));
+      setBeneficiaries(normalizedData);
       setTotalItems(response.meta.total);
 
       // Handle both camelCase and snake_case from API, with fallback calculation
@@ -165,7 +170,12 @@ export default function BeneficiariesPage() {
     console.log('🚀 Creating beneficiary with data:', data);
     setIsSubmitting(true);
     try {
-      const response = await beneficiariesService.create(data as CreateBeneficiaryData);
+      // Normalize sex field to capitalized format expected by API
+      const normalizedData = {
+        ...data,
+        sex: data.sex ? data.sex.toLowerCase() : undefined,
+      } as CreateBeneficiaryData;
+      const response = await beneficiariesService.create(normalizedData);
       console.log('✅ Beneficiary created successfully:', response);
       setIsCreateModalOpen(false);
       showToast('Beneficiary registered successfully', 'success');
@@ -456,7 +466,7 @@ export default function BeneficiariesPage() {
             first_name: beneficiary.first_name,
             last_name: beneficiary.last_name,
             phone_number: beneficiary.phone_number,
-            sex: beneficiary.sex as 'Male' | 'Female' | 'Other' | undefined,
+            sex: beneficiary.sex ? (beneficiary.sex.charAt(0).toUpperCase() + beneficiary.sex.slice(1).toLowerCase()) as 'male' | 'female' | 'other' : undefined,
             age_group: beneficiary.age_group,
             is_pwd: beneficiary.is_pwd,
             photo_consent: beneficiary.photo_consent,
@@ -940,7 +950,7 @@ export default function BeneficiariesPage() {
                 <div className="flex items-center justify-end gap-2">
                   <Button
                     onClick={handleClearFilters}
-                    className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 text-white shadow-md transition-all hover:shadow-lg hover:outline hover:outline-2 hover:outline-red-300 dark:from-red-700 dark:to-red-800"
+                    className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 text-white shadow-md transition-all hover:shadow-lg hover:outline hover:outline-red-300 dark:from-red-700 dark:to-red-800"
                   >
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1176,11 +1186,11 @@ export default function BeneficiariesPage() {
                       <TableCell className="px-4 py-3">
                         {beneficiary.sex ? (
                           <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                            {beneficiary.sex === 'Male' ? (
+                            {beneficiary.sex === 'male' ? (
                               <svg className="h-3.5 w-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                               </svg>
-                            ) : beneficiary.sex === 'Female' ? (
+                            ) : beneficiary.sex === 'female' ? (
                               <svg className="h-3.5 w-3.5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                               </svg>
@@ -1189,7 +1199,7 @@ export default function BeneficiariesPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                               </svg>
                             )}
-                            {beneficiary.sex}
+                            {beneficiary.sex.charAt(0).toUpperCase() + beneficiary.sex.slice(1)}
                           </span>
                         ) : (
                           <span className="text-sm text-gray-400 dark:text-gray-500">-</span>

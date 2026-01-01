@@ -7,10 +7,10 @@ import Select from '@/components/ui/form/Select';
 import Button from '@/components/ui/button/Button';
 import Badge from '@/components/ui/badge/Badge';
 import { LoadingSpinner } from '@/components/ui/loading';
-import { CaseResponse, CreateCaseRequest, UpdateCaseRequest } from '@/types/api';
+import { CaseResponse, CreateCaseRequest, UpdateCaseRequest, BeneficiaryResponse } from '@/types/api';
 import { categoriesService, Category } from '@/lib/api/services/categories';
 import { usersService } from '@/lib/api/services/users';
-import { beneficiariesService, BeneficiaryResponse } from '@/lib/api/services/beneficiaries';
+import { beneficiariesService } from '@/lib/api/services/beneficiaries';
 
 export interface CaseFormProps {
   formId: string;
@@ -50,10 +50,7 @@ export default function CaseForm({
   const [beneficiary, setBeneficiary] = useState({
     first_name: '',
     last_name: '',
-    national_id: '',
     phone_number: '',
-    email: '',
-    date_of_birth: '',
     sex: '',
     age_group: '',
     is_pwd: false,
@@ -86,8 +83,7 @@ export default function CaseForm({
             setBeneficiaryExists(true);
           } else {
             // Fetch beneficiary data if not included
-            const response = await beneficiariesService.getById(initialData.submitted_by);
-            const beneficiaryInfo = response.data || response;
+            const beneficiaryInfo = await beneficiariesService.getById(initialData.submitted_by);
             console.log('✅ Beneficiary data fetched:', beneficiaryInfo);
             setBeneficiaryData(beneficiaryInfo);
             setBeneficiaryExists(true);
@@ -183,9 +179,6 @@ export default function CaseForm({
           phone_number: trimmedPhone,
           first_name: result.data.first_name || '',
           last_name: result.data.last_name || '',
-          national_id: result.data.national_id || '',
-          email: result.data.email || '',
-          date_of_birth: result.data.date_of_birth || '',
           sex: result.data.sex || '',
           age_group: mapAgeGroup(result.data.age_group || ''),
           is_pwd: Boolean(result.data.is_pwd),
@@ -335,18 +328,14 @@ export default function CaseForm({
             const newBeneficiaryData = {
               first_name: beneficiary.first_name,
               last_name: beneficiary.last_name,
-              national_id: beneficiary.national_id || undefined,
               phone_number: beneficiary.phone_number,
-              email: beneficiary.email || undefined,
-              date_of_birth: beneficiary.date_of_birth || undefined,
-              sex: beneficiary.sex,
-              age_group: beneficiary.age_group,
+              sex: (beneficiary.sex || undefined) as 'male' | 'female' | 'other' | undefined,
+              age_group: beneficiary.age_group || undefined,
               is_pwd: beneficiary.is_pwd,
               photo_consent: beneficiary.photo_consent,
             };
 
-            const response = await beneficiariesService.create(newBeneficiaryData);
-            const createdBeneficiary = response.data || response;
+            const createdBeneficiary = await beneficiariesService.create(newBeneficiaryData);
             beneficiaryId = createdBeneficiary.id;
 
             if (!beneficiaryId) {
@@ -593,14 +582,6 @@ export default function CaseForm({
                   </span>
                 </div>
               )}
-              {beneficiaryData.national_id && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">National ID:</span>
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                    {beneficiaryData.national_id}
-                  </span>
-                </div>
-              )}
             </div>
             <p className="mt-3 text-xs italic text-zinc-500 dark:text-zinc-400">
               ℹ️ Case submitter cannot be changed when editing
@@ -647,10 +628,7 @@ export default function CaseForm({
                       setBeneficiary({
                         first_name: '',
                         last_name: '',
-                        national_id: '',
                         phone_number: '',
-                        email: '',
-                        date_of_birth: '',
                         sex: '',
                         age_group: '',
                         is_pwd: false,
@@ -724,61 +702,21 @@ export default function CaseForm({
               </div>
 
               {/* National ID and Sex */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                    National ID
-                  </label>
-                  <Input
-                    type="text"
-                    value={beneficiary.national_id}
-                    onChange={(e) => handleBeneficiaryChange('national_id', e.target.value)}
-                    disabled={beneficiaryExists}
-                    placeholder="Enter national ID"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                    Sex <span className="text-red-600">*</span>
-                  </label>
-                  <Select
-                    options={[
-                      { value: '', label: 'Select sex' },
-                      { value: 'Male', label: 'Male' },
-                      { value: 'Female', label: 'Female' },
-                    ]}
-                    value={beneficiary.sex}
-                    onChange={(value) => handleBeneficiaryChange('sex', value)}
-                    disabled={beneficiaryExists}
-                  />
-                </div>
-              </div>
-
-              {/* Email and Date of Birth */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                    Email
-                  </label>
-                  <Input
-                    type="email"
-                    value={beneficiary.email}
-                    onChange={(e) => handleBeneficiaryChange('email', e.target.value)}
-                    disabled={beneficiaryExists}
-                    placeholder="Enter email"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                    Date of Birth
-                  </label>
-                  <Input
-                    type="date"
-                    value={beneficiary.date_of_birth}
-                    onChange={(e) => handleBeneficiaryChange('date_of_birth', e.target.value)}
-                    disabled={beneficiaryExists}
-                  />
-                </div>
+              <div>
+                <label className="mb-2 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  Sex <span className="text-red-600">*</span>
+                </label>
+                <Select
+                  options={[
+                    { value: '', label: 'Select sex' },
+                    { value: 'male', label: 'Male' },
+                    { value: 'female', label: 'Female' },
+                    { value: 'other', label: 'Other' },
+                  ]}
+                  value={beneficiary.sex}
+                  onChange={(value) => handleBeneficiaryChange('sex', value)}
+                  disabled={beneficiaryExists}
+                />
               </div>
 
               {/* Age Group */}

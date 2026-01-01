@@ -11,7 +11,7 @@ export interface Beneficiary {
   id: string;
   first_name: string;
   last_name: string;
-  sex?: 'Male' | 'Female' | 'Other';
+  sex?: 'male' | 'female' | 'other';
   role?: string;
   age_group?: string;
   is_pwd: boolean;
@@ -33,7 +33,7 @@ export interface Beneficiary {
 export interface CreateBeneficiaryData {
   first_name: string;
   last_name: string;
-  sex?: 'Male' | 'Female' | 'Other';
+  sex?: 'male' | 'female' | 'other';
   role?: string;
   age_group?: string;
   is_pwd: boolean;
@@ -48,7 +48,7 @@ export interface CreateBeneficiaryData {
 export interface UpdateBeneficiaryData {
   first_name?: string;
   last_name?: string;
-  sex?: 'Male' | 'Female' | 'Other';
+  sex?: 'male' | 'female' | 'other';
   role?: string;
   age_group?: string;
   is_pwd?: boolean;
@@ -80,7 +80,7 @@ export default function BeneficiaryForm({
   const [formData, setFormData] = useState<CreateBeneficiaryData>({
     first_name: initialData?.first_name || '',
     last_name: initialData?.last_name || '',
-    sex: initialData?.sex,
+    sex: initialData?.sex || undefined,
     role: initialData?.role || '',
     age_group: initialData?.age_group || '',
     is_pwd: initialData?.is_pwd || false,
@@ -106,10 +106,10 @@ export default function BeneficiaryForm({
     { value: 'Farmer', label: 'Farmer' },
     { value: 'Entrepreneur', label: 'Entrepreneur' },
     { value: 'Student', label: 'Student' },
-    { value: 'Community Leader', label: 'Community Leader' },
+    { value: 'Village Leader', label: 'Village Leader' },
     { value: 'Cooperative Member', label: 'Cooperative Member' },
-    { value: 'Youth Leader', label: 'Youth Leader' },
-    { value: 'Women Group Member', label: 'Women Group Member' },
+    { value: 'Land Rights Monitor', label: 'Land Rights Monitor (LRM)' },
+    { value: 'Gender Champions Group Member', label: 'Gender Champions Group Member' },
     { value: 'Land Owner', label: 'Land Owner' },
     { value: 'Tenant', label: 'Tenant' },
     { value: 'Agribusiness Owner', label: 'Agribusiness Owner' },
@@ -121,7 +121,7 @@ export default function BeneficiaryForm({
       setFormData({
         first_name: initialData.first_name,
         last_name: initialData.last_name,
-        sex: initialData.sex,
+        sex: initialData.sex || undefined,
         role: initialData.role || '',
         age_group: initialData.age_group || '',
         is_pwd: initialData.is_pwd,
@@ -358,9 +358,9 @@ export default function BeneficiaryForm({
             <Select
               options={[
                 { value: '', label: 'Select sex' },
-                { value: 'Male', label: 'Male' },
-                { value: 'Female', label: 'Female' },
-                { value: 'Other', label: 'Other' },
+                { value: 'male', label: 'Male' },
+                { value: 'female', label: 'Female' },
+                { value: 'other', label: 'Other' },
               ]}
               placeholder="Select sex"
               defaultValue={formData.sex || ''}

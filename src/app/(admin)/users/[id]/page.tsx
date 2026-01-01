@@ -31,7 +31,7 @@ const cardVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3, ease: 'easeOut' },
+    transition: { duration: 0.3 },
   },
 };
 
@@ -99,8 +99,7 @@ export default function UserDetailsPage() {
         rolesService.getAll(),
       ]);
 
-      const rolesData = rolesResponse.data || rolesResponse;
-      setAllRoles(Array.isArray(rolesData) ? rolesData : rolesData.data || []);
+      setAllRoles(rolesResponse.data || []);
     } catch (error) {
       console.error('Failed to load roles and permissions:', error);
     } finally {

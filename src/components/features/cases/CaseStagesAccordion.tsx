@@ -133,10 +133,10 @@ export default function CaseStagesAccordion({ caseId }: CaseStagesAccordionProps
             newStageId,
             evidence_file,
             'Evidence document'
-          );
+          ) as any;
 
           // Attachment uploaded successfully (synchronous)
-          if (uploadResponse.data) {
+          if (uploadResponse?.data) {
             showToast('Stage and attachment created successfully', 'success');
           } else {
             showToast('Stage created successfully', 'success');
@@ -186,10 +186,10 @@ export default function CaseStagesAccordion({ caseId }: CaseStagesAccordionProps
             selectedStage.id,
             evidence_file,
             'Evidence document'
-          );
+          ) as any;
 
           // Attachment uploaded successfully (synchronous)
-          if (uploadResponse.data) {
+          if (uploadResponse?.data) {
             showToast('Stage and attachment updated successfully', 'success');
           } else {
             showToast('Stage updated successfully', 'success');

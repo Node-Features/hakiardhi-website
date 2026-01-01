@@ -69,12 +69,11 @@ export default function UsersPage() {
     setError(null);
     try {
       const response = await usersService.getAll(filters);
-      const data = response.data || response;
 
-      setUsers(Array.isArray(data) ? data : data.data || []);
-      setTotalItems(data.meta?.total || data.length || 0);
-      setTotalPages(data.meta?.totalPages || data.meta?.total_pages || 1);
-      setCurrentPage(data.meta?.page || 1);
+      setUsers(response.data || []);
+      setTotalItems(response.meta?.total || 0);
+      setTotalPages(response.meta?.totalPages || response.meta?.total_pages || 1);
+      setCurrentPage(response.meta?.page || 1);
     } catch (error: any) {
       console.error('Failed to load users:', error);
       setError(error?.message || 'Failed to load users');
@@ -87,8 +86,7 @@ export default function UsersPage() {
   const loadRoles = async () => {
     try {
       const response = await rolesService.getAll();
-      const data = response.data || response;
-      setRoles(Array.isArray(data) ? data : data.data || []);
+      setRoles(response.data || []);
     } catch (error: any) {
       console.error('Failed to load roles:', error);
     }
@@ -97,8 +95,7 @@ export default function UsersPage() {
   const loadStatistics = async () => {
     try {
       const response = await usersService.getStats();
-      const data = response.data || response;
-      setStatistics(data);
+      setStatistics(response);
     } catch (error: any) {
       console.error('Failed to load statistics:', error);
       // Calculate stats from loaded users as fallback
@@ -137,10 +134,7 @@ export default function UsersPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await usersService.update(selectedUser.id, data);
-
-      // Handle response with nested user object
-      const updatedUser = response.data?.user || response.data || response;
+      const updatedUser = await usersService.update(selectedUser.id, data);
 
       // Update the user in the list
       setUsers(prev =>
@@ -188,10 +182,7 @@ export default function UsersPage() {
       );
 
       // Update on backend using general update endpoint
-      const response = await usersService.update(user.id, { status: newStatus });
-
-      // Handle response with nested user object
-      const updatedUser = response.data?.user || response.data || response;
+      const updatedUser = await usersService.update(user.id, { status: newStatus });
 
       // Update with actual response data
       setUsers(prev =>
@@ -558,7 +549,7 @@ export default function UsersPage() {
                             </span>
                           </Badge>
                           {/* Tooltip on hover */}
-                          {(user.role?.name || user.roles?.name)?.length > 20 && (
+                          {((user.role?.name || user.roles?.name) || '').length > 20 && (
                             <div className="invisible absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:bg-gray-700">
                               {user.role?.name || user.roles?.name}
                               <div className="absolute left-1/2 top-full -translate-x-1/2">
