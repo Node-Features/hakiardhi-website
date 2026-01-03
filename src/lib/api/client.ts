@@ -126,15 +126,21 @@ axiosInstance.interceptors.response.use(
 
     // Log error in development
     if (process.env.NODE_ENV === 'development') {
-      // Use console.warn for 404s (often expected behavior)
-      const logFn = status === 404 ? console.warn : console.error;
-      const emoji = status === 404 ? '⚠️' : '❌';
+      // Don't log 401 errors for auth endpoints (expected when session expires)
+      const isAuthEndpoint = endpoint.includes('/auth/session') || endpoint.includes('/auth/refresh');
+      const shouldSkipLog = (status === 401 || status === 403) && isAuthEndpoint;
 
-      logFn(`${emoji} ${error.config?.method?.toUpperCase()} ${endpoint} - ${status}`, {
-        message: errorMessage,
-        data: errorData,
-        requestData: error.config?.data,
-      });
+      if (!shouldSkipLog) {
+        // Use console.warn for 404s (often expected behavior)
+        const logFn = status === 404 ? console.warn : console.error;
+        const emoji = status === 404 ? '⚠️' : '❌';
+
+        logFn(`${emoji} ${error.config?.method?.toUpperCase()} ${endpoint} - ${status}`, {
+          message: errorMessage,
+          data: errorData,
+          requestData: error.config?.data,
+        });
+      }
     }
 
     // Throw standardized error

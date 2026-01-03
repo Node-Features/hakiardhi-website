@@ -541,17 +541,17 @@ export default function UsersPage() {
 
                     {/* Role */}
                     <TableCell className="px-4 py-3">
-                      {user.role?.name || user.roles?.name ? (
-                        <div className="group relative inline-block max-w-[200px]" title={user.role?.name || user.roles?.name}>
+                      {user.role ? (
+                        <div className="group relative inline-block max-w-[200px]" title={user.role}>
                           <Badge variant="light" color="primary" size="sm" className="w-full">
                             <span className="block truncate">
-                              {user.role?.name || user.roles?.name}
+                              {user.role}
                             </span>
                           </Badge>
                           {/* Tooltip on hover */}
-                          {((user.role?.name || user.roles?.name) || '').length > 20 && (
+                          {(user.role || '').length > 20 && (
                             <div className="invisible absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:bg-gray-700">
-                              {user.role?.name || user.roles?.name}
+                              {user.role}
                               <div className="absolute left-1/2 top-full -translate-x-1/2">
                                 <div className="border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
                               </div>

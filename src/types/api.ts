@@ -504,12 +504,14 @@ export interface UserResponse {
   sex: string | null;
   age_group: string | null;
   photo_consent: boolean;
+  image_url?: string | null;
   status: string;
   created_at: string;
   updated_at: string;
-  role?: RoleResponse; // Optional - included when fetched with full details
-  roles?: RoleResponse; // Alternative field name some endpoints might use
+  role?: string; // Role name as string (from session/me endpoints)
+  roles?: string[]; // All user roles (array of role names)
   role_id?: string; // Role ID if included
+  permissions?: string[]; // User permissions (array of permission names)
 }
 
 export interface AuthResponse {
@@ -634,8 +636,8 @@ export interface PermissionWithRoles extends PermissionResponse {
 // ============================================
 
 export interface UserWithRole extends UserResponse {
-  roles?: RoleResponse;
-  permissions?: string[];
+  // Note: roles is already defined in UserResponse as string[]
+  // This interface is for backward compatibility only
 }
 
 export interface UserStats {
@@ -661,4 +663,71 @@ export interface ChangePasswordRequest {
   user_id: string;
   new_password: string;
   confirm_password: string;
+}
+
+// ============================================
+// Content Management Module
+// ============================================
+
+export type ContentType = 'blog' | 'publication' | 'faq' | 'page';
+
+export interface ContentResponse {
+  id: string;
+  content_type: ContentType;
+  slug?: string;
+  title: string;
+  content: string;
+  meta_description?: string;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+  // Additional fields for specific content types
+  type?: string; // for blogs and publications
+  cover_image?: string;
+  is_featured?: boolean;
+  authors?: any[];
+  publication_date?: string;
+  download_url?: string;
+  category?: string;
+  page_type?: string;
+  icon_name?: string;
+  [key: string]: any; // Allow other fields
+}
+
+export interface CreateContentRequest {
+  content_type: ContentType;
+  // Common fields
+  title?: string;
+  content?: string;
+  meta_description?: string;
+  published?: boolean;
+  // Blog specific
+  slug?: string;
+  excerpt?: string;
+  type?: string;
+  cover_image?: string;
+  is_featured?: boolean;
+  // Publication specific
+  abstract?: string;
+  authors?: any[];
+  publication_date?: string;
+  download_url?: string;
+  topics?: string[];
+  keywords?: string[];
+  language?: string;
+  pages?: number;
+  doi?: string;
+  isbn?: string;
+  // FAQ specific
+  question?: string;
+  response?: string;
+  category?: string;
+  // Page specific
+  page_type?: string;
+  icon_name?: string;
+  display_order?: number;
+}
+
+export interface UpdateContentRequest extends Partial<CreateContentRequest> {
+  content_type: ContentType;
 }

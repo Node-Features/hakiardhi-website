@@ -102,26 +102,10 @@ const navItems: NavItem[] = [
     name: "Content & Knowledge",
   },
   {
-    name: "Content",
+    name: "Content Manager",
+    path: "/content",
     icon: <DocsIcon />,
     permission: "content_manage",
-    subItems: [
-      {
-        name: "News",
-        path: "/content/news",
-        permission: "content_manage",
-      },
-      {
-        name: "Gallery",
-        path: "/content/gallery",
-        permission: "content_manage",
-      },
-      {
-        name: "Resources",
-        path: "/content/resources",
-        permission: "content_manage",
-      },
-    ],
   },
 ];
 

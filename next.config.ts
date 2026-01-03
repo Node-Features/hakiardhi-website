@@ -7,6 +7,23 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'tjsatamyfjxdxqgxmcuq.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
+
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
@@ -16,10 +33,16 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
+    // Use localhost in development, Vercel in production
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const apiUrl = isDevelopment
+      ? 'http://localhost:3001/api/:path*'
+      : 'https://hakiardhi-api.vercel.app/api/:path*';
+
     return [
       {
         source: '/api/:path*',
-        destination: 'https://hakiardhi-api.vercel.app/api/:path*',
+        destination: apiUrl,
       },
     ];
   },

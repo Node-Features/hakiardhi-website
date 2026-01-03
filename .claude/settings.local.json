@@ -14,7 +14,13 @@
       "Bash(node -e:*)",
       "Bash(git config:*)",
       "Bash(git filter-branch:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(npm update:*)",
+      "Bash(npm audit:*)",
+      "Bash(netstat:*)",
+      "Bash(npm run dev:*)",
+      "Bash(mkdir:*)",
+      "Bash(timeout 30 npx tsc:*)"
     ]
   }
 }

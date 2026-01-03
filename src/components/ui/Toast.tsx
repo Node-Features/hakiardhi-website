@@ -16,11 +16,11 @@ export default function ToastContainer() {
   console.log('✅ Rendering', toasts.length, 'toast(s)');
 
   return (
-    <div className="fixed top-4 right-4 z-[9999] space-y-2 w-full max-w-sm">
+    <div className="pointer-events-none fixed top-4 right-4 z-[99999] space-y-2 w-full max-w-sm">
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`flex items-start justify-between p-4 rounded-lg shadow-lg border animate-slide-in ${getToastStyles(toast.type)}`}
+          className={`pointer-events-auto flex items-start justify-between p-4 rounded-lg shadow-lg border animate-slide-in ${getToastStyles(toast.type)}`}
         >
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0 mt-0.5">

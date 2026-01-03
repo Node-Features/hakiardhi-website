@@ -5,7 +5,9 @@ import Input from '@/components/ui/form/input/InputField';
 import Select from '@/components/ui/form/Select';
 import Switch from '@/components/ui/form/switch/Switch';
 import Button from '@/components/ui/button/Button';
+import ProfilePictureUpload from '@/components/common/ProfilePictureUpload';
 import { locationsService, Region, District, Village } from '@/lib/api/services/locations';
+import { beneficiariesService } from '@/lib/api/services';
 
 export interface Beneficiary {
   id: string;
@@ -311,6 +313,37 @@ export default function BeneficiaryForm({
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-6">
+      {/* Profile Picture Section */}
+      {isEditMode && initialData?.id && (
+        <div>
+          <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
+            Profile Picture
+          </h3>
+          <ProfilePictureUpload
+            currentImageUrl={initialData?.image_url}
+            onUpload={async (file) => {
+              const response = await beneficiariesService.uploadProfilePicture(initialData.id, file);
+              return response.image_url;
+            }}
+            onDelete={async () => {
+              await beneficiariesService.deleteProfilePicture(initialData.id);
+            }}
+            requireConsent={true}
+            hasConsent={formData.photo_consent}
+            onEnableConsent={async () => {
+              // Update photo consent in the database
+              await beneficiariesService.update(initialData.id, {
+                photo_consent: true,
+              });
+              // Update local form state
+              setFormData({ ...formData, photo_consent: true });
+            }}
+            entityName="beneficiary"
+            disabled={isLoading}
+          />
+        </div>
+      )}
+
       {/* Personal Information Section */}
       <div>
         <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">

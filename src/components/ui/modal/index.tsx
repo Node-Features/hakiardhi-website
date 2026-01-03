@@ -118,7 +118,7 @@ export const Modal: React.FC<ModalProps> = ({
             </svg>
           </button>
         )}
-        <div className="flex-1 overflow-y-auto">{children}</div>
+        <div className="flex-1 overflow-y-auto no-scrollbar">{children}</div>
       </div>
     </div>
   );

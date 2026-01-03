@@ -5,6 +5,7 @@ import {
   UpdateUserRequest,
   PaginatedResponse,
 } from '@/types/api';
+import { fileToBase64 } from '@/lib/utils/file';
 
 /**
  * Users API Service
@@ -196,6 +197,68 @@ export const usersService = {
     return authApi.post(`/api/admin/users/${userId}/reset-password`, {
       new_password: newPassword,
     });
+  },
+
+  /**
+   * Upload user profile picture
+   * POST /api/admin/users/:id/profile-picture
+   */
+  uploadProfilePicture: async (userId: string, file: File) => {
+    const base64 = await fileToBase64(file);
+    const mimeType = file.type;
+
+    // Format image as data URL if not already
+    const image = base64.includes('data:') ? base64 : `data:${mimeType};base64,${base64}`;
+
+    return authApi.post<{
+      message: string;
+      image_url: string;
+      user: UserResponse;
+    }>(`/api/admin/users/${userId}/profile-picture`, {
+      image,
+      mime_type: mimeType,
+    });
+  },
+
+  /**
+   * Delete user profile picture
+   * DELETE /api/admin/users/:id/profile-picture
+   */
+  deleteProfilePicture: async (userId: string) => {
+    return authApi.delete<{
+      message: string;
+    }>(`/api/admin/users/${userId}/profile-picture`);
+  },
+
+  /**
+   * Upload current user's profile picture
+   * POST /api/admin/users/me/profile-picture
+   */
+  uploadMyProfilePicture: async (file: File) => {
+    const base64 = await fileToBase64(file);
+    const mimeType = file.type;
+
+    // Format image as data URL if not already
+    const image = base64.includes('data:') ? base64 : `data:${mimeType};base64,${base64}`;
+
+    return authApi.post<{
+      message: string;
+      image_url: string;
+      user: UserResponse;
+    }>('/api/admin/users/me/profile-picture', {
+      image,
+      mime_type: mimeType,
+    });
+  },
+
+  /**
+   * Delete current user's profile picture
+   * DELETE /api/admin/users/me/profile-picture
+   */
+  deleteMyProfilePicture: async () => {
+    return authApi.delete<{
+      message: string;
+    }>('/api/admin/users/me/profile-picture');
   },
 };
 

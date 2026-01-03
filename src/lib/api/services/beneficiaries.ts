@@ -160,25 +160,48 @@ export const beneficiariesService = {
   },
 
   /**
-   * Upload beneficiary photo (base64 encoded)
-   * POST /api/admin/beneficiaries/:id/photo
+   * Upload beneficiary profile picture
+   * POST /api/admin/beneficiaries/:id/profile-picture
    */
-  uploadPhoto: async (beneficiaryId: string, file: File) => {
+  uploadProfilePicture: async (beneficiaryId: string, file: File) => {
     const base64 = await fileToBase64(file);
+    const mimeType = file.type;
 
-    return authApi.post(`/api/admin/beneficiaries/${beneficiaryId}/photo`, {
-      name: file.name,
-      file_type: file.type,
-      file_data: base64,
+    // Format image as data URL if not already
+    const image = base64.includes('data:') ? base64 : `data:${mimeType};base64,${base64}`;
+
+    return authApi.post<{
+      success: boolean;
+      message: string;
+      image_url: string;
+      data: BeneficiaryResponse;
+    }>(`/api/admin/beneficiaries/${beneficiaryId}/profile-picture`, {
+      image,
+      mime_type: mimeType,
     });
   },
 
   /**
-   * Delete beneficiary photo
-   * DELETE /api/admin/beneficiaries/:id/photo
+   * Delete beneficiary profile picture
+   * DELETE /api/admin/beneficiaries/:id/profile-picture
    */
-  deletePhoto: async (beneficiaryId: string) => {
-    return authApi.delete(`/api/admin/beneficiaries/${beneficiaryId}/photo`);
+  deleteProfilePicture: async (beneficiaryId: string) => {
+    return authApi.delete<{
+      success: boolean;
+      message: string;
+    }>(`/api/admin/beneficiaries/${beneficiaryId}/profile-picture`);
+  },
+
+  /**
+   * Check if beneficiary has photo consent
+   */
+  hasPhotoConsent: async (beneficiaryId: string): Promise<boolean> => {
+    try {
+      const beneficiary = await beneficiariesService.getById(beneficiaryId);
+      return beneficiary.photo_consent || false;
+    } catch {
+      return false;
+    }
   },
 
   /**

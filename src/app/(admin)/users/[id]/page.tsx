@@ -15,9 +15,7 @@ import { useToast } from '@/lib/context/ToastContext';
 import { UserResponse, RoleResponse, PermissionResponse } from '@/types/api';
 
 interface UserDetails extends UserResponse {
-  role?: RoleResponse;
-  roles?: RoleResponse;
-  permissions?: string[];
+  // Note: role and roles are already defined in UserResponse as string and string[]
   activity_log?: Array<{
     id: string;
     action: string;
@@ -205,7 +203,7 @@ export default function UserDetailsPage() {
                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">User Role</p>
               </div>
               <p className="mt-3 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                {user.role?.name || user.roles?.name || 'No Role'}
+                {user.role || 'No Role'}
               </p>
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg dark:from-purple-600 dark:to-purple-700">
@@ -216,7 +214,7 @@ export default function UserDetailsPage() {
           </div>
           <div className="mt-4">
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400 line-clamp-1">
-              {user.role?.description || user.roles?.description || 'No role assigned'}
+              {user.role || 'No role assigned'}
             </p>
           </div>
         </motion.div>
@@ -234,7 +232,7 @@ export default function UserDetailsPage() {
               <div className="mt-3 flex items-baseline gap-2">
                 <p className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
                   {(() => {
-                    const permissions = user.permissions || user.role?.permissions || user.roles?.permissions || [];
+                    const permissions = user.permissions || [];
                     return Array.isArray(permissions) ? permissions.length : 0;
                   })()}
                 </p>
@@ -480,7 +478,7 @@ export default function UserDetailsPage() {
                       <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Assigned Role</p>
                       <div className="mt-1">
                         <Badge variant="light" color="primary" size="sm">
-                          {user.role?.name || user.roles?.name || 'No Role'}
+                          {user.role || 'No Role'}
                         </Badge>
                       </div>
                     </div>
@@ -585,7 +583,7 @@ export default function UserDetailsPage() {
           </Button>
         </div>
 
-        {user.role || user.roles ? (
+        {user.role ? (
           <div className="space-y-4">
             <div className="flex items-start gap-4">
               <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20">
@@ -595,19 +593,17 @@ export default function UserDetailsPage() {
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {user.role?.name || user.roles?.name}
+                  {user.role}
                 </h3>
-                {(user.role?.description || user.roles?.description) && (
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    {user.role?.description || user.roles?.description}
-                  </p>
-                )}
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  Role assigned to this user
+                </p>
                 <div className="mt-2 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                   <span className="flex items-center gap-1">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
-                    {user.role?.permissions?.length || user.roles?.permissions?.length || 0} permissions
+                    {user.permissions?.length || 0} permissions
                   </span>
                 </div>
               </div>
@@ -637,8 +633,8 @@ export default function UserDetailsPage() {
 
       {/* Permissions List */}
       {(() => {
-        // Extract permissions from various possible locations with priority order
-        const permissions = user.permissions || user.role?.permissions || user.roles?.permissions || [];
+        // Extract permissions from user object
+        const permissions = user.permissions || [];
         const permissionsArray = Array.isArray(permissions) ? permissions : [];
 
         return permissionsArray.length > 0 && (

@@ -180,80 +180,95 @@ export const locationsService = {
 
 /**
  * Content Management API Service
- * All endpoints for content pages (About, Contact, etc.)
+ * Handles blogs, publications, FAQs, and organization pages
  */
 export const contentService = {
   /**
-   * Get all content pages
+   * Get all content items
    * GET /api/admin/content
    */
   getAll: async () => {
-    return authApi.get<
-      Array<{
-        id: string;
-        slug: string;
-        title: string;
-        content: string;
-        published: boolean;
-        updated_at: string;
-      }>
-    >('/api/admin/content');
-  },
-
-  /**
-   * Get single content page by slug
-   * GET /api/admin/content/:slug
-   */
-  getBySlug: async (slug: string) => {
-    return authApi.get<{
+    return authApi.get<Array<{
       id: string;
-      slug: string;
+      content_type: string;
+      slug?: string;
       title: string;
       content: string;
       meta_description?: string;
       published: boolean;
+      created_at: string;
       updated_at: string;
-    }>(`/api/admin/content/${slug}`);
+      [key: string]: any;
+    }>>('/api/admin/content');
   },
 
   /**
-   * Update content page
-   * PUT /api/admin/content/:slug
+   * Get single content item by ID
+   * GET /api/admin/content/:id?content_type=<type>
+   */
+  getById: async (id: string, content_type: string) => {
+    return authApi.get<{
+      id: string;
+      content_type: string;
+      [key: string]: any;
+    }>(`/api/admin/content/${id}?content_type=${content_type}`);
+  },
+
+  /**
+   * Create new content
+   * POST /api/admin/content
+   */
+  create: async (data: {
+    content_type: string;
+    [key: string]: any;
+  }) => {
+    return authApi.post<{
+      id: string;
+      content_type: string;
+      [key: string]: any;
+    }>('/api/admin/content', data);
+  },
+
+  /**
+   * Update content
+   * PUT /api/admin/content/:id
    */
   update: async (
-    slug: string,
+    id: string,
     data: {
-      title?: string;
-      content?: string;
-      meta_description?: string;
-      published?: boolean;
+      content_type: string;
+      [key: string]: any;
     }
   ) => {
     return authApi.put<{
       id: string;
-      slug: string;
-      title: string;
-      content: string;
-      meta_description?: string;
-      published: boolean;
-      updated_at: string;
-    }>(`/api/admin/content/${slug}`, data);
+      content_type: string;
+      [key: string]: any;
+    }>(`/api/admin/content/${id}`, data);
   },
 
   /**
-   * Publish content page
-   * POST /api/admin/content/:slug/publish
+   * Delete content
+   * DELETE /api/admin/content/:id?content_type=<type>
    */
-  publish: async (slug: string) => {
-    return authApi.post(`/api/admin/content/${slug}/publish`);
+  delete: async (id: string, content_type: string) => {
+    return authApi.delete(`/api/admin/content/${id}?content_type=${content_type}`);
   },
 
   /**
-   * Unpublish content page
-   * POST /api/admin/content/:slug/unpublish
+   * Publish content
+   * POST /api/admin/content/:id/publish?content_type=<type>
    */
-  unpublish: async (slug: string) => {
-    return authApi.post(`/api/admin/content/${slug}/unpublish`);
+  publish: async (id: string, content_type: string) => {
+    return authApi.post(`/api/admin/content/${id}/publish?content_type=${content_type}`);
+  },
+
+  /**
+   * Unpublish content
+   * POST /api/admin/content/:id/unpublish?content_type=<type>
+   */
+  unpublish: async (id: string, content_type: string) => {
+    return authApi.post(`/api/admin/content/${id}/unpublish?content_type=${content_type}`);
   },
 };
 
@@ -295,6 +310,32 @@ export const navigationService = {
     }>
   ) => {
     return authApi.put('/api/admin/navigation', { items });
+  },
+};
+
+/**
+ * Categories API Service
+ * All endpoints for category management
+ */
+export const categoriesService = {
+  /**
+   * Get all categories with optional type filter
+   * GET /api/admin/categories?type=<type>
+   */
+  getAll: async (type?: string) => {
+    const params = new URLSearchParams();
+    if (type) params.append('type', type);
+    params.append('limit', '100'); // Get all categories
+
+    return authApi.get<{
+      success: boolean;
+      data: Array<{
+        id: string;
+        name: string;
+        type: string;
+        description?: string;
+      }>;
+    }>(`/api/admin/categories?${params.toString()}`);
   },
 };
 

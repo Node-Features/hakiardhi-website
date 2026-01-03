@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Input from '@/components/ui/form/input/InputField';
 import Select from '@/components/ui/form/Select';
 import Button from '@/components/ui/button/Button';
-import { rolesService } from '@/lib/api/services';
+import ProfilePictureUpload from '@/components/common/ProfilePictureUpload';
+import { rolesService, usersService } from '@/lib/api/services';
 import { CreateUserRequest, UpdateUserRequest, UserResponse, RoleResponse } from '@/types/api';
 import { api } from '@/lib/api/client';
 import { useToast } from '@/lib/context/ToastContext';
@@ -132,6 +133,27 @@ export default function UserForm({
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-6">
+      {/* Profile Picture */}
+      {isEditMode && initialData?.id && (
+        <div>
+          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+            Profile Picture
+          </h3>
+          <ProfilePictureUpload
+            currentImageUrl={initialData?.image_url}
+            onUpload={async (file) => {
+              const response = await usersService.uploadProfilePicture(initialData.id, file);
+              return response.image_url;
+            }}
+            onDelete={async () => {
+              await usersService.deleteProfilePicture(initialData.id);
+            }}
+            entityName="user"
+            disabled={isLoading}
+          />
+        </div>
+      )}
+
       {/* Personal Information */}
       <div>
         <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
