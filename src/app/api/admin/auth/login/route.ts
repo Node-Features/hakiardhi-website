@@ -42,6 +42,7 @@ export async function POST(req: Request) {
       sex,
       age_group,
       status,
+      image_url,
       user_roles (
         roles (
           id,
@@ -112,6 +113,7 @@ export async function POST(req: Request) {
       phone_number: userData.phone_number,
       sex: userData.sex,
       age_group: userData.age_group,
+      image_url: userData.image_url,
       role: userRole,
       role_id: roleId,
       roles: roles, // All user roles
