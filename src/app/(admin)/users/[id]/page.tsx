@@ -203,7 +203,7 @@ export default function UserDetailsPage() {
                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">User Role</p>
               </div>
               <p className="mt-3 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                {user.role || 'No Role'}
+                {typeof user.role === 'object' && user.role && 'name' in user.role ? user.role.name : user.role || 'No Role'}
               </p>
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg dark:from-purple-600 dark:to-purple-700">
@@ -214,7 +214,7 @@ export default function UserDetailsPage() {
           </div>
           <div className="mt-4">
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400 line-clamp-1">
-              {user.role || 'No role assigned'}
+              {typeof user.role === 'object' && user.role && 'name' in user.role ? user.role.name : user.role || 'No role assigned'}
             </p>
           </div>
         </motion.div>
@@ -478,7 +478,7 @@ export default function UserDetailsPage() {
                       <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Assigned Role</p>
                       <div className="mt-1">
                         <Badge variant="light" color="primary" size="sm">
-                          {user.role || 'No Role'}
+                          {typeof user.role === 'object' && user.role && 'name' in user.role ? user.role.name : user.role || 'No Role'}
                         </Badge>
                       </div>
                     </div>
@@ -593,7 +593,7 @@ export default function UserDetailsPage() {
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {user.role}
+                  {typeof user.role === 'object' && user.role && 'name' in user.role ? user.role.name : user.role}
                 </h3>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                   Role assigned to this user

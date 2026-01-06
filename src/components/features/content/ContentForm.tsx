@@ -41,6 +41,23 @@ const languageOptions = [
   { value: 'Kiswahili', label: 'Kiswahili' },
 ];
 
+// Portal page type options
+const portalPageOptions = [
+  { value: 'home', label: '🏠 Home' },
+  { value: 'about', label: 'ℹ️ About Us' },
+  { value: 'what-we-do', label: '💼 What We Do' },
+  { value: 'programs', label: '📋 Programs' },
+  { value: 'research', label: '📚 Research & Publications' },
+  { value: 'resources', label: '📁 Resource Centers' },
+  { value: 'gallery', label: '🖼️ Gallery' },
+  { value: 'legal-aid', label: '⚖️ Legal Aid' },
+  { value: 'contact', label: '📧 Contact Us' },
+  { value: 'portfolio', label: '💼 Portfolio' },
+  { value: 'work-with-us', label: '👥 Work with Us' },
+  { value: 'lrm', label: '🌐 LRM Networks' },
+  { value: 'footer', label: '🔻 Footer' },
+];
+
 export default function ContentForm({
   formId = 'content-form',
   initialData,
@@ -107,7 +124,7 @@ export default function ContentForm({
     response: initialData?.response || '',
     category: initialData?.category || '',
     // Page fields
-    page_type: initialData?.page_type || 'about',
+    page_type: initialData?.page_type || 'home',
     icon_name: initialData?.icon_name || '',
     display_order: initialData?.display_order || 0,
   });
@@ -938,16 +955,17 @@ export default function ContentForm({
             {/* Page Type */}
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Page Type <span className="text-red-600">*</span>
+                Portal Page <span className="text-red-600">*</span>
               </label>
-              <Input
-                type="text"
+              <Select
                 value={formData.page_type}
-                onChange={(e) => handleChange('page_type', e.target.value)}
-                placeholder="about, contact, privacy, terms, etc."
-                error={!!errors.page_type}
+                onChange={(value) => handleChange('page_type', value)}
+                options={portalPageOptions}
               />
               {errors.page_type && <p className="mt-1 text-xs text-red-600">{errors.page_type}</p>}
+              <p className="mt-1 text-xs text-gray-500">
+                Select which portal page this content belongs to
+              </p>
             </div>
 
             {/* Title */}

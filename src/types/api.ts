@@ -508,7 +508,7 @@ export interface UserResponse {
   status: string;
   created_at: string;
   updated_at: string;
-  role?: string; // Role name as string (from session/me endpoints)
+  role?: string | { id: string; name: string }; // Role name as string (from session/me endpoints) or object with id and name
   roles?: string[]; // All user roles (array of role names)
   role_id?: string; // Role ID if included
   permissions?: string[]; // User permissions (array of permission names)
@@ -669,7 +669,7 @@ export interface ChangePasswordRequest {
 // Content Management Module
 // ============================================
 
-export type ContentType = 'blog' | 'publication' | 'faq' | 'page';
+export type ContentType = 'blog' | 'publication' | 'faq' | 'page' | 'team' | 'partner' | 'testimonial' | 'milestone';
 
 export interface ContentResponse {
   id: string;

@@ -20,7 +20,8 @@
       "Bash(netstat:*)",
       "Bash(npm run dev:*)",
       "Bash(mkdir:*)",
-      "Bash(timeout 30 npx tsc:*)"
+      "Bash(timeout 30 npx tsc:*)",
+      "Bash(tree:*)"
     ]
   }
 }

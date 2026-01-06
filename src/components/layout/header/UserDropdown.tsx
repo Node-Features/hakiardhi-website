@@ -97,7 +97,7 @@ export default function UserDropdown() {
             </span>
             {user?.role && (
               <span className="inline-block px-2 py-0.5 mt-1 text-xs font-medium text-brand-600 bg-brand-50 rounded dark:bg-brand-900/20 dark:text-brand-400">
-                {user.role}
+                {typeof user.role === 'object' && 'name' in user.role ? user.role.name : user.role}
               </span>
             )}
           </div>

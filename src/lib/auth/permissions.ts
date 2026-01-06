@@ -38,7 +38,8 @@ export function hasAllPermissions(user: User | null, permissions: string[]): boo
  */
 export function hasRole(user: User | null, roleName: string): boolean {
   if (!user || !user.role) return false;
-  return user.role === roleName;
+  const userRoleName = typeof user.role === 'object' ? user.role.name : user.role;
+  return userRoleName === roleName;
 }
 
 /**
@@ -46,5 +47,6 @@ export function hasRole(user: User | null, roleName: string): boolean {
  */
 export function hasAnyRole(user: User | null, roleNames: string[]): boolean {
   if (!user || !user.role) return false;
-  return roleNames.includes(user.role);
+  const userRoleName = typeof user.role === 'object' ? user.role.name : user.role;
+  return roleNames.includes(userRoleName);
 }

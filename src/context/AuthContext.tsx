@@ -18,7 +18,7 @@ export interface User {
   photo_consent?: boolean;
   status?: string;
   created_at?: string;
-  role?: string; // Primary role name
+  role?: string | { id: string; name: string }; // Primary role name or role object
   role_id?: string; // Primary role ID
   roles?: string[]; // All user roles (for users with multiple roles)
   image_url?: string | null;
