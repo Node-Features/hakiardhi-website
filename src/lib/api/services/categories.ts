@@ -36,13 +36,20 @@ export const categoriesService = {
     limit?: number;
     type?: string;
   }) => {
-    const searchParams = new URLSearchParams(
-      params as Record<string, string>
-    ).toString();
+    const searchParams = new URLSearchParams();
 
-    return authApi.get<PaginatedResponse<Category>>(
-      `/api/admin/categories${searchParams ? `?${searchParams}` : ''}`
-    );
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const url = `/api/admin/categories${queryString ? `?${queryString}` : ''}`;
+
+    return authApi.get<PaginatedResponse<Category>>(url);
   },
 
   /**

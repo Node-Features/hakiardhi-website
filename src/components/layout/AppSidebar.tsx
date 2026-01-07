@@ -151,6 +151,11 @@ const othersItems: NavItem[] = [
         permission: "role_view",
       },
       {
+        name: "Categories",
+        path: "/settings/categories",
+        permission: "settings_manage",
+      },
+      {
         name: "Constants",
         path: "/settings/constants",
         permission: "settings_manage",
