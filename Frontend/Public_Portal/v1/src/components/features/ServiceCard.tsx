@@ -29,8 +29,8 @@ export default function ServiceCard({
       >
         {icon}
       </div>
-      <h3 className="text-heading-sm font-bold text-gray-900 mb-3 group-hover:text-brand-600 transition-colors duration-300">{title}</h3>
-      <p className="text-body-md text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">{description}</p>
+      <h3 className="text-base sm:text-lg md:text-heading-sm font-bold text-gray-900 mb-3 group-hover:text-brand-600 transition-colors duration-300">{title}</h3>
+      <p className="text-sm sm:text-base md:text-body-md text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">{description}</p>
 
       {/* Decorative line */}
       <div className="mt-4 h-1 w-0 bg-gradient-to-r from-brand-500 to-brand-300 rounded-full group-hover:w-full transition-all duration-500"></div>

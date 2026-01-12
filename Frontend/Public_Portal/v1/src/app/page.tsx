@@ -14,7 +14,7 @@ import {
 
 export default function Home() {
   return (
-    <main id="main-content" className="min-h-screen bg-white">
+    <main id="main-content" className="min-h-screen bg-white overflow-x-hidden">
       <Header />
 
       {/* 1. HERO - Stunning imagery with powerful headline */}

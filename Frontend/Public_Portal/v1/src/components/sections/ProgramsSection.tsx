@@ -67,6 +67,7 @@ export default function ProgramsSection({
       <div className="absolute top-1/3 left-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
 
+      {/* Header Container */}
       <div className="container mx-auto px-6 lg:px-12 relative z-10">
         {/* Section Header */}
         <div className="text-center mb-10 lg:mb-12">
@@ -83,9 +84,11 @@ export default function ProgramsSection({
             {description}
           </p>
         </div>
+      </div>
 
-        {/* Programs Grid with staggered animation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+      {/* Programs Grid - Full Width Cards without container */}
+      <div className="relative z-10 py-8 lg:py-12 px-4 sm:px-6 lg:px-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {programs.map((program, index) => (
             <div
               key={index}
@@ -105,10 +108,12 @@ export default function ProgramsSection({
             </div>
           ))}
         </div>
+      </div>
 
-        {/* CTA with elegant styling */}
-        {showViewAllButton && (
-          <div className="text-center mt-8">
+      {/* CTA with elegant styling - In Container */}
+      {showViewAllButton && (
+        <div className="container mx-auto px-6 lg:px-12 relative z-10">
+          <div className="text-center">
             <Button
               href={viewAllLink}
               variant="primary"
@@ -123,8 +128,8 @@ export default function ProgramsSection({
               {viewAllText}
             </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -120,7 +120,7 @@ export default function HeroSection() {
         <div className={`${CONTENT_WIDTHS.text.wide} w-full text-center`}>
           {/* Main Headline - Minimalistic */}
           <h1
-            className={`text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-tight ${SPACING.margin.element.md} transition-all duration-1000 ${
+            className={`text-2xl sm:text-3xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-white leading-tight ${SPACING.margin.element.md} transition-all duration-1000 ${
               isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
             style={{
@@ -133,7 +133,7 @@ export default function HeroSection() {
 
           {/* Subheadline - Minimized */}
           <p
-            className={`text-base sm:text-lg lg:text-xl text-white/90 font-normal ${SPACING.margin.element.md} ${CONTENT_WIDTHS.text.body} mx-auto leading-relaxed transition-all duration-1000 delay-200 ${
+            className={`text-sm sm:text-base md:text-base lg:text-lg xl:text-xl text-white/90 font-normal ${SPACING.margin.element.md} ${CONTENT_WIDTHS.text.body} mx-auto leading-relaxed transition-all duration-1000 delay-200 ${
               isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
             style={{

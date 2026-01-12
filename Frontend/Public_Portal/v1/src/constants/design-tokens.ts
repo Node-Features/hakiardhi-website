@@ -151,72 +151,72 @@ export const GRID_LAYOUTS = {
 // ========================================
 
 export const TYPOGRAPHY = {
-  // Display (Hero sections)
+  // Display (Hero sections) - Optimized for small-screen laptops (1024-1366px)
   display: {
     lg: {
-      size: 'text-5xl sm:text-6xl lg:text-7xl',
+      size: 'text-2xl sm:text-3xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl',
       lineHeight: 'leading-[1.1]',
-      spacing: 'mb-6 lg:mb-8',
+      spacing: 'mb-4 sm:mb-6 md:mb-6 lg:mb-8',
       weight: 'font-black',
     },
     md: {
-      size: 'text-4xl sm:text-5xl lg:text-6xl',
+      size: 'text-xl sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl',
       lineHeight: 'leading-tight',
-      spacing: 'mb-6',
+      spacing: 'mb-4 md:mb-6',
       weight: 'font-bold',
     },
     sm: {
-      size: 'text-3xl sm:text-4xl lg:text-5xl',
+      size: 'text-lg sm:text-xl md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl',
       lineHeight: 'leading-tight',
-      spacing: 'mb-4 lg:mb-6',
+      spacing: 'mb-3 md:mb-4 lg:mb-6',
       weight: 'font-bold',
     },
   },
 
-  // Headings
+  // Headings - Optimized for small-screen laptops (1024-1366px)
   heading: {
     h1: {
-      size: 'text-4xl sm:text-5xl lg:text-6xl',
+      size: 'text-2xl sm:text-3xl md:text-3xl lg:text-4xl xl:text-5xl',
       lineHeight: 'leading-tight',
-      spacing: 'mb-6',
+      spacing: 'mb-4 md:mb-6',
       weight: 'font-bold',
     },
     h2: {
-      size: 'text-3xl sm:text-4xl lg:text-5xl',
+      size: 'text-xl sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl',
       lineHeight: 'leading-tight',
-      spacing: 'mb-4 lg:mb-6',
+      spacing: 'mb-4 md:mb-4 lg:mb-6',
       weight: 'font-bold',
     },
     h3: {
-      size: 'text-2xl sm:text-3xl lg:text-4xl',
+      size: 'text-lg sm:text-xl md:text-xl lg:text-2xl xl:text-3xl',
       lineHeight: 'leading-snug',
-      spacing: 'mb-4',
+      spacing: 'mb-3 md:mb-4',
       weight: 'font-semibold',
     },
     h4: {
-      size: 'text-xl sm:text-2xl lg:text-3xl',
+      size: 'text-base sm:text-lg md:text-lg lg:text-xl xl:text-2xl',
       lineHeight: 'leading-snug',
       spacing: 'mb-3',
       weight: 'font-semibold',
     },
   },
 
-  // Body text
+  // Body text - Optimized for small-screen laptops (1024-1366px)
   body: {
     lg: {
-      size: 'text-lg lg:text-xl',
+      size: 'text-base sm:text-lg md:text-lg lg:text-lg xl:text-xl',
       lineHeight: 'leading-relaxed',
-      spacing: 'mb-6',
+      spacing: 'mb-4 md:mb-6',
     },
     default: {
-      size: 'text-base lg:text-lg',
+      size: 'text-sm sm:text-base md:text-base lg:text-base xl:text-lg',
       lineHeight: 'leading-relaxed',
-      spacing: 'mb-4',
+      spacing: 'mb-3 md:mb-4',
     },
     sm: {
-      size: 'text-sm lg:text-base',
+      size: 'text-xs sm:text-sm md:text-sm lg:text-sm xl:text-base',
       lineHeight: 'leading-normal',
-      spacing: 'mb-3',
+      spacing: 'mb-2 md:mb-3',
     },
   },
 } as const;

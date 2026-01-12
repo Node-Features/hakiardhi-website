@@ -47,12 +47,12 @@ export default function StatCard({
             {icon}
           </div>
         )}
-        <div className={`relative text-6xl sm:text-7xl font-black ${numberColorClasses[color]} transition-all duration-300 group-hover:scale-110`}>
+        <div className={`relative text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black ${numberColorClasses[color]} transition-all duration-300 group-hover:scale-110`}>
           {number}
         </div>
-        <div className="text-heading-md font-bold text-gray-900 tracking-tight">{label}</div>
+        <div className="text-base sm:text-lg md:text-heading-md font-bold text-gray-900 tracking-tight">{label}</div>
         {description && (
-          <p className="text-body-sm text-gray-600 max-w-xs mx-auto leading-relaxed">{description}</p>
+          <p className="text-xs sm:text-sm md:text-body-sm text-gray-600 max-w-xs mx-auto leading-relaxed">{description}</p>
         )}
 
         {/* Decorative accent line */}

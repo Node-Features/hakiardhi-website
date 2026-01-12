@@ -41,32 +41,32 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50">
         {/* Top Bar - Red Background */}
-        <div className="bg-hakiardhi-red text-white">
-          <div className={`flex flex-col sm:flex-row items-center justify-between ${SPACING.header.horizontalPadding} ${SPACING.padding.y.xs} text-sm`}>
-            {/* Left Side - Contact Info */}
-            <div className={`flex flex-wrap items-center ${SPACING.gap.sm} lg:${SPACING.gap.md}`}>
-              <div className={`flex items-center ${SPACING.gap.xs}`}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="bg-hakiardhi-red text-white overflow-hidden">
+          <div className={`flex items-center justify-between ${SPACING.header.horizontalPadding} py-1 min-w-0`}>
+            {/* Left Side - Contact Info - Single Line on Mobile with proper constraints */}
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-6 overflow-x-auto whitespace-nowrap scrollbar-hide flex-1 min-w-0">
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="font-medium">Mon - Fri : 08:00 - 17:00</span>
+                <span className="text-[9px] sm:text-xs lg:text-sm font-medium">Mon - Fri : 08:00 - 17:00</span>
               </div>
-              <a href="tel:+255784646752" className={`flex items-center ${SPACING.gap.xs} ${SPACING.padding.xs}`}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <a href="tel:+255784646752" className="flex items-center gap-1 flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                <span className="font-medium">+255 784 646 752</span>
+                <span className="text-[9px] sm:text-xs lg:text-sm font-medium">+255 784 646 752</span>
               </a>
-              <a href="mailto:info@hakiardhi.or.tz" className={`flex items-center ${SPACING.gap.xs} ${SPACING.padding.xs}`}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <a href="mailto:info@hakiardhi.or.tz" className="flex items-center gap-1 flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span className="font-medium">info@hakiardhi.or.tz</span>
+                <span className="text-[9px] sm:text-xs lg:text-sm font-medium">info@hakiardhi.or.tz</span>
               </a>
             </div>
 
             {/* Right Side - Quick Links & Language Switcher */}
-            <div className="hidden lg:flex items-center gap-1 text-xs font-semibold tracking-wide">
+            <div className="hidden lg:flex items-center gap-1 text-xs font-semibold tracking-wide flex-shrink-0">
               <Link href="/contact" className={`flex items-center ${SPACING.gap.xs} ${SPACING.padding.xs} hover:text-hakiardhi-red rounded transition-all`}>
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -110,7 +110,7 @@ export default function Header() {
           }`}
         >
         <nav aria-label="Main navigation" className={`flex items-center justify-between ${SPACING.header.padding}`}>
-          {/* Logo - Increased Size - Flush Left */}
+          {/* Logo - Balanced for readability */}
           <Link
             href="/"
             className="flex-shrink-0 transition-transform hover:scale-105"
@@ -120,21 +120,21 @@ export default function Header() {
               alt="HakiArdhi"
               width={280}
               height={84}
-              className="h-18 sm:h-20 lg:h-24 xl:h-28 w-auto"
+              className="h-16 sm:h-18 lg:h-20 xl:h-22 2xl:h-24 w-auto"
               priority
             />
           </Link>
 
-          {/* Desktop Menu - Right Justified */}
-          <div className={`hidden lg:flex items-center ${SPACING.gap.md} xl:${SPACING.gap.lg}`}>
+          {/* Desktop Menu - Right Justified - Balanced sizing for all screens */}
+          <div className={`hidden lg:flex items-center gap-4 xl:gap-5 2xl:gap-6`}>
             {navigationItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className="relative inline-flex items-center justify-center group py-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2"
               >
-                {/* Menu text with better touch target */}
-                <span className="relative z-10 text-[15px] lg:text-base font-semibold text-black group-hover:text-hakiardhi-red transition-colors duration-300 px-1">
+                {/* Menu text - Balanced sizing with no wrapping */}
+                <span className="relative z-10 text-sm lg:text-[0.9375rem] xl:text-base 2xl:text-base font-semibold text-black group-hover:text-hakiardhi-red transition-colors duration-300 whitespace-nowrap">
                   {item.label}
                   {/* Underline on hover */}
                   <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-black group-hover:w-full transition-all duration-300"></span>
@@ -142,46 +142,32 @@ export default function Header() {
               </Link>
             ))}
 
-            {/* Visual Separator */}
+            {/* Visual Separator - Balanced spacing */}
             <div className="w-[1px] h-8 bg-gray-300 mx-2"></div>
 
-            {/* CTA Button */}
+            {/* CTA Button - Balanced size */}
             <Button
               href="/legal-aid"
               variant="primary"
-              size="lg"
+              size="md"
             >
               Get Legal Aid
             </Button>
           </div>
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Menu Toggle - Modern minimal design */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`lg:hidden min-w-[48px] min-h-[48px] flex items-center justify-center rounded-lg transition-all duration-300 shadow-md ${
-              isMobileMenuOpen
-                ? 'bg-hakiardhi-red hover:bg-hakiardhi-red-dark'
-                : 'bg-white hover:bg-gray-50 border-2 border-gray-200'
-            }`}
-            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            className="lg:hidden min-w-[48px] min-h-[48px] flex items-center justify-center transition-all duration-300 group"
+            aria-label="Open navigation menu"
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
           >
-            <div className="w-6 h-6 relative flex items-center justify-center">
-              {isMobileMenuOpen ? (
-                // Close X Icon - White on Red background
-                <>
-                  <span className="absolute w-6 h-[3px] bg-white rounded-full rotate-45 transition-all duration-300"></span>
-                  <span className="absolute w-6 h-[3px] bg-white rounded-full -rotate-45 transition-all duration-300"></span>
-                </>
-              ) : (
-                // Hamburger Icon - Black on White background
-                <>
-                  <span className="absolute left-0 top-0 w-6 h-[3px] bg-black rounded-full transition-all duration-300"></span>
-                  <span className="absolute left-0 top-1/2 w-6 h-[3px] bg-black rounded-full -translate-y-1/2 transition-all duration-300"></span>
-                  <span className="absolute left-0 bottom-0 w-6 h-[3px] bg-black rounded-full transition-all duration-300"></span>
-                </>
-              )}
+            <div className="w-7 h-7 relative flex flex-col items-center justify-center gap-[5px]">
+              {/* Hamburger Icon - Clean three lines */}
+              <span className="w-7 h-[2.5px] bg-black group-hover:bg-hakiardhi-red rounded-full transition-all duration-300 group-hover:w-6"></span>
+              <span className="w-7 h-[2.5px] bg-black group-hover:bg-hakiardhi-red rounded-full transition-all duration-300"></span>
+              <span className="w-7 h-[2.5px] bg-black group-hover:bg-hakiardhi-red rounded-full transition-all duration-300 group-hover:w-5"></span>
             </div>
           </button>
         </nav>
@@ -207,14 +193,30 @@ export default function Header() {
             className="fixed top-[140px] sm:top-[150px] left-0 right-0 bottom-0 z-[70] bg-gradient-to-b from-white to-gray-50 shadow-2xl overflow-y-auto animate-slide-down"
           >
             <nav aria-label="Mobile navigation" className="flex flex-col h-full">
+              {/* Close Button Header */}
+              <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-200 bg-white/80 sticky top-0 z-10 backdrop-blur-sm">
+                <span className="text-sm font-bold text-gray-700 uppercase tracking-wide">Menu</span>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center transition-all duration-300 group"
+                  aria-label="Close navigation menu"
+                >
+                  <div className="w-7 h-7 relative flex items-center justify-center">
+                    {/* Close X Icon - Animated cross */}
+                    <span className="absolute w-7 h-[2.5px] bg-black group-hover:bg-hakiardhi-red rounded-full rotate-45 transition-all duration-300"></span>
+                    <span className="absolute w-7 h-[2.5px] bg-black group-hover:bg-hakiardhi-red rounded-full -rotate-45 transition-all duration-300"></span>
+                  </div>
+                </button>
+              </div>
+
               {/* Menu Items Container */}
-              <div className="flex-1 px-6 py-6 space-y-2">
+              <div className="flex-1 px-4 sm:px-6 py-6 space-y-3">
                 {navigationItems.map((item, index) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="group relative flex items-center justify-between px-5 py-4 text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2"
+                    className="group relative flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <span className="relative z-10 flex items-center gap-3">
@@ -237,6 +239,72 @@ export default function Header() {
                     <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                   </Link>
                 ))}
+
+                {/* Divider */}
+                <div className="py-3">
+                  <div className="border-t border-gray-300"></div>
+                </div>
+
+                {/* Quick Links Section */}
+                <Link
+                  href="/contact"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="group relative flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300"
+                >
+                  <span className="relative z-10 flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 bg-hakiardhi-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                    Contact Us
+                  </span>
+                  <svg className="w-5 h-5 text-gray-400 group-hover:text-hakiardhi-red group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                </Link>
+
+                <Link
+                  href="/portfolio"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="group relative flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300"
+                >
+                  <span className="relative z-10 flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 bg-hakiardhi-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                    Portfolio
+                  </span>
+                  <svg className="w-5 h-5 text-gray-400 group-hover:text-hakiardhi-red group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                </Link>
+
+                <Link
+                  href="/work-with-us"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="group relative flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300"
+                >
+                  <span className="relative z-10 flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 bg-hakiardhi-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                    Work With Us
+                  </span>
+                  <svg className="w-5 h-5 text-gray-400 group-hover:text-hakiardhi-red group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                </Link>
+
+                <Link
+                  href="/lrm-network"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="group relative flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300"
+                >
+                  <span className="relative z-10 flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 bg-hakiardhi-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                    LRM Network
+                  </span>
+                  <svg className="w-5 h-5 text-gray-400 group-hover:text-hakiardhi-red group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                </Link>
               </div>
 
               {/* Bottom Section - Language & CTA */}

@@ -66,6 +66,7 @@ export default function NewsPublicNoticeSection({ className = '' }: NewsPublicNo
       <div className="absolute top-0 left-1/4 w-80 h-80 bg-gradient-to-br from-orange-500/10 to-brand-500/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-brand-500/10 to-success-500/10 rounded-full blur-3xl"></div>
 
+      {/* Header Container */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div
@@ -120,11 +121,12 @@ export default function NewsPublicNoticeSection({ className = '' }: NewsPublicNo
             );
           })}
         </div>
+      </div>
 
-        {/* News Grid - Professional Cards */}
-        <div className="bg-gradient-to-br from-zinc-50 via-gray-50 to-zinc-100/50 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-inner border border-zinc-200/50 mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-fr">
-            {filteredNews.map((item, index) => (
+      {/* News Grid - Full Width Cards without container */}
+      <div className="relative z-10 py-8 lg:py-12 px-4 sm:px-6 lg:px-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-fr">
+          {filteredNews.map((item, index) => (
               <div
                 key={item.id}
                 className={`transition-all duration-1000 flex ${
@@ -207,10 +209,11 @@ export default function NewsPublicNoticeSection({ className = '' }: NewsPublicNo
                 </Link>
               </div>
             ))}
-          </div>
         </div>
+      </div>
 
-        {/* View All Link */}
+      {/* View All Link - In Container */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center">
           <Button variant="primary" size="lg" href="/news-events" icon={<Icon name="arrow-right" size="sm" />}>
             View All News & Updates

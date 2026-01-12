@@ -14,33 +14,34 @@ const config: Config = {
         metropolis: ["Metropolis", "Montserrat", "sans-serif"],
       },
       fontSize: {
-        // Custom Hakiardhi Typography Scale
+        // Custom Hakiardhi Typography Scale - Optimized for small-screen laptops (1024-1366px)
+        // Reduced sizes improve content density and visibility on Surface Pro, HP ProBook, etc.
         "display-lg": [
-          "4.5rem",
-          { lineHeight: "1.1", fontWeight: "700", letterSpacing: "-0.02em" },
-        ], // 72px - Hero
-        "display-md": [
-          "3.5rem",
-          { lineHeight: "1.15", fontWeight: "700", letterSpacing: "-0.02em" },
-        ], // 56px - Page Headers
-        "display-sm": [
           "3rem",
+          { lineHeight: "1.1", fontWeight: "700", letterSpacing: "-0.02em" },
+        ], // 48px - Hero (reduced for better fit)
+        "display-md": [
+          "2.5rem",
+          { lineHeight: "1.15", fontWeight: "700", letterSpacing: "-0.02em" },
+        ], // 40px - Page Headers (reduced for better fit)
+        "display-sm": [
+          "2rem",
           { lineHeight: "1.2", fontWeight: "600", letterSpacing: "-0.01em" },
-        ], // 48px - Section Headers
+        ], // 32px - Section Headers (reduced for better fit)
         "heading-xl": [
-          "2.25rem",
+          "1.75rem",
           { lineHeight: "1.25", fontWeight: "600" },
-        ], // 36px
+        ], // 28px (reduced for small laptops)
         "heading-lg": [
-          "1.875rem",
+          "1.5rem",
           { lineHeight: "1.3", fontWeight: "600" },
-        ], // 30px
-        "heading-md": ["1.5rem", { lineHeight: "1.4", fontWeight: "600" }], // 24px
-        "heading-sm": ["1.25rem", { lineHeight: "1.5", fontWeight: "600" }], // 20px
-        "body-lg": ["1.125rem", { lineHeight: "1.7", fontWeight: "400" }], // 18px
-        "body-md": ["1rem", { lineHeight: "1.7", fontWeight: "400" }], // 16px
-        "body-sm": ["0.875rem", { lineHeight: "1.6", fontWeight: "400" }], // 14px
-        caption: ["0.75rem", { lineHeight: "1.5", fontWeight: "500" }], // 12px
+        ], // 24px (reduced for small laptops)
+        "heading-md": ["1.25rem", { lineHeight: "1.4", fontWeight: "600" }], // 20px (reduced for small laptops)
+        "heading-sm": ["1rem", { lineHeight: "1.5", fontWeight: "600" }], // 16px (reduced for small laptops)
+        "body-lg": ["1rem", { lineHeight: "1.7", fontWeight: "400" }], // 16px (reduced from 18px)
+        "body-md": ["0.9375rem", { lineHeight: "1.7", fontWeight: "400" }], // 15px (reduced from 16px)
+        "body-sm": ["0.8125rem", { lineHeight: "1.6", fontWeight: "400" }], // 13px (reduced from 14px)
+        caption: ["0.6875rem", { lineHeight: "1.5", fontWeight: "500" }], // 11px (reduced from 12px)
       },
       fontWeight: {
         thin: "100",
@@ -235,13 +236,16 @@ const config: Config = {
     function ({ addComponents, addUtilities }: any) {
       // Hakiardhi Components
       const components = {
-        // Buttons
+        // Buttons - Optimized for small-screen laptops
         ".btn-primary": {
           backgroundColor: "#D62828",
           color: "#FFFFFF",
           padding: "0.625rem 1.5rem",
           borderRadius: "0.75rem",
+          fontSize: "0.875rem", // 14px for better fit
           fontWeight: "600",
+          lineHeight: "1.25",
+          whiteSpace: "nowrap",
           transition: "all 0.3s ease",
           "&:hover": {
             backgroundColor: "#000000",
@@ -259,7 +263,10 @@ const config: Config = {
           border: "1px solid #D62828",
           borderRadius: "0.75rem",
           padding: "0.625rem 1.5rem",
+          fontSize: "0.875rem", // 14px for better fit
           fontWeight: "600",
+          lineHeight: "1.25",
+          whiteSpace: "nowrap",
           transition: "all 0.3s ease",
           "&:hover": {
             backgroundColor: "#000000",

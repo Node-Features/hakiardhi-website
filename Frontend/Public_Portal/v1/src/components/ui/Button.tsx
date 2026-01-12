@@ -30,11 +30,13 @@ export default function Button({
   fullWidth = false,
   type = 'button',
 }: ButtonProps) {
-  // Size variants with proper horizontal padding
+  // Optimized text sizing for small-screen laptops (1024-1366px)
+  // Reduces font size at lg breakpoint for better content density and visibility
+  // Surface Pro, HP ProBook, Dell, Chromebook, EliteBook benefit from smaller text
   const sizeClasses = {
-    sm: 'text-sm px-8 py-2.5 min-h-[44px]',
-    md: 'text-base px-10 py-3 min-h-[48px]',
-    lg: 'text-base px-12 py-4 min-h-[52px]',
+    sm: 'text-[11px] sm:text-xs lg:text-sm px-6 py-2.5 min-h-[40px]',
+    md: 'text-xs sm:text-sm lg:text-sm xl:text-base px-8 py-3 min-h-[44px]',
+    lg: 'text-sm sm:text-sm lg:text-sm xl:text-base 2xl:text-lg px-10 py-3.5 min-h-[48px]',
   };
 
   const variantClasses = {
@@ -48,6 +50,8 @@ export default function Button({
   const baseClasses = [
     'group inline-flex items-center justify-center gap-2',
     'font-semibold transition-all duration-300 ease-out',
+    'whitespace-nowrap', // Prevent text wrapping
+    'leading-tight', // Normalize line-height for consistent button height
     variant !== 'link' ? 'rounded-full' : '',
     disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
     fullWidth ? 'w-full' : '',
@@ -80,6 +84,9 @@ export default function Button({
   const commonStyles = {
     fontFamily: "'Metropolis', sans-serif",
     fontWeight: 600,
+    textRendering: 'optimizeLegibility' as const,
+    WebkitFontSmoothing: 'antialiased' as const,
+    MozOsxFontSmoothing: 'grayscale' as const,
   };
 
   const gradientClasses = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full hover:translate-x-0 transition-transform duration-700 rounded-full pointer-events-none';

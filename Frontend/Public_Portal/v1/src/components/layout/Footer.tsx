@@ -16,9 +16,9 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer className="bg-black text-white">
-      <div className={`container mx-auto ${SPACING.container.responsive} ${SPACING.section.sm}`}>
-        <Grid cols={{ base: 1, md: 2, lg: 4 }} gap="lg" className={SPACING.margin.element.lg}>
+    <footer className="bg-black text-white overflow-hidden">
+      <div className={`container mx-auto ${SPACING.container.responsive} py-12 lg:py-16`}>
+        <Grid cols={{ base: 1, md: 2, lg: 4 }} gap="lg" className="mb-8 lg:mb-12">
           {/* About Column */}
           <div>
             <Image
@@ -26,12 +26,12 @@ export default function Footer() {
               alt="HakiArdhi Logo"
               width={180}
               height={60}
-              className={`h-12 w-auto ${SPACING.margin.element.sm}`}
+              className="h-10 sm:h-12 w-auto mb-4"
             />
-            <p className={`text-gray-300 text-sm leading-relaxed ${SPACING.margin.element.sm}`}>
+            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed mb-6">
               Land Rights Research & Resources Institute - Empowering communities since 1994.
             </p>
-            <div className={`flex ${SPACING.gap.sm}`}>
+            <div className="flex gap-2 flex-wrap">
               <a href="https://web.facebook.com/profile.php?id=100068583082096" target="_blank" rel="noopener noreferrer" className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-300 hover:text-hakiardhi-red transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 focus-visible:ring-offset-black" aria-label="Facebook">
                 <Icon name="facebook" size="lg" />
               </a>
@@ -52,7 +52,7 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-base font-bold mb-5 text-white uppercase tracking-wide flex items-center gap-2">
+            <h3 className="text-sm sm:text-base md:text-lg font-bold mb-5 text-white uppercase tracking-wide flex items-center gap-2">
               <span className="w-1 h-4 bg-hakiardhi-red rounded-full"></span>
               Quick Links
             </h3>
@@ -98,7 +98,7 @@ export default function Footer() {
 
           {/* Resources */}
           <div>
-            <h3 className="text-base font-bold mb-5 text-white uppercase tracking-wide flex items-center gap-2">
+            <h3 className="text-sm sm:text-base md:text-lg font-bold mb-5 text-white uppercase tracking-wide flex items-center gap-2">
               <span className="w-1 h-4 bg-hakiardhi-red rounded-full"></span>
               Resources
             </h3>
@@ -143,24 +143,27 @@ export default function Footer() {
           </div>
 
           {/* Contact & Newsletter */}
-          <div>
-            <h3 className={`text-lg font-semibold ${SPACING.margin.element.sm} text-white`}>Contact & Stay Updated</h3>
-            <ul className={`${SPACING.component.default} ${SPACING.margin.element.sm}`}>
-              <li className={`flex items-start ${SPACING.gap.xs} text-sm text-gray-300`}>
+          <div className="w-full">
+            <h3 className="text-sm sm:text-base md:text-lg font-bold mb-5 text-white uppercase tracking-wide flex items-center gap-2">
+              <span className="w-1 h-4 bg-hakiardhi-red rounded-full"></span>
+              Stay Connected
+            </h3>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-start gap-2 text-xs sm:text-sm text-gray-300">
                 <Icon name="phone" size="sm" className="flex-shrink-0 mt-0.5" />
                 <span>0800 711 555</span>
               </li>
-              <li className={`flex items-start ${SPACING.gap.xs} text-sm text-gray-300`}>
+              <li className="flex items-start gap-2 text-xs sm:text-sm text-gray-300">
                 <Icon name="mail" size="sm" className="flex-shrink-0 mt-0.5" />
                 <span>info@hakiardhi.or.tz</span>
               </li>
             </ul>
 
             {/* Enhanced Newsletter Signup */}
-            <div>
-              <p className={`text-sm text-gray-300 ${SPACING.margin.element.xs} font-medium`}>Subscribe to our newsletter</p>
+            <div className="w-full">
+              <p className={`text-xs sm:text-sm text-gray-300 ${SPACING.margin.element.xs} font-medium`}>Subscribe to our newsletter</p>
               <form
-                className="relative mt-3"
+                className="relative mt-3 w-full"
                 onSubmit={(e) => e.preventDefault()}
               >
                 <label htmlFor="newsletter-email" className="sr-only">
@@ -168,14 +171,14 @@ export default function Footer() {
                 </label>
 
                 {/* Unified input-button container */}
-                <div className="relative group">
+                <div className="relative group w-full overflow-hidden">
                   {/* Outer glow effect */}
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-hakiardhi-red via-red-600 to-brand-500 rounded-full opacity-0 group-hover:opacity-50 group-focus-within:opacity-75 blur-sm transition-opacity duration-500"></div>
 
-                  {/* Main container */}
-                  <div className="relative flex items-center bg-gradient-to-r from-gray-800 to-gray-900 rounded-full border border-gray-700 group-hover:border-hakiardhi-red/50 group-focus-within:border-hakiardhi-red transition-all duration-300 shadow-lg group-hover:shadow-xl group-focus-within:shadow-hakiardhi-red/20">
+                  {/* Main container with overflow control */}
+                  <div className="relative flex items-stretch bg-gradient-to-r from-gray-800 to-gray-900 rounded-full border border-gray-700 group-hover:border-hakiardhi-red/50 group-focus-within:border-hakiardhi-red transition-all duration-300 shadow-lg group-hover:shadow-xl group-focus-within:shadow-hakiardhi-red/20 overflow-hidden">
                     {/* Email icon */}
-                    <div className="pl-4 pr-2">
+                    <div className="pl-3 pr-2 flex items-center flex-shrink-0">
                       <Icon name="mail" size="sm" className="text-gray-400 group-focus-within:text-hakiardhi-red transition-colors duration-300" />
                     </div>
 
@@ -186,20 +189,20 @@ export default function Footer() {
                       type="email"
                       autoComplete="email"
                       required
-                      placeholder="Enter your email address"
-                      className="flex-1 py-3 px-2 bg-transparent text-white text-sm placeholder:text-gray-500 outline-none focus:placeholder:text-gray-600 border-none"
+                      placeholder="Your email"
+                      className="flex-1 py-2.5 px-2 bg-transparent text-white text-xs sm:text-sm placeholder:text-gray-500 outline-none focus:placeholder:text-gray-600 border-none min-w-0"
                       aria-label="Email address"
                       style={{ boxShadow: 'none' }}
                     />
 
-                    {/* Submit button - rounded only on right */}
+                    {/* Submit button - stays within bounds */}
                     <button
                       type="submit"
-                      className="group/button relative flex items-center gap-2 bg-gradient-to-r from-hakiardhi-red to-red-600 hover:from-red-600 hover:to-hakiardhi-red text-white px-6 py-3 rounded-r-full text-sm font-bold transition-all duration-300 transform hover:scale-x-105 active:scale-95 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-hakiardhi-red focus:ring-offset-2 focus:ring-offset-black"
+                      className="group/button relative flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-hakiardhi-red to-red-600 hover:from-red-600 hover:to-hakiardhi-red text-white px-3 sm:px-4 py-2.5 rounded-r-full text-xs sm:text-sm font-semibold transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-hakiardhi-red focus:ring-offset-2 focus:ring-offset-black flex-shrink-0 whitespace-nowrap"
                       aria-label="Subscribe to newsletter"
                     >
                       <span>Subscribe</span>
-                      <Icon name="arrow-right" size="sm" className="transform group-hover/button:translate-x-1 transition-transform duration-300" />
+                      <Icon name="arrow-right" size="sm" className="transform group-hover/button:translate-x-0.5 transition-transform duration-300" />
                     </button>
                   </div>
                 </div>
@@ -212,13 +215,13 @@ export default function Footer() {
         </Grid>
 
         {/* Bottom Bar */}
-        <div className={`border-t border-gray-800 ${SPACING.padding.lg}`}>
-          <div className={`flex flex-col md:flex-row justify-between items-center ${SPACING.gap.sm}`}>
-            <p className="text-sm text-gray-400">
+        <div className="border-t border-gray-800 pt-6 lg:pt-8 mt-8 lg:mt-12">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 lg:gap-6">
+            <p className="text-xs sm:text-sm text-gray-400">
               &copy; {currentYear} HakiArdhi. All rights reserved.
             </p>
 
-            <div className={`flex flex-wrap items-center justify-center ${SPACING.gap.md} text-sm`}>
+            <div className="flex flex-wrap items-center justify-center gap-4 lg:gap-6 text-xs sm:text-sm">
               <Link href="/privacy-policy" className="text-gray-400 hover:text-hakiardhi-red transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 focus-visible:ring-offset-black">
                 Privacy Policy
               </Link>

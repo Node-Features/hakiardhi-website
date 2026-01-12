@@ -283,7 +283,7 @@ export default function ContactPage() {
             </p>
             <a
               href="tel:0800711555"
-              className="inline-flex items-center gap-3 px-8 py-4 min-h-[56px] bg-white !text-hakiardhi-red rounded-full text-xl md:text-2xl font-bold hover:bg-black hover:!text-white transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-hakiardhi-red"
+              className="inline-flex items-center gap-3 px-8 py-4 min-h-[56px] bg-white !text-hakiardhi-red rounded-full text-base sm:text-lg md:text-xl lg:text-2xl font-bold hover:bg-black hover:!text-white transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-hakiardhi-red"
             >
               <Icon name="phone" size="lg" className="!text-hakiardhi-red" />
               0 800 711 555

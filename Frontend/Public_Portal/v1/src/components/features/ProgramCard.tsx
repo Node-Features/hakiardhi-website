@@ -28,7 +28,7 @@ export default function ProgramCard({
 }: ProgramCardProps) {
   return (
     <div
-      className={`group bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm rounded-2xl border border-brand-500/20 hover:border-brand-500/40 transition-all duration-300 overflow-hidden ${className}`}
+      className={`group rounded-2xl border border-brand-500/20 hover:border-brand-500/40 transition-all duration-300 overflow-hidden ${className}`}
     >
       {/* Image Section */}
       <div className="relative h-48 overflow-hidden">
@@ -42,7 +42,7 @@ export default function ProgramCard({
       </div>
 
       {/* Content Section */}
-      <div className="p-6 lg:p-8">
+      <div className="p-6 lg:p-8 bg-black/40 backdrop-blur-sm">
         {/* Category Badge */}
         {category && (
           <div className="mb-3">
@@ -52,16 +52,16 @@ export default function ProgramCard({
           </div>
         )}
 
-        <h3 className="text-2xl font-black text-white mb-3 group-hover:text-brand-500 transition-colors">
+        <h3 className="text-xl sm:text-2xl md:text-2xl font-black text-white mb-3 group-hover:text-brand-500 transition-colors">
           {title}
         </h3>
-        <p className="text-gray-300 mb-4 leading-relaxed">
+        <p className="text-sm sm:text-base text-gray-300 mb-4 leading-relaxed">
           {description}
         </p>
 
         {/* Metadata Section */}
         {(date || location || participants) && (
-          <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-gray-400">
+          <div className="flex flex-wrap items-center gap-4 mb-4 text-xs sm:text-sm text-gray-400">
             {date && (
               <div className="flex items-center gap-2">
                 <svg
