@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui/modal';
 import { Table, TableHeader, TableBody, TableRow, TableCell } from '@/components/ui/table';
 import Badge from '@/components/ui/badge/Badge';
@@ -14,10 +14,17 @@ import { locationsService, Region, District, Village } from '@/lib/api/services/
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/lib/context/ToastContext';
 import AvatarWithFallback from '@/components/ui/avatar/AvatarWithFallback';
+import { useProjectsAndRegions } from '@/hooks/useProjectsAndRegions';
+
+type IntervalType = "month" | "quarter" | "year" | "date";
 
 export default function BeneficiariesPage() {
   const router = useRouter();
   const { showToast } = useToast();
+
+  // Use the projects and regions hook
+  const { projects, projectOptions, regionOptions, isLoading: dataLoading } = useProjectsAndRegions();
+
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +47,19 @@ export default function BeneficiariesPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  // Filters state
+  // Filter states (similar to Dashboard/Activities)
+  const [projectId, setProjectId] = useState<string>("all");
+  const [regionId, setRegionId] = useState<string>("all");
+  const [districtId, setDistrictId] = useState<string>("all");
+  const [villageId, setVillageId] = useState<string>("all");
+  const [intervalType, setIntervalType] = useState<IntervalType | "">("");
+  const [selectedYear, setSelectedYear] = useState<string>(String(new Date().getFullYear()));
+  const [selectedQuarter, setSelectedQuarter] = useState<string>("1");
+  const [selectedMonth, setSelectedMonth] = useState<string>("1");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+
+  // Filters state for API
   const [filters, setFilters] = useState<{
     page: number;
     limit: number;
@@ -56,45 +75,120 @@ export default function BeneficiariesPage() {
     month?: string;
     quarter?: string;
     year?: string;
+    start_date_from?: string;
+    start_date_to?: string;
   }>({
     page: 1,
     limit: 10,
   });
 
-  // Location data for filters
-  const [regions, setRegions] = useState<Region[]>([]);
+  // Location data for district/village cascade
   const [districts, setDistricts] = useState<District[]>([]);
   const [villages, setVillages] = useState<Village[]>([]);
+
+  // Filter regions based on selected project (like Dashboard/Activities)
+  const filteredRegionOptions = useMemo(() => {
+    if (projectId === "all") {
+      return regionOptions;
+    }
+
+    const selectedProject = projects.find((p) => p.project_id === projectId);
+
+    if (!selectedProject || selectedProject.regions.length === 0) {
+      return [{ value: "all", label: "All Regions" }];
+    }
+
+    return [
+      { value: "all", label: "All Regions" },
+      ...selectedProject.regions
+        .map((region) => ({
+          value: region.id,
+          label: region.name.trim(),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    ];
+  }, [projectId, projects, regionOptions]);
+
+  // Reset dependent filters when parent changes
+  useEffect(() => {
+    setRegionId("all");
+    setDistrictId("all");
+    setVillageId("all");
+  }, [projectId]);
+
+  useEffect(() => {
+    setDistrictId("all");
+    setVillageId("all");
+  }, [regionId]);
+
+  useEffect(() => {
+    setVillageId("all");
+  }, [districtId]);
+
+  // Reset time-specific selections when interval type changes
+  useEffect(() => {
+    if (intervalType) {
+      setSelectedYear(String(new Date().getFullYear()));
+      setSelectedQuarter("1");
+      setSelectedMonth("1");
+      setStartDate("");
+      setEndDate("");
+    }
+  }, [intervalType]);
+
+  // Sync filter states to API filters
+  useEffect(() => {
+    const newFilters: typeof filters = {
+      ...filters,
+      page: filters.page,
+      limit: filters.limit,
+    };
+
+    // Keep existing text filters
+    if (filters.search) newFilters.search = filters.search;
+    if (filters.sex) newFilters.sex = filters.sex;
+    if (filters.age_group) newFilters.age_group = filters.age_group;
+    if (filters.is_pwd) newFilters.is_pwd = filters.is_pwd;
+    if (filters.status) newFilters.status = filters.status;
+    if (filters.photo_consent) newFilters.photo_consent = filters.photo_consent;
+
+    // Location filters
+    if (regionId !== "all") newFilters.region_id = regionId;
+    if (districtId !== "all") newFilters.district_id = districtId;
+    if (villageId !== "all") newFilters.village_id = villageId;
+
+    // Handle time filters based on interval type
+    if (intervalType === "year") {
+      newFilters.year = selectedYear;
+    } else if (intervalType === "quarter") {
+      newFilters.year = selectedYear;
+      newFilters.quarter = `Q${selectedQuarter}`;
+    } else if (intervalType === "month") {
+      newFilters.year = selectedYear;
+      newFilters.month = selectedMonth;
+    } else if (intervalType === "date") {
+      if (startDate) newFilters.start_date_from = startDate;
+      if (endDate) newFilters.start_date_to = endDate;
+    }
+
+    setFilters(newFilters);
+  }, [projectId, regionId, districtId, villageId, intervalType, selectedYear, selectedQuarter, selectedMonth, startDate, endDate]);
 
   useEffect(() => {
     loadBeneficiaries();
   }, [filters]);
 
-  // Load regions on mount
-  useEffect(() => {
-    const loadRegions = async () => {
-      try {
-        const response = await locationsService.getRegions({ limit: 1000 });
-        setRegions(response.data || []);
-      } catch (error) {
-        console.error('Failed to load regions:', error);
-      }
-    };
-    loadRegions();
-  }, []);
-
   // Load districts when region filter changes
   useEffect(() => {
     const loadDistricts = async () => {
-      if (!filters.region_id) {
+      if (regionId === "all" || !regionId) {
         setDistricts([]);
-        setVillages([]);
         return;
       }
 
       try {
         const response = await locationsService.getDistricts({
-          region_id: filters.region_id,
+          region_id: regionId,
           limit: 1000,
         });
         setDistricts(response.data || []);
@@ -104,19 +198,19 @@ export default function BeneficiariesPage() {
       }
     };
     loadDistricts();
-  }, [filters.region_id]);
+  }, [regionId]);
 
   // Load villages when district filter changes
   useEffect(() => {
     const loadVillages = async () => {
-      if (!filters.district_id) {
+      if (districtId === "all" || !districtId) {
         setVillages([]);
         return;
       }
 
       try {
         const response = await locationsService.getVillages({
-          district_id: filters.district_id,
+          district_id: districtId,
           limit: 1000,
         });
         setVillages(response.data || []);
@@ -126,7 +220,7 @@ export default function BeneficiariesPage() {
       }
     };
     loadVillages();
-  }, [filters.district_id]);
+  }, [districtId]);
 
   const loadBeneficiaries = async () => {
     setIsLoading(true);
@@ -235,17 +329,20 @@ export default function BeneficiariesPage() {
   };
 
   const handleFilterChange = (key: string, value: string) => {
-    // Special handling for cascading location filters
-    if (key === 'region_id') {
-      setFilters((prev) => ({ ...prev, region_id: value, district_id: '', village_id: '', page: 1 }));
-    } else if (key === 'district_id') {
-      setFilters((prev) => ({ ...prev, district_id: value, village_id: '', page: 1 }));
-    } else {
-      setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
-    }
+    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
   };
 
   const handleClearFilters = () => {
+    setProjectId("all");
+    setRegionId("all");
+    setDistrictId("all");
+    setVillageId("all");
+    setIntervalType("");
+    setSelectedYear(String(new Date().getFullYear()));
+    setSelectedQuarter("1");
+    setSelectedMonth("1");
+    setStartDate("");
+    setEndDate("");
     setFilters({
       page: 1,
       limit: itemsPerPage,
@@ -623,7 +720,7 @@ export default function BeneficiariesPage() {
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               Filter Beneficiaries
             </h3>
-            {(filters.search || filters.sex || filters.age_group || filters.is_pwd || filters.status || filters.photo_consent || filters.region_id || filters.district_id || filters.village_id || filters.month || filters.quarter || filters.year) && (
+            {(filters.search || filters.sex || filters.age_group || filters.is_pwd || filters.status || filters.photo_consent || projectId !== "all" || regionId !== "all" || districtId !== "all" || villageId !== "all" || intervalType !== "") && (
               <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/40 dark:text-brand-400">
                 Active
               </span>
@@ -643,6 +740,25 @@ export default function BeneficiariesPage() {
             <div className="space-y-4">
               {/* First Row - General Filters */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* Project Filter */}
+          <div>
+            <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+              <div className="flex items-center gap-1.5">
+                <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Project
+              </div>
+            </label>
+            <Select
+              options={projectOptions}
+              placeholder={dataLoading ? "Loading projects..." : "Select project"}
+              defaultValue={projectId}
+              onChange={setProjectId}
+              className="rounded-lg shadow-sm"
+            />
+          </div>
+
           {/* Search Filter */}
           <div>
             <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -782,7 +898,7 @@ export default function BeneficiariesPage() {
             />
           </div>
 
-          {/* Region Filter */}
+          {/* Region Filter - Filtered based on selected project */}
           <div>
             <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
               <div className="flex items-center gap-1.5">
@@ -794,16 +910,11 @@ export default function BeneficiariesPage() {
               </div>
             </label>
             <Select
-              options={[
-                { value: '', label: 'All Regions' },
-                ...regions.map((region) => ({
-                  value: region.id,
-                  label: region.name,
-                })),
-              ]}
-              placeholder="Select region"
-              defaultValue={filters.region_id || ''}
-              onChange={(value) => handleFilterChange('region_id', value)}
+              options={filteredRegionOptions}
+              placeholder={dataLoading ? "Loading regions..." : "Select region"}
+              defaultValue={regionId}
+              onChange={setRegionId}
+              key={projectId}
               className="rounded-lg shadow-sm"
             />
           </div>
@@ -820,16 +931,16 @@ export default function BeneficiariesPage() {
             </label>
             <Select
               options={[
-                { value: '', label: filters.region_id ? 'All Districts' : 'Select region first' },
+                { value: 'all', label: regionId !== 'all' ? 'All Districts' : 'Select region first' },
                 ...districts.map((district) => ({
                   value: district.id,
                   label: district.name,
                 })),
               ]}
               placeholder="Select district"
-              defaultValue={filters.district_id || ''}
-              onChange={(value) => handleFilterChange('district_id', value)}
-              disabled={!filters.region_id}
+              defaultValue={districtId}
+              onChange={setDistrictId}
+              disabled={regionId === 'all'}
               className="rounded-lg shadow-sm"
             />
           </div>
@@ -846,107 +957,188 @@ export default function BeneficiariesPage() {
             </label>
             <Select
               options={[
-                { value: '', label: filters.district_id ? 'All Villages' : 'Select district first' },
+                { value: 'all', label: districtId !== 'all' ? 'All Villages' : 'Select district first' },
                 ...villages.map((village) => ({
                   value: village.id,
                   label: village.name,
                 })),
               ]}
               placeholder="Select village"
-              defaultValue={filters.village_id || ''}
-              onChange={(value) => handleFilterChange('village_id', value)}
-              disabled={!filters.district_id}
+              defaultValue={villageId}
+              onChange={setVillageId}
+              disabled={districtId === 'all'}
               className="rounded-lg shadow-sm"
             />
           </div>
 
               </div>
 
-              {/* Second Row - Time Dimension Filters */}
+              {/* Second Row - Time Period Filters */}
               <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
                 <div className="mb-3 flex items-center gap-2">
                   <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
-                    Time Dimensions
+                    Time Period (Registration Date)
                   </h4>
                 </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  {/* Month Filter */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  {/* Time Period Type Selector */}
                   <div>
                     <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Month
+                      Time Period Type
                     </label>
                     <Select
                       options={[
-                        { value: '', label: 'All Months' },
-                        { value: '1', label: 'January' },
-                        { value: '2', label: 'February' },
-                        { value: '3', label: 'March' },
-                        { value: '4', label: 'April' },
-                        { value: '5', label: 'May' },
-                        { value: '6', label: 'June' },
-                        { value: '7', label: 'July' },
-                        { value: '8', label: 'August' },
-                        { value: '9', label: 'September' },
-                        { value: '10', label: 'October' },
-                        { value: '11', label: 'November' },
-                        { value: '12', label: 'December' },
+                        { value: '', label: 'None' },
+                        { value: 'month', label: 'Monthly' },
+                        { value: 'quarter', label: 'Quarterly' },
+                        { value: 'year', label: 'Yearly' },
+                        { value: 'date', label: 'Custom Date Range' },
                       ]}
-                      placeholder="Select month"
-                      defaultValue={filters.month || ''}
-                      onChange={(value) => handleFilterChange('month', value)}
+                      placeholder="Select time period"
+                      defaultValue={intervalType}
+                      onChange={(value) => setIntervalType(value as IntervalType | "")}
                       className="rounded-lg shadow-sm"
                     />
                   </div>
 
-                  {/* Quarter Filter */}
-                  <div>
-                    <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Quarter
-                    </label>
-                    <Select
-                      options={[
-                        { value: '', label: 'All Quarters' },
-                        { value: 'Q1', label: 'Q1 (Jan-Mar)' },
-                        { value: 'Q2', label: 'Q2 (Apr-Jun)' },
-                        { value: 'Q3', label: 'Q3 (Jul-Sep)' },
-                        { value: 'Q4', label: 'Q4 (Oct-Dec)' },
-                      ]}
-                      placeholder="Select quarter"
-                      defaultValue={filters.quarter || ''}
-                      onChange={(value) => handleFilterChange('quarter', value)}
-                      className="rounded-lg shadow-sm"
-                    />
-                  </div>
+                  {/* Year Selection (shown when year is selected) */}
+                  {intervalType === "year" && (
+                    <div>
+                      <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                        Select Year
+                      </label>
+                      <Select
+                        options={Array.from({ length: 11 }, (_, i) => ({
+                          value: String(2020 + i),
+                          label: String(2020 + i),
+                        }))}
+                        placeholder="Select year"
+                        defaultValue={selectedYear}
+                        onChange={setSelectedYear}
+                        className="rounded-lg shadow-sm"
+                      />
+                    </div>
+                  )}
 
-                  {/* Year Filter */}
-                  <div>
-                    <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Year
-                    </label>
-                    <Select
-                      options={[
-                        { value: '', label: 'All Years' },
-                        { value: '2025', label: '2025' },
-                        { value: '2024', label: '2024' },
-                        { value: '2023', label: '2023' },
-                        { value: '2022', label: '2022' },
-                        { value: '2021', label: '2021' },
-                        { value: '2020', label: '2020' },
-                      ]}
-                      placeholder="Select year"
-                      defaultValue={filters.year || ''}
-                      onChange={(value) => handleFilterChange('year', value)}
-                      className="rounded-lg shadow-sm"
-                    />
-                  </div>
+                  {/* Quarter Selection (shown when quarter is selected) */}
+                  {intervalType === "quarter" && (
+                    <>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Select Year
+                        </label>
+                        <Select
+                          options={Array.from({ length: 11 }, (_, i) => ({
+                            value: String(2020 + i),
+                            label: String(2020 + i),
+                          }))}
+                          placeholder="Select year"
+                          defaultValue={selectedYear}
+                          onChange={setSelectedYear}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Select Quarter
+                        </label>
+                        <Select
+                          options={[
+                            { value: '1', label: 'Q1 (Jan-Mar)' },
+                            { value: '2', label: 'Q2 (Apr-Jun)' },
+                            { value: '3', label: 'Q3 (Jul-Sep)' },
+                            { value: '4', label: 'Q4 (Oct-Dec)' },
+                          ]}
+                          placeholder="Select quarter"
+                          defaultValue={selectedQuarter}
+                          onChange={setSelectedQuarter}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* Month Selection (shown when month is selected) */}
+                  {intervalType === "month" && (
+                    <>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Select Year
+                        </label>
+                        <Select
+                          options={Array.from({ length: 11 }, (_, i) => ({
+                            value: String(2020 + i),
+                            label: String(2020 + i),
+                          }))}
+                          placeholder="Select year"
+                          defaultValue={selectedYear}
+                          onChange={setSelectedYear}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Select Month
+                        </label>
+                        <Select
+                          options={[
+                            { value: '1', label: 'January' },
+                            { value: '2', label: 'February' },
+                            { value: '3', label: 'March' },
+                            { value: '4', label: 'April' },
+                            { value: '5', label: 'May' },
+                            { value: '6', label: 'June' },
+                            { value: '7', label: 'July' },
+                            { value: '8', label: 'August' },
+                            { value: '9', label: 'September' },
+                            { value: '10', label: 'October' },
+                            { value: '11', label: 'November' },
+                            { value: '12', label: 'December' },
+                          ]}
+                          placeholder="Select month"
+                          defaultValue={selectedMonth}
+                          onChange={setSelectedMonth}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* Custom Date Range (shown when date is selected) */}
+                  {intervalType === "date" && (
+                    <>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Start Date
+                        </label>
+                        <Input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          End Date
+                        </label>
+                        <Input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
               {/* Filter Actions - Conditionally Rendered */}
-              {(filters.search || filters.sex || filters.age_group || filters.is_pwd || filters.status || filters.photo_consent || filters.region_id || filters.district_id || filters.village_id || filters.month || filters.quarter || filters.year) && (
+              {(filters.search || filters.sex || filters.age_group || filters.is_pwd || filters.status || filters.photo_consent || projectId !== "all" || regionId !== "all" || districtId !== "all" || villageId !== "all" || intervalType !== "") && (
                 <div className="flex items-center justify-end gap-2">
                   <Button
                     onClick={handleClearFilters}

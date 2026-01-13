@@ -2,6 +2,7 @@
 // src/lib/api/client.ts
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 import { generateCorrelationId } from './utils';
+import { ERROR_MESSAGES, getErrorMessageByStatus, formatErrorMessage } from '@/lib/utils/errorMessages';
 
 /**
  * API Configuration
@@ -87,23 +88,30 @@ axiosInstance.interceptors.response.use(
     const endpoint = error.config?.url || '';
     const correlationId = error.config?.headers?.['X-Request-ID'] as string | undefined;
 
-    let errorMessage = 'An error occurred';
+    let errorMessage: string = ERROR_MESSAGES.GENERIC_ERROR;
     let errorData: unknown = undefined;
+    let serverMessage: string | undefined;
 
     if (error.response) {
       // Server responded with error
       errorData = error?.response?.data;
 
-      // Extract error message from response
+      // Extract server's error message
       if (typeof errorData === 'object' && errorData !== null) {
         const data = errorData as any;
-        errorMessage = data.message || data.error || error.message;
+        serverMessage = data.message || data.error;
       } else if (typeof errorData === 'string') {
-        errorMessage = errorData;
+        serverMessage = errorData;
       }
+
+      // Use server message if it's user-friendly, otherwise use status-based message
+      errorMessage = serverMessage && serverMessage.length < 200 && !serverMessage.includes('Error:')
+        ? formatErrorMessage(serverMessage)
+        : getErrorMessageByStatus(status);
+
     } else if (error.request) {
-      // Request made but no response
-      errorMessage = 'Cannot connect to server. Please check if backend is running.';
+      // Request made but no response - Network error
+      errorMessage = ERROR_MESSAGES.NETWORK_ERROR;
 
       // More helpful error message for development
       if (process.env.NODE_ENV === 'development') {
@@ -115,13 +123,12 @@ axiosInstance.interceptors.response.use(
             '1. Check if backend is running',
             '2. Verify the port number (should be 3001)',
             '3. Check if API_BASE_URL is correct',
-            // '4. CORS is temporarily disabled - enable it in production',
           ]
         });
       }
     } else {
       // Request setup error
-      errorMessage = error.message;
+      errorMessage = formatErrorMessage(error.message);
     }
 
     // Log error in development
@@ -136,14 +143,15 @@ axiosInstance.interceptors.response.use(
         const emoji = status === 404 ? '⚠️' : '❌';
 
         logFn(`${emoji} ${error.config?.method?.toUpperCase()} ${endpoint} - ${status}`, {
-          message: errorMessage,
+          userMessage: errorMessage,
+          serverMessage: serverMessage,
           data: errorData,
           requestData: error.config?.data,
         });
       }
     }
 
-    // Throw standardized error
+    // Throw standardized error with user-friendly message
     throw new APIError(status, errorMessage, errorData, endpoint, correlationId);
   }
 );
@@ -160,7 +168,7 @@ async function request<T = any>(config: AxiosRequestConfig): Promise<T> {
     if (error instanceof APIError) {
       throw error;
     }
-    throw new APIError(0, 'Request failed', error, config.url);
+    throw new APIError(0, formatErrorMessage(error), error, config.url);
   }
 }
 
@@ -200,14 +208,11 @@ export function getErrorMessage(error: unknown): string {
   if (isAPIError(error)) {
     return error.message;
   }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === 'string') {
-    return error;
-  }
-  return 'An unexpected error occurred';
+  return formatErrorMessage(error);
 }
 
 // Export axios instance for advanced usage
 export { axiosInstance };
+
+// Re-export error messages for convenience
+export { ERROR_MESSAGES, SUCCESS_MESSAGES, WARNING_MESSAGES, INFO_MESSAGES } from '@/lib/utils/errorMessages';

@@ -376,7 +376,7 @@
 }
 
 @utility menu-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-200 dark:hover:bg-gray-800/80 dark:hover:text-gray-200;
 }
 
 @utility menu-item-icon {
@@ -427,6 +427,81 @@
   @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/15 dark:group-hover:bg-brand-500/20;
 }
 
+/* Mobile-Optimized Typography */
+@utility text-mobile-xs {
+  @apply text-[11px] leading-[16px];
+}
+
+@utility text-mobile-sm {
+  @apply text-[13px] leading-[18px];
+}
+
+@utility text-mobile-base {
+  @apply text-[14px] leading-[20px];
+}
+
+/* Mobile-Optimized Menu Items */
+@utility menu-item-mobile {
+  @apply menu-item py-2.5 px-2.5 gap-2.5;
+}
+
+@utility menu-item-text-mobile {
+  @apply text-mobile-sm font-medium;
+}
+
+/* Mobile Touch-Friendly Buttons (44x44px minimum) */
+@utility btn-mobile-icon {
+  @apply h-11 w-11 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg;
+}
+
+/* Button Text Utilities - Prevent Wrapping */
+@utility btn-text-nowrap {
+  @apply whitespace-nowrap overflow-hidden text-ellipsis;
+}
+
+@utility btn-text-mobile {
+  @apply text-mobile-sm whitespace-nowrap;
+}
+
+@utility btn-text-desktop {
+  @apply text-theme-sm whitespace-nowrap;
+}
+
+/* Mobile Button Variants with Reduced Font Size */
+@utility btn-mobile-primary {
+  @apply px-3 py-2.5 min-h-[44px] rounded-lg bg-brand-500 text-mobile-sm font-medium text-white whitespace-nowrap hover:bg-brand-600 active:bg-brand-700 transition-colors;
+}
+
+@utility btn-mobile-secondary {
+  @apply px-3 py-2.5 min-h-[44px] rounded-lg border border-gray-300 bg-white text-mobile-sm font-medium text-gray-700 whitespace-nowrap hover:bg-gray-50 active:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors;
+}
+
+@utility btn-mobile-ghost {
+  @apply px-3 py-2.5 min-h-[44px] rounded-lg text-mobile-sm font-medium text-gray-700 whitespace-nowrap hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors;
+}
+
+/* Mobile Menu Active/Inactive States with Better Contrast */
+@utility menu-item-mobile-active {
+  @apply bg-brand-500/20 text-brand-500 dark:bg-brand-500/25 dark:text-brand-400 border-l-2 border-brand-500 dark:border-brand-400;
+}
+
+@utility menu-item-mobile-inactive {
+  @apply text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800/80;
+}
+
+/* Footer Utilities */
+@utility footer-mobile {
+  @apply bg-white border-t border-gray-200 dark:bg-gray-900 dark:border-gray-800;
+}
+
+@utility footer-mobile-static {
+  @apply footer-mobile mt-auto;
+}
+
+@utility footer-content {
+  @apply px-4 py-3 text-mobile-xs text-gray-600 dark:text-gray-400;
+}
+
 @utility no-scrollbar {
   /* Chrome, Safari and Opera */
   &::-webkit-scrollbar {
@@ -460,11 +535,11 @@
 }
 
 @utility btn-primary {
-  @apply rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-brand-600 focus:shadow-focus-ring;
+  @apply rounded-xl bg-brand-500 px-5 py-2.5 text-mobile-sm lg:text-sm font-semibold whitespace-nowrap text-white transition-all hover:bg-brand-600 focus:shadow-focus-ring;
 }
 
 @utility btn-secondary {
-  @apply rounded-xl border border-brand-500 bg-white px-5 py-2.5 text-sm font-semibold text-black transition-all hover:bg-brand-50;
+  @apply rounded-xl border border-brand-500 bg-white px-5 py-2.5 text-mobile-sm lg:text-sm font-semibold whitespace-nowrap text-black transition-all hover:bg-brand-50;
 }
 
 @utility card-hakiardhi {
@@ -997,4 +1072,19 @@ span.flatpickr-weekday,
 
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
+}
+
+/* Global Button Text Fix - Prevent Wrapping */
+button, .btn {
+  white-space: nowrap;
+}
+
+/* Ensure buttons have proper touch targets on mobile */
+@media (max-width: 768px) {
+  button:not(.btn-mobile-icon) {
+    min-height: 44px;
+    font-size: 13px;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
 }

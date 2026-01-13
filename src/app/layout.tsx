@@ -14,6 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -27,7 +28,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="dark:bg-gray-900" suppressHydrationWarning>
+      <body className="overflow-x-hidden dark:bg-gray-900" suppressHydrationWarning>
         <ThemeProvider>
           <AuthProvider>
             <SidebarProvider>

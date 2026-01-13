@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/ui/modal';
 import { Table, TableHeader, TableBody, TableRow, TableCell } from '@/components/ui/table';
 import Badge from '@/components/ui/badge/Badge';
@@ -14,10 +14,17 @@ import { casesService } from '@/lib/api/services/cases';
 import { CaseResponse, CreateCaseRequest, UpdateCaseRequest } from '@/types/api';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/lib/context/ToastContext';
+import { useProjectsAndRegions } from '@/hooks/useProjectsAndRegions';
+
+type IntervalType = "month" | "quarter" | "year" | "date";
 
 export default function CasesPage() {
   const router = useRouter();
   const { showToast } = useToast();
+
+  // Use the projects and regions hook
+  const { projects, projectOptions, regionOptions, isLoading: dataLoading } = useProjectsAndRegions();
+
   const [cases, setCases] = useState<CaseResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,21 +49,141 @@ export default function CasesPage() {
   // Accordion state
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  // Filters state
+  // Filter states (similar to Activities/Beneficiaries)
+  const [projectId, setProjectId] = useState<string>("all");
+  const [regionId, setRegionId] = useState<string>("all");
+  const [status, setStatus] = useState<string>("all");
+  const [intervalType, setIntervalType] = useState<IntervalType | "">("");
+  const [selectedYear, setSelectedYear] = useState<string>(String(new Date().getFullYear()));
+  const [selectedQuarter, setSelectedQuarter] = useState<string>("1");
+  const [selectedMonth, setSelectedMonth] = useState<string>("1");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Smart region filtering based on selected project
+  const filteredRegionOptions = useMemo(() => {
+    if (projectId === "all") {
+      return regionOptions;
+    }
+    const selectedProject = projects.find((p) => p.project_id === projectId);
+    if (!selectedProject || selectedProject.regions.length === 0) {
+      return [{ value: "all", label: "All Regions" }];
+    }
+    return [
+      { value: "all", label: "All Regions" },
+      ...selectedProject.regions.map((region) => ({
+        value: region.id,
+        label: region.name.trim(),
+      })).sort((a, b) => a.label.localeCompare(b.label)),
+    ];
+  }, [projectId, projects, regionOptions]);
+
+  // Generate year options dynamically
+  const yearOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const years: { value: string; label: string }[] = [];
+    for (let i = 0; i <= 10; i++) {
+      const year = String(currentYear - i);
+      years.push({ value: year, label: year });
+    }
+    return years;
+  }, []);
+
+  // Quarter options
+  const quarterOptions = [
+    { value: "Q1", label: "Q1 (Jan-Mar)" },
+    { value: "Q2", label: "Q2 (Apr-Jun)" },
+    { value: "Q3", label: "Q3 (Jul-Sep)" },
+    { value: "Q4", label: "Q4 (Oct-Dec)" },
+  ];
+
+  // Month options
+  const monthOptions = [
+    { value: "1", label: "January" },
+    { value: "2", label: "February" },
+    { value: "3", label: "March" },
+    { value: "4", label: "April" },
+    { value: "5", label: "May" },
+    { value: "6", label: "June" },
+    { value: "7", label: "July" },
+    { value: "8", label: "August" },
+    { value: "9", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
+
+  // Filters for API
   const [filters, setFilters] = useState<{
     page: number;
     limit: number;
     status?: string;
-    case_type?: string;
-    lawyer_id?: string;
+    search?: string;
+    category_id?: string;
+    assigned_to?: string;
+    submitted_by?: string;
+    reference_number?: string;
+    region_id?: string;
     month?: string;
     quarter?: string;
     year?: string;
+    start_date_from?: string;
+    start_date_to?: string;
   }>({
     page: 1,
     limit: 10,
   });
-  const [searchQuery, setSearchQuery] = useState('');
+
+  // Reset region when project changes
+  useEffect(() => {
+    if (projectId !== "all") {
+      const selectedProject = projects.find((p) => p.project_id === projectId);
+      if (selectedProject && selectedProject.regions.length > 0) {
+        const firstRegionId = selectedProject.regions[0].id;
+        const isCurrentRegionValid = selectedProject.regions.some((r) => r.id === regionId);
+        if (!isCurrentRegionValid && regionId !== "all") {
+          setRegionId("all");
+        }
+      }
+    }
+  }, [projectId, projects, regionId]);
+
+  // Sync filter state to API filters
+  useEffect(() => {
+    const newFilters: typeof filters = {
+      page: 1,
+      limit: itemsPerPage,
+    };
+
+    if (searchQuery.trim()) {
+      newFilters.search = searchQuery.trim();
+    }
+
+    if (status && status !== "all") {
+      newFilters.status = status;
+    }
+
+    if (regionId && regionId !== "all") {
+      newFilters.region_id = regionId;
+    }
+
+    // Time period filters
+    if (intervalType === "year" && selectedYear) {
+      newFilters.year = selectedYear;
+    } else if (intervalType === "quarter" && selectedYear && selectedQuarter) {
+      newFilters.year = selectedYear;
+      newFilters.quarter = selectedQuarter;
+    } else if (intervalType === "month" && selectedYear && selectedMonth) {
+      newFilters.year = selectedYear;
+      newFilters.month = selectedMonth;
+    } else if (intervalType === "date" && startDate && endDate) {
+      newFilters.start_date_from = startDate;
+      newFilters.start_date_to = endDate;
+    }
+
+    setFilters(newFilters);
+  }, [searchQuery, status, regionId, intervalType, selectedYear, selectedQuarter, selectedMonth, startDate, endDate, itemsPerPage]);
 
   useEffect(() => {
     loadCases();
@@ -102,7 +229,9 @@ export default function CasesPage() {
   const loadStats = async () => {
     try {
       const response = await casesService.getStats();
-      setStats(response);
+      // Backend returns { success: true, data: { ... } }
+      // Extract the data property which contains the actual stats
+      setStats(response.data);
     } catch (error) {
       console.error('Failed to load case statistics:', error);
     }
@@ -224,6 +353,15 @@ export default function CasesPage() {
 
   const handleClearFilters = () => {
     setSearchQuery('');
+    setProjectId("all");
+    setRegionId("all");
+    setStatus("all");
+    setIntervalType("");
+    setSelectedYear(String(new Date().getFullYear()));
+    setSelectedQuarter("1");
+    setSelectedMonth("1");
+    setStartDate("");
+    setEndDate("");
     setFilters({
       page: 1,
       limit: itemsPerPage,
@@ -376,7 +514,7 @@ export default function CasesPage() {
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               Filter Cases
             </h3>
-            {(searchQuery || filters.status || filters.case_type || filters.month || filters.quarter || filters.year) && (
+            {(searchQuery || status !== "all" || projectId !== "all" || regionId !== "all" || intervalType !== "") && (
               <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900 dark:text-brand-300">
                 Active
               </span>
@@ -415,6 +553,45 @@ export default function CasesPage() {
                   />
                 </div>
 
+                {/* Project Filter */}
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <div className="flex items-center gap-1.5">
+                      <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      Project
+                    </div>
+                  </label>
+                  <Select
+                    options={projectOptions}
+                    placeholder="Select project"
+                    value={projectId}
+                    onChange={setProjectId}
+                    className="rounded-lg shadow-sm"
+                  />
+                </div>
+
+                {/* Region Filter */}
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <div className="flex items-center gap-1.5">
+                      <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Region
+                    </div>
+                  </label>
+                  <Select
+                    options={filteredRegionOptions}
+                    placeholder="Select region"
+                    value={regionId}
+                    onChange={setRegionId}
+                    className="rounded-lg shadow-sm"
+                  />
+                </div>
+
                 {/* Status Filter */}
                 <div>
                   <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -427,7 +604,7 @@ export default function CasesPage() {
                   </label>
                   <Select
                     options={[
-                      { value: '', label: 'All Statuses' },
+                      { value: 'all', label: 'All Statuses' },
                       { value: 'Open', label: 'Open' },
                       { value: 'Under Review', label: 'Under Review' },
                       { value: 'Investigation', label: 'Investigation' },
@@ -438,123 +615,150 @@ export default function CasesPage() {
                       { value: 'Closed', label: 'Closed' },
                     ]}
                     placeholder="Select status"
-                    defaultValue={filters.status || ''}
-                    onChange={(value) => handleFilterChange('status', value)}
-                    className="rounded-lg shadow-sm"
-                  />
-                </div>
-
-                {/* Case Type Filter */}
-                <div>
-                  <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                    <div className="flex items-center gap-1.5">
-                      <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                      </svg>
-                      Case Type
-                    </div>
-                  </label>
-                  <Select
-                    options={[
-                      { value: '', label: 'All Types' },
-                      { value: 'Land Dispute', label: 'Land Dispute' },
-                      { value: 'Property Rights', label: 'Property Rights' },
-                      { value: 'Inheritance', label: 'Inheritance' },
-                      { value: 'Other', label: 'Other' },
-                    ]}
-                    placeholder="Select case type"
-                    defaultValue={filters.case_type || ''}
-                    onChange={(value) => handleFilterChange('case_type', value)}
+                    value={status}
+                    onChange={setStatus}
                     className="rounded-lg shadow-sm"
                   />
                 </div>
               </div>
 
-              {/* Second Row - Time Dimension Filters */}
+              {/* Second Row - Conditional Time Period Filters */}
               <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
                 <div className="mb-3 flex items-center gap-2">
                   <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
-                    Time Dimensions
+                    Time Period Filter
                   </h4>
                 </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  {/* Month Filter */}
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  {/* Interval Type Selector */}
                   <div>
                     <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Month
+                      Time Period Type
                     </label>
                     <Select
                       options={[
-                        { value: '', label: 'All Months' },
-                        { value: '1', label: 'January' },
-                        { value: '2', label: 'February' },
-                        { value: '3', label: 'March' },
-                        { value: '4', label: 'April' },
-                        { value: '5', label: 'May' },
-                        { value: '6', label: 'June' },
-                        { value: '7', label: 'July' },
-                        { value: '8', label: 'August' },
-                        { value: '9', label: 'September' },
-                        { value: '10', label: 'October' },
-                        { value: '11', label: 'November' },
-                        { value: '12', label: 'December' },
+                        { value: "", label: "None" },
+                        { value: "year", label: "Yearly" },
+                        { value: "quarter", label: "Quarterly" },
+                        { value: "month", label: "Monthly" },
+                        { value: "date", label: "Custom Range" },
                       ]}
-                      placeholder="Select month"
-                      defaultValue={filters.month || ''}
-                      onChange={(value) => handleFilterChange('month', value)}
+                      placeholder="Select type"
+                      value={intervalType}
+                      onChange={(value) => setIntervalType(value as IntervalType | "")}
                       className="rounded-lg shadow-sm"
                     />
                   </div>
 
-                  {/* Quarter Filter */}
-                  <div>
-                    <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Quarter
-                    </label>
-                    <Select
-                      options={[
-                        { value: '', label: 'All Quarters' },
-                        { value: 'Q1', label: 'Q1 (Jan-Mar)' },
-                        { value: 'Q2', label: 'Q2 (Apr-Jun)' },
-                        { value: 'Q3', label: 'Q3 (Jul-Sep)' },
-                        { value: 'Q4', label: 'Q4 (Oct-Dec)' },
-                      ]}
-                      placeholder="Select quarter"
-                      defaultValue={filters.quarter || ''}
-                      onChange={(value) => handleFilterChange('quarter', value)}
-                      className="rounded-lg shadow-sm"
-                    />
-                  </div>
+                  {/* Conditional Fields Based on Interval Type */}
+                  {intervalType === "year" && (
+                    <div>
+                      <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                        Select Year
+                      </label>
+                      <Select
+                        options={yearOptions}
+                        placeholder="Select year"
+                        value={selectedYear}
+                        onChange={setSelectedYear}
+                        className="rounded-lg shadow-sm"
+                      />
+                    </div>
+                  )}
 
-                  {/* Year Filter */}
-                  <div>
-                    <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Year
-                    </label>
-                    <Select
-                      options={[
-                        { value: '', label: 'All Years' },
-                        { value: '2025', label: '2025' },
-                        { value: '2024', label: '2024' },
-                        { value: '2023', label: '2023' },
-                        { value: '2022', label: '2022' },
-                        { value: '2021', label: '2021' },
-                        { value: '2020', label: '2020' },
-                      ]}
-                      placeholder="Select year"
-                      defaultValue={filters.year || ''}
-                      onChange={(value) => handleFilterChange('year', value)}
-                      className="rounded-lg shadow-sm"
-                    />
-                  </div>
+                  {intervalType === "quarter" && (
+                    <>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Select Year
+                        </label>
+                        <Select
+                          options={yearOptions}
+                          placeholder="Select year"
+                          value={selectedYear}
+                          onChange={setSelectedYear}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Select Quarter
+                        </label>
+                        <Select
+                          options={quarterOptions}
+                          placeholder="Select quarter"
+                          value={selectedQuarter}
+                          onChange={setSelectedQuarter}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {intervalType === "month" && (
+                    <>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Select Year
+                        </label>
+                        <Select
+                          options={yearOptions}
+                          placeholder="Select year"
+                          value={selectedYear}
+                          onChange={setSelectedYear}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Select Month
+                        </label>
+                        <Select
+                          options={monthOptions}
+                          placeholder="Select month"
+                          value={selectedMonth}
+                          onChange={setSelectedMonth}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {intervalType === "date" && (
+                    <>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Start Date
+                        </label>
+                        <Input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          End Date
+                        </label>
+                        <Input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="rounded-lg shadow-sm"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
               {/* Filter Actions - Conditionally Rendered */}
-              {(searchQuery || filters.status || filters.case_type || filters.month || filters.quarter || filters.year) && (
+              {(searchQuery || status !== "all" || projectId !== "all" || regionId !== "all" || intervalType !== "") && (
                 <div className="flex items-center justify-end gap-2">
                   <Button
                     onClick={handleClearFilters}

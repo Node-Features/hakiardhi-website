@@ -50,10 +50,10 @@ export default function NotificationDropdown() {
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute -right-[240px] mt-[17px] flex h-[480px] w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark sm:w-[361px] lg:right-0"
+        className="absolute right-0 mt-[17px] flex h-[420px] w-[calc(100vw-2rem)] max-w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark sm:h-[480px] sm:w-[361px] lg:right-0"
       >
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-100 dark:border-gray-700">
-          <h5 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+          <h5 className="text-base font-semibold text-gray-800 dark:text-gray-200 lg:text-lg">
             Notification
           </h5>
           <button
@@ -90,10 +90,10 @@ export default function NotificationDropdown() {
                 </svg>
               </span>
               <span className="block">
-                <span className="mb-1.5 block text-theme-sm text-gray-700 dark:text-gray-300">
+                <span className="mb-1.5 block text-mobile-sm lg:text-theme-sm text-gray-700 dark:text-gray-300">
                   <span className="font-semibold">New incident reported</span> in Arusha Region
                 </span>
-                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                <span className="flex items-center gap-2 text-mobile-xs lg:text-theme-xs text-gray-500 dark:text-gray-400">
                   <span>Pending verification</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                   <span>5 min ago</span>
@@ -115,10 +115,10 @@ export default function NotificationDropdown() {
                 </svg>
               </span>
               <span className="block">
-                <span className="mb-1.5 block text-theme-sm text-gray-700 dark:text-gray-300">
+                <span className="mb-1.5 block text-mobile-sm lg:text-theme-sm text-gray-700 dark:text-gray-300">
                   <span className="font-semibold">File upload completed</span> - 250 beneficiary records imported
                 </span>
-                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                <span className="flex items-center gap-2 text-mobile-xs lg:text-theme-xs text-gray-500 dark:text-gray-400">
                   <span>Jobs</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                   <span>12 min ago</span>
@@ -140,10 +140,10 @@ export default function NotificationDropdown() {
                 </svg>
               </span>
               <span className="block">
-                <span className="mb-1.5 block text-theme-sm text-gray-700 dark:text-gray-300">
+                <span className="mb-1.5 block text-mobile-sm lg:text-theme-sm text-gray-700 dark:text-gray-300">
                   <span className="font-semibold">Incident verified</span> - 82% credibility score
                 </span>
-                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                <span className="flex items-center gap-2 text-mobile-xs lg:text-theme-xs text-gray-500 dark:text-gray-400">
                   <span>Land dispute case</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                   <span>25 min ago</span>
@@ -165,10 +165,10 @@ export default function NotificationDropdown() {
                 </svg>
               </span>
               <span className="block">
-                <span className="mb-1.5 block text-theme-sm text-gray-700 dark:text-gray-300">
+                <span className="mb-1.5 block text-mobile-sm lg:text-theme-sm text-gray-700 dark:text-gray-300">
                   <span className="font-semibold">New case assigned</span> to your team
                 </span>
-                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                <span className="flex items-center gap-2 text-mobile-xs lg:text-theme-xs text-gray-500 dark:text-gray-400">
                   <span>Land dispute</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                   <span>1 hour ago</span>
@@ -191,10 +191,10 @@ export default function NotificationDropdown() {
                 </svg>
               </span>
               <span className="block">
-                <span className="mb-1.5 block text-theme-sm text-gray-700 dark:text-gray-300">
+                <span className="mb-1.5 block text-mobile-sm lg:text-theme-sm text-gray-700 dark:text-gray-300">
                   <span className="font-semibold">Case #2024-156</span> moved to In Progress
                 </span>
-                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                <span className="flex items-center gap-2 text-mobile-xs lg:text-theme-xs text-gray-500 dark:text-gray-400">
                   <span>Property rights</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                   <span>2 hours ago</span>
@@ -217,10 +217,10 @@ export default function NotificationDropdown() {
                 </svg>
               </span>
               <span className="block">
-                <span className="mb-1.5 block text-theme-sm text-gray-700 dark:text-gray-300">
+                <span className="mb-1.5 block text-mobile-sm lg:text-theme-sm text-gray-700 dark:text-gray-300">
                   <span className="font-semibold">SMS broadcast completed</span> - 1,850 beneficiaries notified
                 </span>
-                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                <span className="flex items-center gap-2 text-mobile-xs lg:text-theme-xs text-gray-500 dark:text-gray-400">
                   <span>Activity reminder</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                   <span>3 hours ago</span>
@@ -242,10 +242,10 @@ export default function NotificationDropdown() {
                 </svg>
               </span>
               <span className="block">
-                <span className="mb-1.5 block text-theme-sm text-gray-700 dark:text-gray-300">
+                <span className="mb-1.5 block text-mobile-sm lg:text-theme-sm text-gray-700 dark:text-gray-300">
                   <span className="font-semibold">15 beneficiary registrations</span> awaiting approval
                 </span>
-                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                <span className="flex items-center gap-2 text-mobile-xs lg:text-theme-xs text-gray-500 dark:text-gray-400">
                   <span>Requires review</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                   <span>5 hours ago</span>
@@ -267,10 +267,10 @@ export default function NotificationDropdown() {
                 </svg>
               </span>
               <span className="block">
-                <span className="mb-1.5 block text-theme-sm text-gray-700 dark:text-gray-300">
+                <span className="mb-1.5 block text-mobile-sm lg:text-theme-sm text-gray-700 dark:text-gray-300">
                   <span className="font-semibold">Community Land Titling Project</span> reached 75% completion
                 </span>
-                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                <span className="flex items-center gap-2 text-mobile-xs lg:text-theme-xs text-gray-500 dark:text-gray-400">
                   <span>Milestone achieved</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                   <span>1 day ago</span>
@@ -292,10 +292,10 @@ export default function NotificationDropdown() {
                 </svg>
               </span>
               <span className="block">
-                <span className="mb-1.5 block text-theme-sm text-gray-700 dark:text-gray-300">
+                <span className="mb-1.5 block text-mobile-sm lg:text-theme-sm text-gray-700 dark:text-gray-300">
                   <span className="font-semibold">Land rights workshop</span> scheduled for tomorrow
                 </span>
-                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                <span className="flex items-center gap-2 text-mobile-xs lg:text-theme-xs text-gray-500 dark:text-gray-400">
                   <span>Dar es Salaam</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                   <span>2 days ago</span>
@@ -306,7 +306,7 @@ export default function NotificationDropdown() {
         </ul>
         <Link
           href="/notifications"
-          className="block px-4 py-2 mt-3 text-sm font-medium text-center text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+          className="block px-4 py-2.5 mt-3 text-mobile-sm lg:text-sm font-medium text-center whitespace-nowrap text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 active:bg-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
         >
           View All Notifications
         </Link>

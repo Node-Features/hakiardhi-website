@@ -156,11 +156,6 @@ const othersItems: NavItem[] = [
         permission: "settings_manage",
       },
       {
-        name: "Constants",
-        path: "/settings/constants",
-        permission: "settings_manage",
-      },
-      {
         name: "Locations",
         path: "/settings/locations",
         permission: "settings_manage",
@@ -222,7 +217,11 @@ const AppSidebar: React.FC = () => {
             {/* Section Divider */}
             {nav.divider ? (
             <h2
-              className={`mb-2 mt-4 text-xs uppercase flex leading-[20px] text-gray-400 font-semibold ${
+              className={`mb-2 mt-4 flex leading-[20px] font-semibold ${
+                isMobileOpen
+                  ? "text-mobile-xs text-gray-500 dark:text-gray-400"
+                  : "text-xs text-gray-400 dark:text-gray-500"
+              } ${
                 !isExpanded && !isHovered
                   ? "lg:justify-center"
                   : "justify-start"
@@ -284,7 +283,7 @@ const AppSidebar: React.FC = () => {
                         : "0px",
                   }}
                 >
-                  <ul className="mt-2 space-y-1 ml-9">
+                  <ul className="mt-2 space-y-1 ml-7 lg:ml-9">
                     {nav.subItems.map((subItem) => (
                       <li key={subItem.name}>
                         <Link
@@ -386,26 +385,26 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed top-0 left-0 flex flex-col h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out z-50 
         ${
           isExpanded || isMobileOpen
-            ? "w-[290px]"
+            ? "w-[290px] px-4 lg:px-5"
             : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
+            ? "w-[290px] px-4 lg:px-5"
+            : "w-[90px] px-3 lg:px-5"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0`}
+        lg:translate-x-0 lg:mt-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex  ${
+        className={`py-6 lg:py-8 hidden lg:flex  ${
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
         <Link href="/">
-          {isExpanded || isHovered || isMobileOpen ? (
+          {isExpanded || isHovered ? (
             <>
               <Image
                 className="dark:hidden"
@@ -432,7 +431,7 @@ const AppSidebar: React.FC = () => {
           )}
         </Link>
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
+      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar pt-4 lg:pt-0">
         <nav className="mb-6">
           <div className="flex flex-col gap-2">
             <div>

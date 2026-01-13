@@ -112,10 +112,15 @@ export const casesService = {
    */
   getStats: async () => {
     return authApi.get<{
-      totalCases: number;
-      openCases: number;
-      closedCases: number;
-      averageResolutionTime: string;
+      success: boolean;
+      data: {
+        totalCases: number;
+        openCases: number;
+        closedCases: number;
+        resolvedCases: number;
+        by_status: Record<string, number>;
+        averageResolutionTime: string;
+      };
     }>('/api/admin/cases/stats');
   },
 
