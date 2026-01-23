@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Header, Footer } from '@/components';
@@ -11,52 +11,103 @@ import Badge from '@/components/ui/Badge';
 import Icon from '@/components/ui/Icon';
 import Button from '@/components/ui/Button';
 import SectionHeader from '@/components/features/SectionHeader';
-import { SPACING, TYPOGRAPHY } from '@/constants/design-tokens';
-import { newsEvents } from '@/data/newsEvents';
+import { NewsGridSkeleton, FeaturedNewsGridSkeleton } from '@/components/ui/NewsCardSkeleton';
+import NewsletterSubscriptionModal from '@/components/modals/NewsletterSubscriptionModal';
+import { TYPOGRAPHY } from '@/constants/design-tokens';
+import { fetchNews, fetchFeaturedNews, NewsItem } from '@/lib/api/services/news';
 
-const EVENT_TYPES = ['All', 'News', 'Event', 'Announcement'];
-const EVENT_CATEGORIES = ['All', 'Legal Updates', 'Training & Events', 'Program Updates', 'Success Stories', 'Publications'];
+const EVENT_TYPES = ['All', 'News', 'Event', 'Announcement', 'Update'];
+
+// Allowed image hostnames (must match next.config.ts)
+const ALLOWED_IMAGE_HOSTS = [
+  'hakiardhi-api.vercel.app',
+  'tjsatamyfjxdxqgxmcuq.supabase.co',
+];
+
+// Check if image URL is from an allowed host
+const isAllowedImageHost = (url: string | null): boolean => {
+  if (!url) return false;
+  try {
+    const hostname = new URL(url).hostname;
+    return ALLOWED_IMAGE_HOSTS.some(host => hostname.includes(host));
+  } catch {
+    return false;
+  }
+};
 
 export default function NewsEventsPage() {
   const [selectedType, setSelectedType] = useState('All');
-  const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedYear, setSelectedYear] = useState('All');
   const [itemsToShow, setItemsToShow] = useState(9);
-  const [isVisible, setIsVisible] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
 
+  // API data states
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [featuredItems, setFeaturedItems] = useState<NewsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFeaturedLoading, setIsFeaturedLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch news data
+  const loadNews = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetchNews({
+        type: selectedType === 'All' ? undefined : selectedType,
+        limit: 100, // Fetch all for client-side filtering
+      });
+      setNewsItems(response.items);
+    } catch (err) {
+      console.error('Error fetching news:', err);
+      setError('Failed to load news. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedType]);
+
+  // Fetch featured news
+  const loadFeaturedNews = useCallback(async () => {
+    setIsFeaturedLoading(true);
+    try {
+      const items = await fetchFeaturedNews(3);
+      setFeaturedItems(items);
+    } catch (err) {
+      console.error('Error fetching featured news:', err);
+    } finally {
+      setIsFeaturedLoading(false);
+    }
+  }, []);
+
+  // Initial load
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+    loadNews();
+    loadFeaturedNews();
+  }, [loadNews, loadFeaturedNews]);
 
-  // Extract unique years
+  // Extract unique years from news items
   const years = useMemo(() => {
-    const yearSet = new Set(newsEvents.map(item => new Date(item.date).getFullYear()));
-    return ['All', ...Array.from(yearSet).sort((a, b) => (b as number) - (a as number))];
-  }, []);
+    const yearSet = new Set(newsItems.map(item => new Date(item.date).getFullYear()));
+    return ['All', ...Array.from(yearSet).sort((a, b) => b - a)];
+  }, [newsItems]);
 
-  // Filter items
+  // Filter items by year (type filter is done at API level)
   const filteredItems = useMemo(() => {
-    return newsEvents.filter(item => {
+    return newsItems.filter(item => {
       const itemYear = new Date(item.date).getFullYear();
-      const typeMatch = selectedType === 'All' || item.type === selectedType;
-      const categoryMatch = selectedCategory === 'All' || item.category === selectedCategory;
       const yearMatch = selectedYear === 'All' || itemYear === Number(selectedYear);
-      return typeMatch && categoryMatch && yearMatch;
+      return yearMatch;
     });
-  }, [selectedType, selectedCategory, selectedYear]);
+  }, [newsItems, selectedYear]);
 
   const visibleItems = filteredItems.slice(0, itemsToShow);
   const hasMore = itemsToShow < filteredItems.length;
 
-  // Get featured items
-  const featuredItems = newsEvents.filter(item => item.featured);
-
   // Get type count
   const getTypeCount = (type: string) => {
-    if (type === 'All') return newsEvents.length;
-    return newsEvents.filter(item => item.type === type).length;
+    if (type === 'All') return newsItems.length;
+    return newsItems.filter(item => item.type === type).length;
   };
 
   // Reset items when filters change
@@ -67,12 +118,25 @@ export default function NewsEventsPage() {
 
   // Clear all filters
   const clearFilters = () => {
-    setSelectedCategory('All');
     setSelectedYear('All');
     setItemsToShow(9);
   };
 
-  const hasActiveFilters = selectedCategory !== 'All' || selectedYear !== 'All';
+  const hasActiveFilters = selectedYear !== 'All';
+
+  // Check if item has a valid image
+  const hasValidImage = (item: NewsItem) => {
+    return isAllowedImageHost(item.cover_image);
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   return (
     <main className="min-h-screen">
@@ -94,15 +158,17 @@ export default function NewsEventsPage() {
       </Section>
 
       {/* Featured Items Section */}
-      {featuredItems.length > 0 && (
-        <Section variant="light" spacing="lg">
-          <Section.Content>
-            <SectionHeader
-              title="Featured Updates"
-              description="Highlights and important announcements"
-              align="center"
-            />
+      <Section variant="light" spacing="lg">
+        <Section.Content>
+          <SectionHeader
+            title="Featured Updates"
+            description="Highlights and important announcements"
+            align="center"
+          />
 
+          {isFeaturedLoading ? (
+            <FeaturedNewsGridSkeleton count={3} />
+          ) : featuredItems.length > 0 ? (
             <Grid cols={{ base: 1, md: 2, lg: 3 }} gap="lg">
               {featuredItems.map((item, index) => (
                 <div
@@ -116,12 +182,18 @@ export default function NewsEventsPage() {
                   <Link href={`/news-events/${item.slug}`}>
                     <Card variant="elevated" hoverEffect="lift" className="h-full group cursor-pointer">
                       <Card.Media className="h-56 relative overflow-hidden">
-                        <Image
-                          src={item.image}
-                          alt={item.title}
-                          fill
-                          className="object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
+                        {hasValidImage(item) ? (
+                          <Image
+                            src={item.cover_image!}
+                            alt={item.title}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-hakiardhi-red to-hakiardhi-red-dark flex items-center justify-center">
+                            <Icon name="newspaper" size="xl" className="text-white/30" />
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                         <div className="absolute top-4 left-4">
                           <Badge variant="warning" size="sm">Featured</Badge>
@@ -132,22 +204,20 @@ export default function NewsEventsPage() {
                       </Card.Media>
 
                       <Card.Body className="p-5">
-                        <div className="mb-2">
-                          <span className="text-xs font-semibold text-hakiardhi-red">{item.category}</span>
-                        </div>
-                        <h3 className={`${TYPOGRAPHY.heading.h4.size} ${TYPOGRAPHY.heading.h4.weight} text-gray-900 mb-3 group-hover:text-hakiardhi-red transition-colors`}>
+                        {item.category && (
+                          <div className="mb-2">
+                            <span className="text-xs font-semibold text-hakiardhi-red">{item.category}</span>
+                          </div>
+                        )}
+                        <h3 className={`${TYPOGRAPHY.heading.h4.size} ${TYPOGRAPHY.heading.h4.weight} text-gray-900 mb-3 group-hover:text-hakiardhi-red transition-colors line-clamp-2`}>
                           {item.title}
                         </h3>
                         <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                          {item.excerpt}
+                          {item.excerpt || 'No description available'}
                         </p>
                         <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
                           <Icon name="clock" size="sm" className="text-hakiardhi-red" />
-                          {new Date(item.date).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
+                          {formatDate(item.date)}
                         </div>
                         <Button variant="secondary" size="sm" fullWidth>
                           Read More
@@ -158,9 +228,13 @@ export default function NewsEventsPage() {
                 </div>
               ))}
             </Grid>
-          </Section.Content>
-        </Section>
-      )}
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No featured updates available
+            </div>
+          )}
+        </Section.Content>
+      </Section>
 
       {/* All News & Events Section */}
       <section className="hakiardhi-section bg-gray-50 relative overflow-hidden">
@@ -249,23 +323,6 @@ export default function NewsEventsPage() {
               >
                 <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-lg">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Category Filter */}
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                        <Icon name="folder" size="sm" className="text-hakiardhi-red" />
-                        Category
-                      </label>
-                      <select
-                        value={selectedCategory}
-                        onChange={(e) => handleFilterChange(() => setSelectedCategory(e.target.value))}
-                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-medium hover:border-hakiardhi-red focus:border-hakiardhi-red focus:ring-4 focus:ring-hakiardhi-red/10 transition-all cursor-pointer"
-                      >
-                        {EVENT_CATEGORIES.map(category => (
-                          <option key={category} value={category}>{category}</option>
-                        ))}
-                      </select>
-                    </div>
-
                     {/* Year Filter */}
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
@@ -299,8 +356,23 @@ export default function NewsEventsPage() {
             </div>
           </div>
 
-          {/* Items Grid */}
-          {filteredItems.length > 0 ? (
+          {/* Error State */}
+          {error && (
+            <div className="text-center py-12 bg-red-50 rounded-2xl mb-8">
+              <Icon name="alert-triangle" size="xl" className="text-red-500 mx-auto mb-4" />
+              <p className="text-red-600 font-medium mb-4">{error}</p>
+              <Button variant="primary" size="sm" onClick={loadNews}>
+                Try Again
+              </Button>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="bg-gradient-to-br from-zinc-50 via-gray-50 to-zinc-100/50 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-inner border border-zinc-200/50">
+              <NewsGridSkeleton count={9} />
+            </div>
+          ) : filteredItems.length > 0 ? (
             <div className="bg-gradient-to-br from-zinc-50 via-gray-50 to-zinc-100/50 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-inner border border-zinc-200/50">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
                 {visibleItems.map((item, index) => (
@@ -315,12 +387,18 @@ export default function NewsEventsPage() {
                     <Link href={`/news-events/${item.slug}`} className="w-full">
                       <Card variant="elevated" hoverEffect="lift" className="w-full flex flex-col group transition-all duration-300 cursor-pointer h-full">
                         <Card.Media className="h-48 relative overflow-hidden flex-shrink-0">
-                          <Image
-                            src={item.image}
-                            alt={item.title}
-                            fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
+                          {hasValidImage(item) ? (
+                            <Image
+                              src={item.cover_image!}
+                              alt={item.title}
+                              fill
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                              <Icon name="newspaper" size="xl" className="text-gray-400" />
+                            </div>
+                          )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </Card.Media>
 
@@ -333,9 +411,11 @@ export default function NewsEventsPage() {
 
                         <Card.Body className="flex-1 flex flex-col p-5">
                           {/* Category */}
-                          <div className="mb-2">
-                            <span className="text-xs font-semibold text-hakiardhi-red">{item.category}</span>
-                          </div>
+                          {item.category && (
+                            <div className="mb-2">
+                              <span className="text-xs font-semibold text-hakiardhi-red">{item.category}</span>
+                            </div>
+                          )}
 
                           {/* Title */}
                           <div className="mb-2">
@@ -346,7 +426,7 @@ export default function NewsEventsPage() {
 
                           {/* Excerpt */}
                           <p className="flex-grow text-sm text-gray-600 leading-relaxed mb-3 line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
-                            {item.excerpt}
+                            {item.excerpt || 'No description available'}
                           </p>
 
                           {/* Meta Info */}
@@ -355,23 +435,19 @@ export default function NewsEventsPage() {
                               <div className="flex items-center gap-2">
                                 <Icon name="clock" size="sm" className="text-hakiardhi-red flex-shrink-0" />
                                 <span className="text-xs text-gray-600 leading-tight">
-                                  {new Date(item.date).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                  })}
+                                  {formatDate(item.date)}
                                 </span>
                               </div>
-                              {item.location && (
+                              {item.event_location && (
                                 <div className="flex items-center gap-2">
                                   <Icon name="globe" size="sm" className="text-hakiardhi-red flex-shrink-0" />
-                                  <span className="text-xs text-gray-600 leading-tight">{item.location}</span>
+                                  <span className="text-xs text-gray-600 leading-tight">{item.event_location}</span>
                                 </div>
                               )}
-                              {item.author && (
+                              {item.author_name && item.author_name.trim() && (
                                 <div className="flex items-center gap-2">
                                   <Icon name="user" size="sm" className="text-hakiardhi-red flex-shrink-0" />
-                                  <span className="text-xs text-gray-600 leading-tight">{item.author}</span>
+                                  <span className="text-xs text-gray-600 leading-tight">{item.author_name}</span>
                                 </div>
                               )}
                             </div>
@@ -418,7 +494,7 @@ export default function NewsEventsPage() {
                 </div>
               )}
             </div>
-          ) : (
+          ) : !error && (
             <div className="text-center py-20 bg-white rounded-2xl shadow-lg">
               <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                 <Icon name="newspaper" size="xl" className="text-gray-400" />
@@ -447,12 +523,23 @@ export default function NewsEventsPage() {
               Subscribe to our newsletter to receive the latest news, event announcements, and updates
               on land rights advocacy in Tanzania.
             </p>
-            <Button variant="primary" size="lg" className="w-full sm:w-auto">
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full sm:w-auto"
+              onClick={() => setIsNewsletterModalOpen(true)}
+            >
               Subscribe to Newsletter
             </Button>
           </div>
         </div>
       </section>
+
+      {/* Newsletter Subscription Modal */}
+      <NewsletterSubscriptionModal
+        isOpen={isNewsletterModalOpen}
+        onClose={() => setIsNewsletterModalOpen(false)}
+      />
 
       <Footer />
     </main>

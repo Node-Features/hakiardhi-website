@@ -1,61 +1,83 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import { THRESHOLDS } from '@/constants/design-tokens';
 import Image from 'next/image';
 import Icon from '../ui/Icon';
 import Button from '../ui/Button';
 import AnimatedList from '../ui/AnimatedList';
+import { TestimonialsGridSkeleton } from '../ui/TestimonialCardSkeleton';
+import { fetchTestimonials, Testimonial } from '@/lib/api/services/testimonials';
 
-export interface Testimonial {
-  name: string;
-  role: string;
-  location: string;
-  quote: string;
-  image: string;
-  program?: string;
-}
+export type { Testimonial };
 
 export interface TestimonialsSectionProps {
   testimonials?: Testimonial[];
+  limit?: number;
   className?: string;
 }
 
-const defaultTestimonials: Testimonial[] = [
-  {
-    name: 'Amina Juma',
-    role: 'School of HakiArdhi Graduate',
-    location: 'Mbeya Region',
-    quote: 'HakiArdhi trained me as a land rights monitor. Now I help my entire community understand and protect their land rights. This knowledge has empowered hundreds of families.',
-    image: '/images/capacity_building_3.jpg',
-    program: 'School of HakiArdhi'
-  },
-  {
-    name: 'Joseph Makamba',
-    role: 'Community Leader',
-    location: 'Morogoro',
-    quote: 'When our village faced displacement, HakiArdhi provided free legal aid and stood with us. Today, we still have our ancestral lands and our livelihoods are secure.',
-    image: '/images/public_debate_1.JPG',
-    program: 'Legal Aid Program'
-  },
-  {
-    name: 'Grace Kileo',
-    role: 'Women\'s Group Coordinator',
-    location: 'Arusha',
-    quote: 'Through HakiArdhi\'s training, our women\'s group learned about inheritance rights and land ownership. We are now advocating for equal land rights for women across our region.',
-    image: '/images/capacity_building_2.jpg',
-    program: 'Advocacy Training'
-  },
-];
+/**
+ * Check if image URL is safe to use with Next.js Image
+ */
+function getSafeImageUrl(url: string | null | undefined): string {
+  if (!url) return '/images/placeholder-avatar.jpg';
+  if (url.startsWith('/')) return url;
+
+  const allowedDomains = [
+    'hakiardhi-api.vercel.app',
+    'tjsatamyfjxdxqgxmcuq.supabase.co',
+  ];
+
+  try {
+    const urlObj = new URL(url);
+    if (allowedDomains.some(domain => urlObj.hostname.includes(domain))) {
+      return url;
+    }
+  } catch {
+    // Invalid URL
+  }
+
+  return '/images/placeholder-avatar.jpg';
+}
 
 export default function TestimonialsSection({
-  testimonials = defaultTestimonials,
+  testimonials: propTestimonials,
+  limit = 3,
   className = '',
 }: TestimonialsSectionProps) {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(propTestimonials || []);
+  const [isLoading, setIsLoading] = useState(!propTestimonials);
+
   const [sectionRef, isVisible] = useIntersectionObserver({
     threshold: THRESHOLDS.intersection.low,
     freezeOnceVisible: true,
   });
+
+  // Fetch testimonials from API if not provided as props
+  useEffect(() => {
+    if (propTestimonials) {
+      setTestimonials(propTestimonials);
+      setIsLoading(false);
+      return;
+    }
+
+    async function loadTestimonials() {
+      try {
+        setIsLoading(true);
+        const apiTestimonials = await fetchTestimonials(limit, true);
+        setTestimonials(apiTestimonials);
+      } catch (error) {
+        console.error('Failed to load testimonials:', error);
+        setTestimonials([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadTestimonials();
+  }, [propTestimonials, limit]);
 
   return (
     <section
@@ -89,67 +111,75 @@ export default function TestimonialsSection({
         </div>
 
         {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <AnimatedList staggerDelay={150}>
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-gray-100"
-              >
-                {/* Image */}
-                <div className="relative h-64 overflow-hidden">
-                  <Image
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  {/* Gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+        {isLoading ? (
+          <TestimonialsGridSkeleton count={limit} />
+        ) : testimonials.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <AnimatedList staggerDelay={150}>
+              {testimonials.map((testimonial, index) => (
+                <div
+                  key={testimonial.id || index}
+                  className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-gray-100"
+                >
+                  {/* Image */}
+                  <div className="relative h-64 overflow-hidden">
+                    <Image
+                      src={getSafeImageUrl(testimonial.image)}
+                      alt={testimonial.name}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
 
-                  {/* Program badge */}
-                  {testimonial.program && (
-                    <div className="absolute top-4 left-4">
-                      <div className="px-3 py-1.5 bg-hakiardhi-red rounded-full text-xs font-bold text-white">
-                        {testimonial.program}
+                    {/* Program badge */}
+                    {testimonial.program && (
+                      <div className="absolute top-4 left-4">
+                        <div className="px-3 py-1.5 bg-hakiardhi-red rounded-full text-xs font-bold text-white">
+                          {testimonial.program}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Quote icon */}
-                  <div className="absolute bottom-4 right-4">
-                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                      <Icon name="quote" size="md" className="text-white" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-6">
-                  {/* Quote */}
-                  <blockquote className="text-gray-700 leading-relaxed mb-6 italic">
-                    "{testimonial.quote}"
-                  </blockquote>
-
-                  {/* Author */}
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-hakiardhi-red/20 to-brand-500/20 flex items-center justify-center flex-shrink-0">
-                      <Icon name="user" size="md" className="text-hakiardhi-red" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-gray-900">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600">{testimonial.role}</div>
-                      <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                        <Icon name="map-pin" size="sm" className="text-hakiardhi-red" />
-                        {testimonial.location}
+                    {/* Quote icon */}
+                    <div className="absolute bottom-4 right-4">
+                      <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                        <Icon name="quote" size="md" className="text-white" />
                       </div>
                     </div>
                   </div>
+
+                  {/* Content */}
+                  <div className="p-6">
+                    {/* Quote */}
+                    <blockquote className="text-gray-700 leading-relaxed mb-6 italic">
+                      "{testimonial.quote}"
+                    </blockquote>
+
+                    {/* Author */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-hakiardhi-red/20 to-brand-500/20 flex items-center justify-center flex-shrink-0">
+                        <Icon name="user" size="md" className="text-hakiardhi-red" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900">{testimonial.name}</div>
+                        <div className="text-sm text-gray-600">{testimonial.role}</div>
+                        <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                          <Icon name="map-pin" size="sm" className="text-hakiardhi-red" />
+                          {testimonial.location}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </AnimatedList>
-        </div>
+              ))}
+            </AnimatedList>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No testimonials available at the moment.</p>
+          </div>
+        )}
 
         {/* CTA */}
         <div

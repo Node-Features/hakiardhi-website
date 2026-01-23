@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Header, Footer } from '@/components';
 import Section from '@/components/ui/Section';
@@ -14,106 +14,222 @@ import PublicationThumbnail from '@/components/features/PublicationThumbnail';
 import CollapsibleFilterPanel, { FilterConfig } from '@/components/features/CollapsibleFilterPanel';
 import NewsletterSubscriptionModal from '@/components/modals/NewsletterSubscriptionModal';
 import { SPACING, TYPOGRAPHY, CONTENT_WIDTHS } from '@/constants/design-tokens';
-import {
-  publications,
-  researchAreas,
-  impactStats,
-  researchPartners,
-  PUBLICATION_TYPES,
-  RESEARCH_TOPICS,
-} from '@/data/research';
+import { Publication } from '@/data/research';
+import { fetchPublications } from '@/lib/api/services/publications';
+import { fetchResearchStats, ResearchStats } from '@/lib/api/services/researchStats';
+import { fetchResearchAreas, ResearchArea } from '@/lib/api/services/researchAreas';
+import { fetchPublicationTypes, PublicationType } from '@/lib/api/services/publicationTypes';
+import { fetchPublicationTopics, PublicationTopic } from '@/lib/api/services/publicationTopics';
+import { fetchPartners, Partner } from '@/lib/api/services/partners';
+import PublicationCardSkeleton from '@/components/ui/PublicationCardSkeleton';
 
 export default function ResearchPage() {
   const [selectedType, setSelectedType] = useState<string>('All');
   const [selectedTopic, setSelectedTopic] = useState<string>('All');
   const [selectedYear, setSelectedYear] = useState<string>('All');
-  const [selectedQuarter, setSelectedQuarter] = useState<string>('All');
-  const [selectedMonth, setSelectedMonth] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [itemsToShow, setItemsToShow] = useState(9);
   const [isVisible, setIsVisible] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
+  const [apiPublications, setApiPublications] = useState<Publication[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasAPIData, setHasAPIData] = useState(false);
+
+  // Research stats state
+  const [researchStats, setResearchStats] = useState<ResearchStats | null>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+
+  // Research areas state
+  const [researchAreas, setResearchAreas] = useState<ResearchArea[]>([]);
+  const [isAreasLoading, setIsAreasLoading] = useState(true);
+
+  // Publication types state
+  const [publicationTypes, setPublicationTypes] = useState<PublicationType[]>([]);
+  const [isTypesLoading, setIsTypesLoading] = useState(true);
+
+  // Publication topics state
+  const [publicationTopics, setPublicationTopics] = useState<PublicationTopic[]>([]);
+  const [isTopicsLoading, setIsTopicsLoading] = useState(true);
+
+  // Partners state
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [isPartnersLoading, setIsPartnersLoading] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
 
-  // Extract unique years from publications
-  const years = useMemo(() => {
-    const yearSet = new Set(publications.map(p => new Date(p.publicationDate).getFullYear()));
-    return ['All', ...Array.from(yearSet).sort((a, b) => (b as number) - (a as number))];
+  // Fetch research stats on mount
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const stats = await fetchResearchStats();
+        setResearchStats(stats);
+      } catch (err) {
+        console.error('Failed to load research stats:', err);
+        // Keep showing skeleton or fallback on error
+      } finally {
+        setIsStatsLoading(false);
+      }
+    };
+
+    loadStats();
   }, []);
 
-  // Get quarter from date
-  const getQuarter = (date: string) => {
-    const month = new Date(date).getMonth() + 1;
-    return Math.ceil(month / 3);
+  // Fetch research areas on mount
+  useEffect(() => {
+    const loadAreas = async () => {
+      try {
+        const areas = await fetchResearchAreas();
+        setResearchAreas(areas);
+      } catch (err) {
+        console.error('Failed to load research areas:', err);
+        // Keep showing skeleton or fallback on error
+      } finally {
+        setIsAreasLoading(false);
+      }
+    };
+
+    loadAreas();
+  }, []);
+
+  // Fetch publication types on mount
+  useEffect(() => {
+    const loadTypes = async () => {
+      try {
+        const types = await fetchPublicationTypes();
+        setPublicationTypes(types);
+      } catch (err) {
+        console.error('Failed to load publication types:', err);
+        // Fallback to default types on error
+        setPublicationTypes([
+          { name: 'All', slug: 'all', count: 0 },
+        ]);
+      } finally {
+        setIsTypesLoading(false);
+      }
+    };
+
+    loadTypes();
+  }, []);
+
+  // Fetch publication topics on mount
+  useEffect(() => {
+    const loadTopics = async () => {
+      try {
+        const topics = await fetchPublicationTopics();
+        setPublicationTopics(topics);
+      } catch (err) {
+        console.error('Failed to load publication topics:', err);
+        // Fallback to default topics on error
+        setPublicationTopics([
+          { name: 'All', slug: 'all', count: 0 },
+        ]);
+      } finally {
+        setIsTopicsLoading(false);
+      }
+    };
+
+    loadTopics();
+  }, []);
+
+  // Fetch partners on mount
+  useEffect(() => {
+    const loadPartners = async () => {
+      try {
+        const data = await fetchPartners();
+        setPartners(data);
+      } catch (err) {
+        console.error('Failed to load partners:', err);
+      } finally {
+        setIsPartnersLoading(false);
+      }
+    };
+
+    loadPartners();
+  }, []);
+
+  // Format large numbers with K/M suffix
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M+';
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K+';
+    }
+    return num.toString();
   };
 
-  // Get month name
-  const getMonthName = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', { month: 'long' });
+  // Year options for filter (2020-2030)
+  // Generate years from current year to 35 years ago
+  const currentYear = new Date().getFullYear();
+  const years = ['All', ...Array.from({ length: 36 }, (_, i) => currentYear - i)];
+
+  // Publications are now filtered entirely by the API
+  const filteredPublications = apiPublications;
+
+
+
+  // Load publications from API
+  const loadPublications = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await fetchPublications({
+        page: currentPage,
+        limit: 9,
+        type: selectedType === 'All' ? undefined : selectedType,
+        topic: selectedTopic === 'All' ? undefined : selectedTopic,
+        year: selectedYear === 'All' ? undefined : Number(selectedYear),
+        search: searchQuery || undefined,
+      });
+
+      setApiPublications(result.publications);
+      setTotalPages(result.meta.totalPages);
+      setHasAPIData(true);
+    } catch (err) {
+      console.error('API Error:', err);
+      setError('Unable to load publications from server. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Get unique months from filtered publications
-  const availableMonths = useMemo(() => {
-    const months = new Set(
-      publications
-        .filter(p => {
-          const year = selectedYear === 'All' || new Date(p.publicationDate).getFullYear() === Number(selectedYear);
-          const quarter = selectedQuarter === 'All' || getQuarter(p.publicationDate) === Number(selectedQuarter);
-          return year && quarter;
-        })
-        .map(p => getMonthName(p.publicationDate))
-    );
-    return ['All', ...Array.from(months)];
-  }, [selectedYear, selectedQuarter]);
+  // Effect to load publications when filters change
+  useEffect(() => {
+    loadPublications();
+  }, [currentPage, selectedType, selectedTopic, selectedYear]);
 
-  // Filter publications
-  const filteredPublications = useMemo(() => {
-    return publications.filter(pub => {
-      const pubDate = new Date(pub.publicationDate);
-      const pubYear = pubDate.getFullYear();
-      const pubQuarter = getQuarter(pub.publicationDate);
-      const pubMonth = getMonthName(pub.publicationDate);
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (currentPage === 1) {
+        loadPublications();
+      } else {
+        setCurrentPage(1); // Reset to page 1, which triggers loadPublications
+      }
+    }, 500);
 
-      const typeMatch = selectedType === 'All' || pub.type === selectedType;
-      const topicMatch = selectedTopic === 'All' || pub.topic.includes(selectedTopic);
-      const yearMatch = selectedYear === 'All' || pubYear === Number(selectedYear);
-      const quarterMatch = selectedQuarter === 'All' || pubQuarter === Number(selectedQuarter);
-      const monthMatch = selectedMonth === 'All' || pubMonth === selectedMonth;
-      const searchMatch =
-        searchQuery === '' ||
-        pub.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        pub.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        pub.abstract.toLowerCase().includes(searchQuery.toLowerCase());
-
-      return typeMatch && topicMatch && yearMatch && quarterMatch && monthMatch && searchMatch;
-    });
-  }, [selectedType, selectedTopic, selectedYear, selectedQuarter, selectedMonth, searchQuery]);
-
-  const visiblePublications = filteredPublications.slice(0, itemsToShow);
-  const hasMore = itemsToShow < filteredPublications.length;
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Reset items when filters change
   const handleFilterChange = (callback: () => void) => {
     callback();
-    setItemsToShow(9);
   };
 
   // Get featured publications
-  const featuredPublications = publications.filter(p => p.featured);
 
-  const hasActiveFilters = selectedTopic !== 'All' || selectedYear !== 'All' || selectedQuarter !== 'All' || selectedMonth !== 'All';
+  const hasActiveFilters = selectedTopic !== 'All' || selectedYear !== 'All';
 
   const clearFilters = () => {
     setSelectedTopic('All');
     setSelectedYear('All');
-    setSelectedQuarter('All');
-    setSelectedMonth('All');
-    setItemsToShow(9);
   };
 
   return (
@@ -139,26 +255,52 @@ export default function ResearchPage() {
       <Section variant="white" spacing="xs" className="pt-8 pb-16">
         <Section.Content>
           <Grid cols={{ base: 1, sm: 2, lg: 4 }} gap="lg">
-            {impactStats.map((stat, index) => (
-              <div
-                key={stat.id}
-                className="opacity-0 animate-fade-in"
-                style={{
-                  animationDelay: `${index * 100}ms`,
-                  animationFillMode: 'forwards',
-                }}
-              >
-                <div className={`bg-gradient-to-br from-hakiardhi-red to-red-600 text-white ${SPACING.padding.lg} rounded-xl shadow-xl text-center hover:scale-105 transition-transform`}>
-                  <div className={`${TYPOGRAPHY.display.md.size} ${TYPOGRAPHY.display.md.weight} ${SPACING.margin.element.xs}`}>
-                    {stat.value}
+            {isStatsLoading ? (
+              // Skeleton loading state
+              Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="opacity-0 animate-fade-in"
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                    animationFillMode: 'forwards',
+                  }}
+                >
+                  <div className={`bg-gradient-to-br from-zinc-100 to-orange-100/50 ${SPACING.padding.lg} rounded-xl shadow-lg text-center animate-pulse`}>
+                    <div className="h-12 bg-orange-200/40 rounded-lg mb-2 mx-auto w-24"></div>
+                    <div className="h-6 bg-zinc-200/60 rounded mb-2 mx-auto w-28"></div>
+                    <div className="h-4 bg-zinc-200/40 rounded mx-auto w-32"></div>
                   </div>
-                  <div className={`${TYPOGRAPHY.body.lg.size} font-bold ${SPACING.margin.element.xs}`}>
-                    {stat.label}
-                  </div>
-                  <div className={`${TYPOGRAPHY.body.sm.size} opacity-90`}>{stat.description}</div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              // Stats from API
+              [
+                { value: formatNumber(researchStats?.totalPublications || 0), label: 'Publications', description: 'Research & policy briefs' },
+                { value: formatNumber(researchStats?.totalDownloads || 0), label: 'Downloads', description: 'Document downloads' },
+                { value: formatNumber(researchStats?.totalViews || 0), label: 'Views', description: 'Publication views' },
+                { value: researchStats?.topicCount?.toString() || '0', label: 'Topics', description: 'Research areas covered' },
+              ].map((stat, index) => (
+                <div
+                  key={stat.label}
+                  className="opacity-0 animate-fade-in"
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                    animationFillMode: 'forwards',
+                  }}
+                >
+                  <div className={`bg-gradient-to-br from-hakiardhi-red to-red-600 text-white ${SPACING.padding.lg} rounded-xl shadow-xl text-center hover:scale-105 transition-transform`}>
+                    <div className={`${TYPOGRAPHY.display.md.size} ${TYPOGRAPHY.display.md.weight} ${SPACING.margin.element.xs}`}>
+                      {stat.value}
+                    </div>
+                    <div className={`${TYPOGRAPHY.body.lg.size} font-bold ${SPACING.margin.element.xs}`}>
+                      {stat.label}
+                    </div>
+                    <div className={`${TYPOGRAPHY.body.sm.size} opacity-90`}>{stat.description}</div>
+                  </div>
+                </div>
+              ))
+            )}
           </Grid>
         </Section.Content>
       </Section>
@@ -168,40 +310,72 @@ export default function ResearchPage() {
         <Section.Content>
           <SectionHeader
             title="Research Thematic Areas"
-            description="Our work is organized into five strategic research themes"
+            description="Our work is organized into strategic research themes"
             align="center"
           />
 
           <Grid cols={{ base: 1, md: 2, lg: 3 }} gap="lg">
-            {researchAreas.map((area, index) => (
-              <div
-                key={area.id}
-                className="opacity-0 animate-fade-in"
-                style={{
-                  animationDelay: `${index * 100}ms`,
-                  animationFillMode: 'forwards',
-                }}
-              >
-                <Card variant="elevated" hoverEffect="lift" className="h-full">
-                  <Card.Body>
-                    <div className={SPACING.margin.element.md}>
-                      <Icon name={area.iconName as any} size="xl" className="text-hakiardhi-red" />
-                    </div>
-                    <h3 className={`${TYPOGRAPHY.heading.h4.size} ${TYPOGRAPHY.heading.h4.weight} text-gray-900 ${SPACING.margin.element.sm}`}>
-                      {area.name}
-                    </h3>
-                    <p className={`${TYPOGRAPHY.body.default.size} text-gray-600 ${TYPOGRAPHY.body.default.lineHeight} ${SPACING.margin.element.sm}`}>
-                      {area.description}
-                    </p>
-                    <div className={`${SPACING.padding.sm} bg-hakiardhi-red/5 rounded-lg mt-auto`}>
-                      <p className={`${TYPOGRAPHY.body.sm.size} text-gray-700 font-medium`}>
-                        <span className="text-hakiardhi-red">{area.publicationCount}</span> Publications
+            {isAreasLoading ? (
+              // Skeleton loading state
+              Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="opacity-0 animate-fade-in"
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                    animationFillMode: 'forwards',
+                  }}
+                >
+                  <Card variant="elevated" className="h-full">
+                    <Card.Body className="animate-pulse">
+                      <div className={SPACING.margin.element.md}>
+                        <div className="w-12 h-12 bg-orange-200/40 rounded-lg"></div>
+                      </div>
+                      <div className="h-6 bg-zinc-200/60 rounded w-3/4 mb-3"></div>
+                      <div className="space-y-2 mb-4">
+                        <div className="h-4 bg-zinc-200/40 rounded w-full"></div>
+                        <div className="h-4 bg-zinc-200/40 rounded w-5/6"></div>
+                        <div className="h-4 bg-zinc-200/40 rounded w-4/6"></div>
+                      </div>
+                      <div className={`${SPACING.padding.sm} bg-zinc-100 rounded-lg`}>
+                        <div className="h-4 bg-orange-200/30 rounded w-24"></div>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </div>
+              ))
+            ) : (
+              // Research areas from API
+              researchAreas.map((area, index) => (
+                <div
+                  key={area.id}
+                  className="opacity-0 animate-fade-in"
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                    animationFillMode: 'forwards',
+                  }}
+                >
+                  <Card variant="elevated" hoverEffect="lift" className="h-full">
+                    <Card.Body>
+                      <div className={SPACING.margin.element.md}>
+                        <Icon name={area.iconName as any} size="xl" className="text-hakiardhi-red" />
+                      </div>
+                      <h3 className={`${TYPOGRAPHY.heading.h4.size} ${TYPOGRAPHY.heading.h4.weight} text-gray-900 ${SPACING.margin.element.sm}`}>
+                        {area.name}
+                      </h3>
+                      <p className={`${TYPOGRAPHY.body.default.size} text-gray-600 ${TYPOGRAPHY.body.default.lineHeight} ${SPACING.margin.element.sm}`}>
+                        {area.description}
                       </p>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </div>
-            ))}
+                      <div className={`${SPACING.padding.sm} bg-hakiardhi-red/5 rounded-lg mt-auto`}>
+                        <p className={`${TYPOGRAPHY.body.sm.size} text-gray-700 font-medium`}>
+                          <span className="text-hakiardhi-red">{area.publicationCount}</span> Publications
+                        </p>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </div>
+              ))
+            )}
           </Grid>
         </Section.Content>
       </Section>
@@ -222,31 +396,44 @@ export default function ResearchPage() {
 
           {/* Type Filter Tabs - Fully Rounded Pills */}
           <div className="flex flex-wrap justify-center gap-3 mb-8">
-            {PUBLICATION_TYPES.map((type) => {
-              const count = publications.filter(p => type === 'All' || p.type === type).length;
-              return (
+            {isTypesLoading ? (
+              // Skeleton loading state
+              Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="px-6 py-3 rounded-full bg-gradient-to-r from-zinc-100 to-orange-100/50 animate-pulse"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-16 bg-zinc-200/60 rounded"></div>
+                    <div className="h-4 w-6 bg-orange-200/40 rounded-full"></div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              // Publication types from API
+              publicationTypes.map((type) => (
                 <button
-                  key={type}
-                  onClick={() => handleFilterChange(() => setSelectedType(type))}
+                  key={type.slug}
+                  onClick={() => handleFilterChange(() => setSelectedType(type.name))}
                   className={`group px-6 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
-                    selectedType === type
+                    selectedType === type.name
                       ? 'bg-hakiardhi-red text-white shadow-lg shadow-hakiardhi-red/30 scale-105'
                       : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-300 hover:border-hakiardhi-red hover:scale-105'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    {type}
+                    {type.name}
                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                      selectedType === type
+                      selectedType === type.name
                         ? 'bg-white/20 text-white'
                         : 'bg-hakiardhi-red/10 text-hakiardhi-red group-hover:bg-hakiardhi-red/20'
                     }`}>
-                      {count}
+                      {type.count}
                     </span>
                   </span>
                 </button>
-              );
-            })}
+              ))
+            )}
           </div>
 
           {/* Collapsible Filter Panel */}
@@ -292,102 +479,65 @@ export default function ResearchPage() {
                 }`}
               >
                 <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-lg">
-                  {/* Topic Filter - Inside Panel */}
-                  <div className="mb-6 pb-6 border-b border-gray-200">
-                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+                  {/* Filter Header with Year Dropdown */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
                       <Icon name="document" size="sm" className="text-hakiardhi-red" />
                       Filter by Topic
                     </label>
-                    <div className="flex flex-wrap gap-2">
-                      {RESEARCH_TOPICS.map((topic) => (
+
+                    {/* Year Filter Dropdown - Top Right */}
+                    <div className="relative">
+                      <select
+                        value={selectedYear}
+                        onChange={(e) => handleFilterChange(() => setSelectedYear(e.target.value))}
+                        className="appearance-none pl-4 pr-10 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold text-sm hover:border-hakiardhi-red focus:border-hakiardhi-red focus:ring-4 focus:ring-hakiardhi-red/10 transition-all cursor-pointer min-w-[140px]"
+                      >
+                        {years.map(year => (
+                          <option key={year} value={year}>{year === 'All' ? 'All Years' : year}</option>
+                        ))}
+                      </select>
+                      {/* Custom Red Dropdown Arrow */}
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                        <svg className="h-5 w-5 text-hakiardhi-red" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Topic Pills */}
+                  <div className="flex flex-wrap gap-2">
+                    {isTopicsLoading ? (
+                      // Skeleton loading state
+                      Array.from({ length: 8 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className="px-4 py-2 rounded-full bg-gradient-to-r from-zinc-100 to-orange-100/50 animate-pulse"
+                        >
+                          <div className="h-3 w-20 bg-zinc-200/60 rounded"></div>
+                        </div>
+                      ))
+                    ) : (
+                      // Topics from API
+                      publicationTopics.map((topic) => (
                         <button
-                          key={topic}
-                          onClick={() => handleFilterChange(() => setSelectedTopic(topic))}
+                          key={topic.slug}
+                          onClick={() => handleFilterChange(() => setSelectedTopic(topic.name))}
                           className={`px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300 ${
-                            selectedTopic === topic
+                            selectedTopic === topic.name
                               ? 'bg-hakiardhi-red text-white shadow-md'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
                           }`}
                         >
-                          {topic}
+                          {topic.name}
                         </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Date Filters */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Year Filter */}
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                        <Icon name="clock" size="sm" className="text-hakiardhi-red" />
-                        Year
-                      </label>
-                      <select
-                        value={selectedYear}
-                        onChange={(e) => {
-                          handleFilterChange(() => {
-                            setSelectedYear(e.target.value);
-                            setSelectedQuarter('All');
-                            setSelectedMonth('All');
-                          });
-                        }}
-                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-medium hover:border-hakiardhi-red focus:border-hakiardhi-red focus:ring-4 focus:ring-hakiardhi-red/10 transition-all cursor-pointer"
-                      >
-                        {years.map(year => (
-                          <option key={year} value={year}>{year}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Quarter Filter - Conditional */}
-                    {selectedYear !== 'All' && (
-                      <div className="space-y-2 animate-fade-in">
-                        <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                          <Icon name="clock" size="sm" className="text-hakiardhi-red" />
-                          Quarter
-                        </label>
-                        <select
-                          value={selectedQuarter}
-                          onChange={(e) => {
-                            handleFilterChange(() => {
-                              setSelectedQuarter(e.target.value);
-                              setSelectedMonth('All');
-                            });
-                          }}
-                          className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-medium hover:border-hakiardhi-red focus:border-hakiardhi-red focus:ring-4 focus:ring-hakiardhi-red/10 transition-all cursor-pointer"
-                        >
-                          <option value="All">All Quarters</option>
-                          <option value="1">Q1 (Jan-Mar)</option>
-                          <option value="2">Q2 (Apr-Jun)</option>
-                          <option value="3">Q3 (Jul-Sep)</option>
-                          <option value="4">Q4 (Oct-Dec)</option>
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Month Filter - Conditional */}
-                    {selectedYear !== 'All' && availableMonths.length > 1 && (
-                      <div className="space-y-2 animate-fade-in" style={{ animationDelay: '100ms' }}>
-                        <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                          <Icon name="clock" size="sm" className="text-hakiardhi-red" />
-                          Month
-                        </label>
-                        <select
-                          value={selectedMonth}
-                          onChange={(e) => handleFilterChange(() => setSelectedMonth(e.target.value))}
-                          className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-medium hover:border-hakiardhi-red focus:border-hakiardhi-red focus:ring-4 focus:ring-hakiardhi-red/10 transition-all cursor-pointer"
-                        >
-                          {availableMonths.map(month => (
-                            <option key={month} value={month}>{month}</option>
-                          ))}
-                        </select>
-                      </div>
+                      ))
                     )}
                   </div>
 
                   {/* Results Count Badge */}
-                  <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="mt-5 pt-5 border-t border-gray-100">
                     <div className="flex items-center justify-center gap-2">
                       <Icon name="check-circle" size="sm" className="text-hakiardhi-red" />
                       <span className="text-gray-600 font-medium">
@@ -401,11 +551,38 @@ export default function ResearchPage() {
             </div>
           </div>
 
+
+          {/* Error Banner */}
+          {error && (
+            <div className="mb-8 p-4 rounded-xl bg-red-50 border-l-4 border-red-500">
+              <div className="flex items-start gap-3">
+                <Icon name="exclamation-triangle" size="lg" className="text-red-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-red-900 mb-1">Connection Issue</h3>
+                  <p className="text-sm text-red-700">{error}</p>
+                  <button
+                    onClick={loadPublications}
+                    className="mt-2 text-sm font-medium text-red-600 hover:text-red-800 underline"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Publications Grid - Attractive Background Section */}
-          {filteredPublications.length > 0 ? (
+          {isLoading ? (
             <div className="bg-gradient-to-br from-zinc-50 via-gray-50 to-zinc-100/50 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-inner border border-zinc-200/50">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
-                {visiblePublications.map((publication, index) => (
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <PublicationCardSkeleton key={i} />
+                ))}
+              </div>
+            </div>
+          ) : filteredPublications.length > 0 ? (
+            <div className="bg-gradient-to-br from-zinc-50 via-gray-50 to-zinc-100/50 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-inner border border-zinc-200/50">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+                {filteredPublications.map((publication, index) => (
                   <div
                     key={publication.id}
                     className="opacity-0 animate-fade-in flex"
@@ -510,34 +687,6 @@ export default function ResearchPage() {
                 ))}
               </div>
 
-              {/* Load More Button */}
-              {hasMore && (
-                <div className="mt-12 text-center">
-                  <div className="inline-block relative">
-                    <div className="absolute inset-0 bg-hakiardhi-red/20 blur-xl rounded-full scale-150"></div>
-                    <button
-                      onClick={() => setItemsToShow(prev => prev + 9)}
-                      className="relative group px-8 py-4 bg-hakiardhi-red text-white font-bold rounded-full shadow-lg hover:bg-black hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
-                    >
-                      <span className="flex items-center gap-3">
-                        Load More Publications
-                        <svg className="w-5 h-5 group-hover:translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </span>
-                    </button>
-                  </div>
-                  <p className="mt-4 text-gray-600 font-medium">
-                    Showing {visiblePublications.length} of {filteredPublications.length} publications
-                  </p>
-                  <div className="mt-3 max-w-md mx-auto h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-hakiardhi-red to-red-600 transition-all duration-500"
-                      style={{ width: `${(visiblePublications.length / filteredPublications.length) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
             <div className="text-center py-20 bg-white rounded-2xl shadow-lg">
@@ -593,30 +742,62 @@ export default function ResearchPage() {
           />
 
           <Grid cols={{ base: 2, md: 3, lg: 6 }} gap="md">
-            {researchPartners.map((partner, index) => (
-              <div
-                key={partner.name}
-                className="opacity-0 animate-fade-in"
-                style={{
-                  animationDelay: `${index * 50}ms`,
-                  animationFillMode: 'forwards',
-                }}
-              >
-                <Card variant="elevated" className="hover:shadow-lg hover:scale-105 transition-all duration-300 h-full">
-                  <Card.Body className="p-6 flex items-center justify-center">
-                    <div className="relative w-full h-20">
-                      <Image
-                        src={partner.logo}
-                        alt={partner.name}
-                        fill
-                        className="object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                      />
-                    </div>
-                  </Card.Body>
-                </Card>
-              </div>
-            ))}
+            {isPartnersLoading ? (
+              // Skeleton loading state
+              Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="opacity-0 animate-fade-in"
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                    animationFillMode: 'forwards',
+                  }}
+                >
+                  <Card variant="elevated" className="h-full">
+                    <Card.Body className="p-6 flex items-center justify-center animate-pulse">
+                      <div className="w-full h-20 bg-gradient-to-r from-zinc-100 to-orange-100/50 rounded-lg"></div>
+                    </Card.Body>
+                  </Card>
+                </div>
+              ))
+            ) : (
+              // Partners from API
+              partners.map((partner, index) => (
+                <a
+                  key={partner.id}
+                  href={partner.websiteUrl || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="opacity-0 animate-fade-in block"
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                    animationFillMode: 'forwards',
+                  }}
+                >
+                  <Card variant="elevated" className="hover:shadow-lg hover:scale-105 transition-all duration-300 h-full">
+                    <Card.Body className="p-6 flex items-center justify-center">
+                      <div className="relative w-full h-20">
+                        {partner.logoUrl ? (
+                          <Image
+                            src={partner.logoUrl}
+                            alt={partner.name}
+                            fill
+                            className="object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
+                            <span className="text-sm font-medium text-gray-500 text-center px-2">
+                              {partner.name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </a>
+              ))
+            )}
           </Grid>
         </Section.Content>
       </Section>

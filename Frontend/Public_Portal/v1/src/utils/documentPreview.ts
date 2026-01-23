@@ -63,9 +63,15 @@ export const getThumbnailSources = (
 ): string[] => {
   const sources: string[] = [];
 
-  // 1. Custom thumbnail (highest priority)
+  // 1. Custom thumbnail (highest priority - could be API URL or local path)
   if (customThumbnail) {
-    sources.push(`/images/publications/thumbnails/${customThumbnail}`);
+    if (customThumbnail.startsWith('http://') || customThumbnail.startsWith('https://')) {
+      // Full URL from API
+      sources.push(customThumbnail);
+    } else {
+      // Local path
+      sources.push(`/images/publications/thumbnails/${customThumbnail}`);
+    }
   }
 
   // 2. Generated thumbnail by ID

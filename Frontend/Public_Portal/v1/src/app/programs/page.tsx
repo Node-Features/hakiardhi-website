@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Header, Footer } from '@/components';
@@ -12,65 +12,124 @@ import Icon from '@/components/ui/Icon';
 import Button from '@/components/ui/Button';
 import SectionHeader from '@/components/features/SectionHeader';
 import { SPACING, TYPOGRAPHY } from '@/constants/design-tokens';
-import { programs, PROGRAM_CATEGORIES } from '@/data/programs';
 import { programCategories } from '@/data/programCategories';
+import { fetchPrograms, fetchProgramCategories, Program, ProgramCategory } from '@/lib/api/services/programs';
+
+// Skeleton component for program cards
+function ProgramCardSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden animate-pulse">
+      <div className="h-48 bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200"></div>
+      <div className="p-5">
+        <div className="h-4 bg-zinc-200 rounded w-3/4 mb-3"></div>
+        <div className="h-3 bg-zinc-100 rounded w-full mb-2"></div>
+        <div className="h-3 bg-zinc-100 rounded w-5/6 mb-4"></div>
+        <div className="pt-3 border-t border-gray-100 space-y-2">
+          <div className="h-3 bg-zinc-100 rounded w-1/2"></div>
+          <div className="h-3 bg-zinc-100 rounded w-1/3"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Skeleton for category tabs
+function CategoryTabsSkeleton() {
+  return (
+    <div className="flex flex-wrap justify-center gap-3 mb-8">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="h-12 w-32 bg-zinc-200 rounded-full animate-pulse"></div>
+      ))}
+    </div>
+  );
+}
 
 export default function ProgramsPage() {
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [categories, setCategories] = useState<ProgramCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedYear, setSelectedYear] = useState('All');
-  const [selectedQuarter, setSelectedQuarter] = useState('All');
-  const [selectedMonth, setSelectedMonth] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [itemsToShow, setItemsToShow] = useState(9);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Fetch programs from API
+  const loadPrograms = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const params: {
+        page: number;
+        limit: number;
+        category?: string;
+        status?: string;
+        search?: string;
+      } = {
+        page: 1,
+        limit: 100, // Fetch all for client-side filtering
+      };
+
+      if (selectedCategory !== 'All') {
+        params.category = selectedCategory;
+      }
+
+      if (selectedStatus !== 'All') {
+        params.status = selectedStatus;
+      }
+
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+
+      const response = await fetchPrograms(params);
+      setPrograms(response.programs);
+      setTotalCount(response.meta?.total || response.programs.length);
+    } catch (err) {
+      console.error('Error loading programs:', err);
+      setError('Failed to load programs. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedCategory, selectedStatus, searchQuery]);
+
+  // Fetch categories from API
+  const loadCategories = useCallback(async () => {
+    setIsCategoriesLoading(true);
+    try {
+      const data = await fetchProgramCategories();
+      setCategories(data);
+    } catch (err) {
+      console.error('Error loading categories:', err);
+      // Use empty array on error
+      setCategories([]);
+    } finally {
+      setIsCategoriesLoading(false);
+    }
+  }, []);
+
+  // Load data on mount and when filters change
+  useEffect(() => {
+    loadPrograms();
+  }, [loadPrograms]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+    loadCategories();
+  }, [loadCategories]);
 
-  // Extract unique years from programs
-  const years = useMemo(() => {
-    const yearSet = new Set(programs.map(p => new Date(p.date).getFullYear()));
-    return ['All', ...Array.from(yearSet).sort((a, b) => (b as number) - (a as number))];
-  }, []);
+  // Get all categories including "All"
+  const allCategories = [
+    { name: 'All', count: totalCount },
+    ...categories,
+  ];
 
-  // Get quarter from date
-  const getQuarter = (date: string) => {
-    const month = new Date(date).getMonth() + 1;
-    return Math.ceil(month / 3);
-  };
-
-  // Get month name
-  const getMonthName = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', { month: 'long' });
-  };
-
-  // Filter programs
-  const filteredPrograms = useMemo(() => {
-    return programs.filter(program => {
-      const programDate = new Date(program.date);
-      const programYear = programDate.getFullYear();
-      const programQuarter = getQuarter(program.date);
-      const programMonth = getMonthName(program.date);
-
-      const categoryMatch = selectedCategory === 'All' || program.category === selectedCategory;
-      const yearMatch = selectedYear === 'All' || programYear === Number(selectedYear);
-      const quarterMatch = selectedQuarter === 'All' || programQuarter === Number(selectedQuarter);
-      const monthMatch = selectedMonth === 'All' || programMonth === selectedMonth;
-
-      return categoryMatch && yearMatch && quarterMatch && monthMatch;
-    });
-  }, [selectedCategory, selectedYear, selectedQuarter, selectedMonth]);
-
-  const visiblePrograms = filteredPrograms.slice(0, itemsToShow);
-  const hasMore = itemsToShow < filteredPrograms.length;
-
-  // Get category count
-  const getCategoryCount = (category: string) => {
-    if (category === 'All') return programs.length;
-    return programs.filter(p => p.category === category).length;
-  };
+  // Get visible programs
+  const visiblePrograms = programs.slice(0, itemsToShow);
+  const hasMore = itemsToShow < programs.length;
 
   // Reset items when filters change
   const handleFilterChange = (callback: () => void) => {
@@ -78,29 +137,18 @@ export default function ProgramsPage() {
     setItemsToShow(9);
   };
 
-  // Get unique months from filtered programs
-  const availableMonths = useMemo(() => {
-    const months = new Set(
-      programs
-        .filter(p => {
-          const year = selectedYear === 'All' || new Date(p.date).getFullYear() === Number(selectedYear);
-          const quarter = selectedQuarter === 'All' || getQuarter(p.date) === Number(selectedQuarter);
-          return year && quarter;
-        })
-        .map(p => getMonthName(p.date))
-    );
-    return ['All', ...Array.from(months)];
-  }, [selectedYear, selectedQuarter]);
-
   // Clear all filters
   const clearFilters = () => {
-    setSelectedYear('All');
-    setSelectedQuarter('All');
-    setSelectedMonth('All');
+    setSelectedCategory('All');
+    setSelectedStatus('All');
+    setSearchQuery('');
     setItemsToShow(9);
   };
 
-  const hasActiveFilters = selectedYear !== 'All' || selectedQuarter !== 'All' || selectedMonth !== 'All';
+  const hasActiveFilters = selectedCategory !== 'All' || selectedStatus !== 'All' || searchQuery !== '';
+
+  // Status options
+  const statusOptions = ['All', 'Active', 'Completed', 'Ongoing', 'Phased Out'];
 
   return (
     <main id="main-content" className="min-h-screen">
@@ -164,9 +212,9 @@ export default function ProgramsPage() {
         </Section.Content>
       </Section>
 
-      {/* Programs Section - Light Theme like Research Page */}
+      {/* Programs Section */}
       <section className="hakiardhi-section bg-gray-50 relative overflow-hidden">
-        {/* Elegant decorative gradient orbs */}
+        {/* Decorative gradient orbs */}
         <div className="absolute top-0 left-1/4 w-80 h-80 bg-gradient-to-br from-orange-500/10 to-brand-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-brand-500/10 to-success-500/10 rounded-full blur-3xl"></div>
 
@@ -178,34 +226,35 @@ export default function ProgramsPage() {
             align="center"
           />
 
-          {/* Category Filter Tabs - Fully Rounded Pills */}
-          <div className="flex flex-wrap justify-center gap-3 mb-8">
-            {PROGRAM_CATEGORIES.map((category) => {
-              const count = getCategoryCount(category);
-              return (
+          {/* Category Filter Tabs */}
+          {isCategoriesLoading ? (
+            <CategoryTabsSkeleton />
+          ) : (
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
+              {allCategories.map((category) => (
                 <button
-                  key={category}
-                  onClick={() => handleFilterChange(() => setSelectedCategory(category))}
+                  key={category.name}
+                  onClick={() => handleFilterChange(() => setSelectedCategory(category.name))}
                   className={`group px-6 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
-                    selectedCategory === category
+                    selectedCategory === category.name
                       ? 'bg-hakiardhi-red text-white shadow-lg shadow-hakiardhi-red/30 scale-105'
                       : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-300 hover:border-hakiardhi-red hover:scale-105'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    {category}
+                    {category.name}
                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                      selectedCategory === category
+                      selectedCategory === category.name
                         ? 'bg-white/20 text-white'
                         : 'bg-hakiardhi-red/10 text-hakiardhi-red group-hover:bg-hakiardhi-red/20'
                     }`}>
-                      {count}
+                      {category.count}
                     </span>
                   </span>
                 </button>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Collapsible Filter Panel */}
           <div className="bg-gradient-to-b from-gray-50 to-white border-b border-gray-200 rounded-2xl mb-10">
@@ -218,7 +267,7 @@ export default function ProgramsPage() {
                 >
                   <Icon name="funnel" size="sm" className="text-hakiardhi-red" />
                   <span className="font-semibold text-gray-900">
-                    {showFilters ? 'Hide Filters' : 'Show Date Filters'}
+                    {showFilters ? 'Hide Filters' : 'Show Filters'}
                   </span>
                   {hasActiveFilters && (
                     <span className="px-2 py-0.5 bg-hakiardhi-red text-white text-xs font-bold rounded-full">
@@ -243,82 +292,45 @@ export default function ProgramsPage() {
                 )}
               </div>
 
-              {/* Filter Panel with Slide Animation */}
+              {/* Filter Panel */}
               <div
                 className={`overflow-hidden transition-all duration-500 ease-in-out ${
                   showFilters ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
                 }`}
               >
                 <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-lg">
-                  {/* Date Filters */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Year Filter */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Search Filter */}
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                        <Icon name="clock" size="sm" className="text-hakiardhi-red" />
-                        Year
+                        <Icon name="search" size="sm" className="text-hakiardhi-red" />
+                        Search
+                      </label>
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => handleFilterChange(() => setSearchQuery(e.target.value))}
+                        placeholder="Search programs..."
+                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-medium hover:border-hakiardhi-red focus:border-hakiardhi-red focus:ring-4 focus:ring-hakiardhi-red/10 transition-all"
+                      />
+                    </div>
+
+                    {/* Status Filter */}
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                        <Icon name="check-circle" size="sm" className="text-hakiardhi-red" />
+                        Status
                       </label>
                       <select
-                        value={selectedYear}
-                        onChange={(e) => {
-                          handleFilterChange(() => {
-                            setSelectedYear(e.target.value);
-                            setSelectedQuarter('All');
-                            setSelectedMonth('All');
-                          });
-                        }}
+                        value={selectedStatus}
+                        onChange={(e) => handleFilterChange(() => setSelectedStatus(e.target.value))}
                         className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-medium hover:border-hakiardhi-red focus:border-hakiardhi-red focus:ring-4 focus:ring-hakiardhi-red/10 transition-all cursor-pointer"
                       >
-                        {years.map(year => (
-                          <option key={year} value={year}>{year}</option>
+                        {statusOptions.map(status => (
+                          <option key={status} value={status}>{status}</option>
                         ))}
                       </select>
                     </div>
-
-                    {/* Quarter Filter - Conditional */}
-                    {selectedYear !== 'All' && (
-                      <div className="space-y-2 animate-fade-in">
-                        <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                          <Icon name="clock" size="sm" className="text-hakiardhi-red" />
-                          Quarter
-                        </label>
-                        <select
-                          value={selectedQuarter}
-                          onChange={(e) => {
-                            handleFilterChange(() => {
-                              setSelectedQuarter(e.target.value);
-                              setSelectedMonth('All');
-                            });
-                          }}
-                          className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-medium hover:border-hakiardhi-red focus:border-hakiardhi-red focus:ring-4 focus:ring-hakiardhi-red/10 transition-all cursor-pointer"
-                        >
-                          <option value="All">All Quarters</option>
-                          <option value="1">Q1 (Jan-Mar)</option>
-                          <option value="2">Q2 (Apr-Jun)</option>
-                          <option value="3">Q3 (Jul-Sep)</option>
-                          <option value="4">Q4 (Oct-Dec)</option>
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Month Filter - Conditional */}
-                    {selectedYear !== 'All' && availableMonths.length > 1 && (
-                      <div className="space-y-2 animate-fade-in" style={{ animationDelay: '100ms' }}>
-                        <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                          <Icon name="clock" size="sm" className="text-hakiardhi-red" />
-                          Month
-                        </label>
-                        <select
-                          value={selectedMonth}
-                          onChange={(e) => handleFilterChange(() => setSelectedMonth(e.target.value))}
-                          className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-medium hover:border-hakiardhi-red focus:border-hakiardhi-red focus:ring-4 focus:ring-hakiardhi-red/10 transition-all cursor-pointer"
-                        >
-                          {availableMonths.map(month => (
-                            <option key={month} value={month}>{month}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
                   </div>
 
                   {/* Results Count Badge */}
@@ -326,8 +338,8 @@ export default function ProgramsPage() {
                     <div className="flex items-center justify-center gap-2">
                       <Icon name="check-circle" size="sm" className="text-hakiardhi-red" />
                       <span className="text-gray-600 font-medium">
-                        Showing <span className="text-hakiardhi-red font-bold text-lg">{filteredPrograms.length}</span>{' '}
-                        {filteredPrograms.length === 1 ? 'program' : 'programs'}
+                        Showing <span className="text-hakiardhi-red font-bold text-lg">{programs.length}</span>{' '}
+                        {programs.length === 1 ? 'program' : 'programs'}
                       </span>
                     </div>
                   </div>
@@ -336,8 +348,34 @@ export default function ProgramsPage() {
             </div>
           </div>
 
-          {/* Programs Grid - Attractive Background Section */}
-          {filteredPrograms.length > 0 ? (
+          {/* Programs Grid */}
+          {isLoading ? (
+            <div className="bg-gradient-to-br from-zinc-50 via-gray-50 to-zinc-100/50 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-inner border border-zinc-200/50">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <ProgramCardSkeleton key={i} />
+                ))}
+              </div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-20 bg-white rounded-2xl shadow-lg">
+              <div className="w-20 h-20 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
+                <Icon name="alert-circle" size="xl" className="text-red-500" />
+              </div>
+              <h3 className={`${TYPOGRAPHY.heading.h3.size} ${TYPOGRAPHY.heading.h3.weight} text-gray-900 mb-3`}>
+                Error Loading Programs
+              </h3>
+              <p className={`${TYPOGRAPHY.body.lg.size} text-gray-500 mb-6`}>
+                {error}
+              </p>
+              <button
+                onClick={loadPrograms}
+                className="px-6 py-3 bg-hakiardhi-red text-white font-semibold rounded-xl hover:bg-black transition-all duration-300"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : programs.length > 0 ? (
             <div className="bg-gradient-to-br from-zinc-50 via-gray-50 to-zinc-100/50 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-inner border border-zinc-200/50">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
                 {visiblePrograms.map((program, index) => (
@@ -352,45 +390,55 @@ export default function ProgramsPage() {
                     <Link href={`/programs/${program.slug}`} className="w-full flex flex-col">
                       <Card variant="elevated" hoverEffect="lift" className="w-full flex flex-col group transition-all duration-300 h-full">
                         <Card.Media className="h-48 relative overflow-hidden flex-shrink-0">
-                          <Image
-                            src={program.image}
-                            alt={program.title}
-                            fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
+                          {program.image ? (
+                            <Image
+                              src={program.image}
+                              alt={program.title}
+                              fill
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-hakiardhi-red/20 to-brand-500/20 flex items-center justify-center">
+                              <Icon name="document" size="xl" className="text-hakiardhi-red/50" />
+                            </div>
+                          )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </Card.Media>
 
-                        {/* Badge */}
-                        <Card.Badge className="absolute top-4 right-4">
-                          <Badge variant="primary" size="sm">
-                            {program.category}
-                          </Badge>
-                        </Card.Badge>
+                        {/* Category Badge */}
+                        {program.category && (
+                          <Card.Badge className="absolute top-4 right-4">
+                            <Badge variant="primary" size="sm">
+                              {program.category}
+                            </Badge>
+                          </Card.Badge>
+                        )}
 
                         <Card.Body className="flex-1 flex flex-col p-5">
-                          {/* Title with professional typography */}
+                          {/* Title */}
                           <div className="mb-2">
                             <h3 className="text-base font-bold text-gray-900 group-hover:text-hakiardhi-red transition-colors duration-300 leading-snug line-clamp-2 group-hover:line-clamp-none">
                               {program.title}
                             </h3>
                           </div>
 
-                          {/* Description with optimal readability */}
+                          {/* Description */}
                           <p className="flex-grow text-sm text-gray-600 leading-relaxed mb-3 line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
-                            {program.description}
+                            {program.description || 'No description available.'}
                           </p>
 
-                          {/* Program Meta - Professional spacing and alignment */}
+                          {/* Program Meta */}
                           <div className="mt-auto pt-3 border-t border-gray-100">
                             <div className="space-y-2 mb-3">
                               <div className="flex items-center gap-2">
                                 <Icon name="clock" size="sm" className="text-hakiardhi-red flex-shrink-0" />
                                 <span className="text-xs text-gray-600 leading-tight">
-                                  {new Date(program.date).toLocaleDateString('en-US', {
+                                  {new Date(program.startDate).toLocaleDateString('en-US', {
                                     year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
+                                    month: 'short',
+                                  })} - {new Date(program.endDate).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
                                   })}
                                 </span>
                               </div>
@@ -400,10 +448,10 @@ export default function ProgramsPage() {
                                   <span className="text-xs text-gray-600 leading-tight">{program.location}</span>
                                 </div>
                               )}
-                              {program.participants && (
+                              {program.participantsCount > 0 && (
                                 <div className="flex items-center gap-2">
                                   <Icon name="users" size="sm" className="text-hakiardhi-red flex-shrink-0" />
-                                  <span className="text-xs text-gray-600 leading-tight">{program.participants} Participants</span>
+                                  <span className="text-xs text-gray-600 leading-tight">{program.participantsCount} Participants</span>
                                 </div>
                               )}
                             </div>
@@ -439,12 +487,12 @@ export default function ProgramsPage() {
                     </button>
                   </div>
                   <p className="mt-4 text-gray-600 font-medium">
-                    Showing {visiblePrograms.length} of {filteredPrograms.length} programs
+                    Showing {visiblePrograms.length} of {programs.length} programs
                   </p>
                   <div className="mt-3 max-w-md mx-auto h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-hakiardhi-red to-red-600 transition-all duration-500"
-                      style={{ width: `${(visiblePrograms.length / filteredPrograms.length) * 100}%` }}
+                      style={{ width: `${(visiblePrograms.length / programs.length) * 100}%` }}
                     ></div>
                   </div>
                 </div>

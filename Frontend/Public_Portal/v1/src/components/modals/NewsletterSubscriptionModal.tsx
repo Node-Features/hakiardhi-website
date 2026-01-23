@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Button from '../ui/Button';
 import Icon from '../ui/Icon';
+import { subscribeToNewsletter } from '@/lib/api/services/newsletter';
 
 interface NewsletterSubscriptionModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export default function NewsletterSubscriptionModal({ isOpen, onClose }: Newslet
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const interestOptions = [
     { id: 'land_rights', label: 'Land Rights & Tenure' },
@@ -37,6 +39,7 @@ export default function NewsletterSubscriptionModal({ isOpen, onClose }: Newslet
           interests: [],
         });
         setIsSubmitted(false);
+        setError(null);
       }, 300);
     }
   }, [isOpen]);
@@ -65,12 +68,26 @@ export default function NewsletterSubscriptionModal({ isOpen, onClose }: Newslet
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const response = await subscribeToNewsletter({
+        email: formData.email,
+        name: formData.name || undefined,
+        interests: formData.interests.length > 0 ? formData.interests : undefined,
+      });
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      if (response.success || response.data?.success) {
+        setIsSubmitted(true);
+      } else if (response.error) {
+        setError(response.error.message);
+      }
+    } catch (err) {
+      console.error('Newsletter subscription error:', err);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -213,6 +230,19 @@ export default function NewsletterSubscriptionModal({ isOpen, onClose }: Newslet
                   </div>
                 </div>
               </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                  <div className="flex gap-3">
+                    <Icon name="alert-circle" size="sm" className="text-red-500 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-red-900">
+                      <p className="font-semibold mb-1">Subscription Failed</p>
+                      <p className="text-red-700">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Submit Button */}
               <Button

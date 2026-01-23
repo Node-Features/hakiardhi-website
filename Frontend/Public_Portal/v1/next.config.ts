@@ -7,7 +7,18 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ['image/avif', 'image/webp'],
-    remotePatterns: [],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'hakiardhi-api.vercel.app',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'tjsatamyfjxdxqgxmcuq.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
   },
 };
 

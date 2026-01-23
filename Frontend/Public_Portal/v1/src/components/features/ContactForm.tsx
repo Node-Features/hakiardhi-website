@@ -11,6 +11,7 @@ import Button from '../ui/Button';
 import Icon from '../ui/Icon';
 import Alert from '../ui/Alert';
 import { SPACING } from '@/constants/design-tokens';
+import { submitContactForm, ContactFormData as APIContactFormData } from '@/lib/api/services/contact';
 
 interface ContactFormData {
   name: string;
@@ -50,30 +51,47 @@ export default function ContactForm({ subjectOptions = defaultSubjectOptions, on
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [ticketId, setTicketId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof ContactFormData, string>> = {};
 
+    // Name: required, min 3 chars, max 100 chars
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
+    } else if (formData.name.trim().length < 3) {
+      newErrors.name = 'Name must be at least 3 characters';
+    } else if (formData.name.trim().length > 100) {
+      newErrors.name = 'Name must not exceed 100 characters';
     }
 
+    // Email: required, valid format
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (formData.phone && !/^[0-9+\s-()]{10,}$/.test(formData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number';
+    // Phone: optional, valid format if provided
+    if (formData.phone && !/^\+?[0-9]{10,15}$/.test(formData.phone.replace(/[\s-()]/g, ''))) {
+      newErrors.phone = 'Please enter a valid phone number (10-15 digits)';
     }
 
+    // Subject: required, min 5 chars
+    if (!formData.subject.trim()) {
+      newErrors.subject = 'Subject is required';
+    } else if (formData.subject.trim().length < 5) {
+      newErrors.subject = 'Subject must be at least 5 characters';
+    }
+
+    // Message: required, min 20 chars, max 2000 chars
     if (!formData.message.trim()) {
       newErrors.message = 'Message is required';
-    } else if (formData.message.trim().length < 10) {
-      newErrors.message = 'Message must be at least 10 characters';
+    } else if (formData.message.trim().length < 20) {
+      newErrors.message = 'Message must be at least 20 characters';
+    } else if (formData.message.trim().length > 2000) {
+      newErrors.message = 'Message must not exceed 2000 characters';
     }
 
     setErrors(newErrors);
@@ -100,16 +118,35 @@ export default function ContactForm({ subjectOptions = defaultSubjectOptions, on
 
     setIsSubmitting(true);
     setSubmitStatus('idle');
+    setTicketId(null);
+    setErrorMessage(null);
 
     try {
       if (onSubmit) {
         await onSubmit(formData);
+        setSubmitStatus('success');
       } else {
-        // Default behavior: simulate API call
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Submit to API
+        // Note: organization is stored in metadata, not category (category has DB constraint)
+        const apiData: APIContactFormData = {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          subject: formData.subject,
+          message: formData.message.trim(),
+          ...(formData.phone && { phone: formData.phone.replace(/[\s-()]/g, '') }),
+        };
+
+        const response = await submitContactForm(apiData);
+
+        if (response.success) {
+          setSubmitStatus('success');
+          setTicketId(response.ticket_id || null);
+        } else {
+          throw new Error(response.message || 'Failed to submit form');
+        }
       }
 
-      setSubmitStatus('success');
+      // Reset form on success
       setFormData({
         name: '',
         email: '',
@@ -118,8 +155,20 @@ export default function ContactForm({ subjectOptions = defaultSubjectOptions, on
         subject: subjectOptions[0],
         message: '',
       });
-    } catch (error) {
+    } catch (error: any) {
       setSubmitStatus('error');
+      // Handle validation errors from API
+      if (error.errors) {
+        const apiErrors: Partial<Record<keyof ContactFormData, string>> = {};
+        Object.entries(error.errors).forEach(([key, messages]) => {
+          if (Array.isArray(messages) && messages.length > 0) {
+            apiErrors[key as keyof ContactFormData] = messages[0];
+          }
+        });
+        setErrors(apiErrors);
+      } else {
+        setErrorMessage(error.message || 'Failed to submit form. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -132,7 +181,11 @@ export default function ContactForm({ subjectOptions = defaultSubjectOptions, on
           <Alert
             variant="success"
             title="Message Sent Successfully!"
-            message="Thank you for contacting us. We'll respond to your inquiry within 24-48 hours."
+            message={
+              ticketId
+                ? `Thank you for contacting us. Your ticket number is ${ticketId}. We'll respond within 24-48 hours.`
+                : "Thank you for contacting us. We'll respond to your inquiry within 24-48 hours."
+            }
           />
         </div>
       )}
@@ -142,7 +195,7 @@ export default function ContactForm({ subjectOptions = defaultSubjectOptions, on
           <Alert
             variant="error"
             title="Something Went Wrong"
-            message="We couldn't send your message. Please try again or contact us directly via email."
+            message={errorMessage || "We couldn't send your message. Please try again or contact us directly via email."}
           />
         </div>
       )}
@@ -210,7 +263,7 @@ export default function ContactForm({ subjectOptions = defaultSubjectOptions, on
           label="Message"
           required
           error={errors.message}
-          helpText={`${formData.message.length} / 1000 characters`}
+          helpText={`${formData.message.length} / 2000 characters (minimum 20)`}
         >
           <Textarea
             id="message"
@@ -219,8 +272,8 @@ export default function ContactForm({ subjectOptions = defaultSubjectOptions, on
             onChange={handleChange}
             hasError={!!errors.message}
             rows={6}
-            maxLength={1000}
-            placeholder="Tell us how we can help you..."
+            maxLength={2000}
+            placeholder="Tell us how we can help you... (minimum 20 characters)"
           />
         </FormField>
 
@@ -247,7 +300,7 @@ export default function ContactForm({ subjectOptions = defaultSubjectOptions, on
             </span>
           ) : (
             <>
-              <Icon name="paper-airplane" size="md" className="mr-2" />
+              <Icon name="send" size="md" className="mr-2" />
               Send Message
             </>
           )}

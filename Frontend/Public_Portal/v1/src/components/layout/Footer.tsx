@@ -7,13 +7,46 @@ import Icon from '../ui/Icon';
 import Grid from '../ui/Grid';
 import LanguageSwitcher from '../ui/LanguageSwitcher';
 import { SPACING } from '@/constants/design-tokens';
+import { subscribeToNewsletter } from '@/lib/api/services/newsletter';
 
 export default function Footer() {
   const [currentYear, setCurrentYear] = useState(2025);
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
   }, []);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setStatus('idle');
+    setMessage('');
+
+    try {
+      const response = await subscribeToNewsletter({ email });
+
+      if (response.success || response.data?.success) {
+        setStatus('success');
+        setMessage('Thank you for subscribing!');
+        setEmail('');
+      } else if (response.error) {
+        setStatus('error');
+        setMessage(response.error.message);
+      }
+    } catch (err) {
+      console.error('Newsletter subscription error:', err);
+      setStatus('error');
+      setMessage('An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <footer className="bg-black text-white overflow-hidden">
@@ -164,7 +197,7 @@ export default function Footer() {
               <p className={`text-xs sm:text-sm text-gray-300 ${SPACING.margin.element.xs} font-medium`}>Subscribe to our newsletter</p>
               <form
                 className="relative mt-3 w-full"
-                onSubmit={(e) => e.preventDefault()}
+                onSubmit={handleSubscribe}
               >
                 <label htmlFor="newsletter-email" className="sr-only">
                   Email address for newsletter
@@ -190,7 +223,10 @@ export default function Footer() {
                       autoComplete="email"
                       required
                       placeholder="Your email"
-                      className="flex-1 py-2.5 px-2 bg-transparent text-white text-xs sm:text-sm placeholder:text-gray-500 outline-none focus:placeholder:text-gray-600 border-none min-w-0"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isSubmitting}
+                      className="flex-1 py-2.5 px-2 bg-transparent text-white text-xs sm:text-sm placeholder:text-gray-500 outline-none focus:placeholder:text-gray-600 border-none min-w-0 disabled:opacity-50"
                       aria-label="Email address"
                       style={{ boxShadow: 'none' }}
                     />
@@ -198,17 +234,39 @@ export default function Footer() {
                     {/* Submit button - stays within bounds */}
                     <button
                       type="submit"
-                      className="group/button relative flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-hakiardhi-red to-red-600 hover:from-red-600 hover:to-hakiardhi-red text-white px-3 sm:px-4 py-2.5 rounded-r-full text-xs sm:text-sm font-semibold transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-hakiardhi-red focus:ring-offset-2 focus:ring-offset-black flex-shrink-0 whitespace-nowrap"
+                      disabled={isSubmitting}
+                      className="group/button relative flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-hakiardhi-red to-red-600 hover:from-red-600 hover:to-hakiardhi-red text-white px-3 sm:px-4 py-2.5 rounded-r-full text-xs sm:text-sm font-semibold transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-hakiardhi-red focus:ring-offset-2 focus:ring-offset-black flex-shrink-0 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                       aria-label="Subscribe to newsletter"
                     >
-                      <span>Subscribe</span>
-                      <Icon name="arrow-right" size="sm" className="transform group-hover/button:translate-x-0.5 transition-transform duration-300" />
+                      {isSubmitting ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        </>
+                      ) : (
+                        <>
+                          <span>Subscribe</span>
+                          <Icon name="arrow-right" size="sm" className="transform group-hover/button:translate-x-0.5 transition-transform duration-300" />
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
 
+                {/* Status message */}
+                {status !== 'idle' && (
+                  <p className={`mt-2 text-xs flex items-center gap-1.5 ${status === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                    <Icon name={status === 'success' ? 'check-circle' : 'alert-circle'} size="xs" />
+                    {message}
+                  </p>
+                )}
+
                 {/* Helper text */}
-                <p className="mt-2 text-xs text-gray-500">Get updates on our latest work and impact stories</p>
+                {status === 'idle' && (
+                  <p className="mt-2 text-xs text-gray-500">Get updates on our latest work and impact stories</p>
+                )}
               </form>
             </div>
           </div>
@@ -218,7 +276,7 @@ export default function Footer() {
         <div className="border-t border-gray-800 pt-6 lg:pt-8 mt-8 lg:mt-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 lg:gap-6">
             <p className="text-xs sm:text-sm text-gray-400">
-              &copy; {currentYear} HakiArdhi. All rights reserved.
+              &copy; {currentYear} Hakiardhi - Ardhi ni Uhai, Ardhi sio bidhaa
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4 lg:gap-6 text-xs sm:text-sm">

@@ -12,12 +12,15 @@ import Button from '@/components/ui/Button';
 import SectionHeader from '@/components/features/SectionHeader';
 import { SPACING, TYPOGRAPHY } from '@/constants/design-tokens';
 import {
-  resources,
   resourceCategories,
-  RESOURCE_TYPES,
-  RESOURCE_CATEGORIES,
   TARGET_AUDIENCES,
 } from '@/data/resources';
+import {
+  fetchResources,
+  fetchResourceTopics,
+  Resource,
+  ResourceTopic,
+} from '@/lib/api/services/resources';
 
 // Helper function to get resource icon name based on type
 const getResourceIcon = (type: string): string => {
@@ -137,8 +140,7 @@ const MetaInfoItem = ({ icon, children }: { icon?: React.ReactNode; children: Re
 );
 
 export default function ResourcesPage() {
-  const [selectedType, setSelectedType] = useState<string>('All');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All Topics');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedAudience, setSelectedAudience] = useState<string>('All Audiences');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -146,27 +148,91 @@ export default function ResourcesPage() {
   const [isVisible, setIsVisible] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
+  // API state
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [resourceTopics, setResourceTopics] = useState<ResourceTopic[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isTopicsLoading, setIsTopicsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResources, setTotalResources] = useState(0);
+
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
 
-  // Filter resources
+  // Fetch resource topics/categories on mount (filtered by type='resource')
+  useEffect(() => {
+    const loadTopics = async () => {
+      try {
+        // Fetch topics specifically for resource-type publications
+        const topics = await fetchResourceTopics('resource');
+        setResourceTopics(topics);
+      } catch (err) {
+        console.error('Failed to load resource topics:', err);
+      } finally {
+        setIsTopicsLoading(false);
+      }
+    };
+    loadTopics();
+  }, []);
+
+  // Load resources from API with 'resource' type filter
+  const loadResources = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await fetchResources({
+        page: currentPage,
+        limit: 100,
+        topic: selectedCategory === 'All' ? undefined : selectedCategory,
+        search: searchQuery || undefined,
+        category: 'resource', // This maps to type=resource in the API
+      });
+
+      setResources(result.resources);
+      setTotalPages(result.meta.totalPages);
+      setTotalResources(result.meta.total);
+    } catch (err) {
+      console.error('API Error:', err);
+      setError('Unable to load resources from server.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Effect to load resources on mount and when filters change
+  useEffect(() => {
+    loadResources();
+  }, [currentPage, selectedCategory]);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (currentPage === 1) {
+        loadResources();
+      } else {
+        setCurrentPage(1);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Filter resources from API - apply local filters for audience and language
   const filteredResources = useMemo(() => {
     return resources.filter(resource => {
-      const typeMatch = selectedType === 'All' || resource.type === selectedType;
-      const categoryMatch = selectedCategory === 'All Topics' || resource.category.includes(selectedCategory);
-      const audienceMatch = selectedAudience === 'All Audiences' || resource.targetAudience.includes(selectedAudience);
-      const languageMatch = selectedLanguage === 'All' || resource.language === selectedLanguage || resource.language === 'Both';
-      const searchMatch =
-        searchQuery === '' ||
-        resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        resource.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (resource.category && resource.category.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase())));
-
-      return typeMatch && categoryMatch && audienceMatch && languageMatch && searchMatch;
+      const audienceMatch = selectedAudience === 'All Audiences' ||
+        (resource.targetAudience && resource.targetAudience.includes(selectedAudience));
+      const languageMatch = selectedLanguage === 'All' ||
+        resource.language === selectedLanguage ||
+        resource.language === 'Both';
+      return audienceMatch && languageMatch;
     });
-  }, [selectedType, selectedCategory, selectedAudience, selectedLanguage, searchQuery]);
+  }, [selectedAudience, selectedLanguage, resources]);
 
   const visibleResources = filteredResources.slice(0, itemsToShow);
   const hasMore = itemsToShow < filteredResources.length;
@@ -177,13 +243,13 @@ export default function ResourcesPage() {
     setItemsToShow(9);
   };
 
-  // Get featured resources
+  // Get featured resources from API
   const featuredResources = resources.filter(r => r.featured);
 
-  const hasActiveFilters = selectedCategory !== 'All Topics' || selectedAudience !== 'All Audiences' || selectedLanguage !== 'All';
+  const hasActiveFilters = selectedCategory !== 'All' || selectedAudience !== 'All Audiences' || selectedLanguage !== 'All';
 
   const clearFilters = () => {
-    setSelectedCategory('All Topics');
+    setSelectedCategory('All');
     setSelectedAudience('All Audiences');
     setSelectedLanguage('All');
     setItemsToShow(9);
@@ -265,33 +331,45 @@ export default function ResourcesPage() {
             align="center"
           />
 
-          {/* Type Filter Tabs - Fully Rounded Pills */}
+          {/* Category Filter Tabs - Fully Rounded Pills */}
           <div className="flex flex-wrap justify-center gap-3 mb-8">
-            {RESOURCE_TYPES.map((type) => {
-              const count = resources.filter(r => type === 'All' || r.type === type).length;
-              return (
+            {isTopicsLoading ? (
+              // Skeleton loading state
+              Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="px-6 py-3 rounded-full bg-gradient-to-r from-zinc-100 to-orange-100/50 animate-pulse"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-16 bg-zinc-200/60 rounded"></div>
+                    <div className="h-4 w-6 bg-orange-200/40 rounded-full"></div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              resourceTopics.map((topic) => (
                 <button
-                  key={type}
-                  onClick={() => handleFilterChange(() => setSelectedType(type))}
+                  key={topic.slug}
+                  onClick={() => handleFilterChange(() => setSelectedCategory(topic.name))}
                   className={`group px-6 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
-                    selectedType === type
+                    selectedCategory === topic.name || (selectedCategory === 'All Topics' && topic.name === 'All')
                       ? 'bg-hakiardhi-red text-white shadow-lg shadow-hakiardhi-red/30 scale-105'
                       : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-300 hover:border-hakiardhi-red hover:scale-105'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    {type}
+                    {topic.name}
                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                      selectedType === type
+                      selectedCategory === topic.name || (selectedCategory === 'All Topics' && topic.name === 'All')
                         ? 'bg-white/20 text-white'
                         : 'bg-hakiardhi-red/10 text-hakiardhi-red group-hover:bg-hakiardhi-red/20'
                     }`}>
-                      {count}
+                      {topic.count}
                     </span>
                   </span>
                 </button>
-              );
-            })}
+              ))
+            )}
           </div>
 
           {/* Collapsible Filter Panel */}
@@ -337,26 +415,38 @@ export default function ResourcesPage() {
                 }`}
               >
                 <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-lg">
-                  {/* Category Filter */}
+                  {/* Topic Filter - Dynamic from API */}
                   <div className="mb-6 pb-6 border-b border-gray-200">
                     <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
                       <Icon name="folder" size="sm" className="text-hakiardhi-red" />
                       Filter by Topic
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      {RESOURCE_CATEGORIES.map((category) => (
-                        <button
-                          key={category}
-                          onClick={() => handleFilterChange(() => setSelectedCategory(category))}
-                          className={`px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300 ${
-                            selectedCategory === category
-                              ? 'bg-hakiardhi-red text-white shadow-md'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                          }`}
-                        >
-                          {category}
-                        </button>
-                      ))}
+                      {isTopicsLoading ? (
+                        // Skeleton loading state
+                        Array.from({ length: 6 }).map((_, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-2 rounded-full bg-gradient-to-r from-zinc-100 to-orange-100/50 animate-pulse"
+                          >
+                            <div className="h-3 w-20 bg-zinc-200/60 rounded"></div>
+                          </div>
+                        ))
+                      ) : (
+                        resourceTopics.map((topic) => (
+                          <button
+                            key={topic.slug}
+                            onClick={() => handleFilterChange(() => setSelectedCategory(topic.name))}
+                            className={`px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300 ${
+                              selectedCategory === topic.name
+                                ? 'bg-hakiardhi-red text-white shadow-md'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+                            }`}
+                          >
+                            {topic.name} ({topic.count})
+                          </button>
+                        ))
+                      )}
                     </div>
                   </div>
 

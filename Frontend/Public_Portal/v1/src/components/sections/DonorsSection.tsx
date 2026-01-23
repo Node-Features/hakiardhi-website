@@ -1,39 +1,13 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Section from '../ui/Section';
 import Grid from '../ui/Grid';
 import Card from '../ui/Card';
-import Icon from '../ui/Icon';
 import SectionHeader from '../features/SectionHeader';
-
-// Donor/Partner data
-const donors = [
-  {
-    name: 'Austrian Development Agency',
-    logo: '/images/austrian-development-agency-logo.jpg',
-  },
-  {
-    name: 'Horizont3000',
-    logo: '/images/donor_horizont3000_logo.jpg',
-  },
-  {
-    name: 'International Land Coalition',
-    logo: '/images/international-land-coalition.png',
-  },
-  {
-    name: 'Ardhi University',
-    logo: '/images/research-patner-aru-logo.jpg',
-  },
-  {
-    name: 'IPIS Research',
-    logo: '/images/research-patner-IPIS-logo.png',
-  },
-  {
-    name: 'University of Dar es Salaam',
-    logo: '/images/research-patner-udsm-logo.png',
-  },
-];
+import { PartnersGridSkeleton } from '../ui/PartnerCardSkeleton';
+import { fetchPartners, Partner } from '@/lib/api/services/partners';
 
 export interface DonorsSectionProps {
   title?: string;
@@ -42,12 +16,58 @@ export interface DonorsSectionProps {
   variant?: 'white' | 'light';
 }
 
+/**
+ * Check if image URL is safe to use with Next.js Image
+ */
+function getSafeImageUrl(url: string | null): string {
+  if (!url) return '/images/placeholder-logo.png';
+  if (url.startsWith('/')) return url;
+
+  const allowedDomains = [
+    'hakiardhi-api.vercel.app',
+    'tjsatamyfjxdxqgxmcuq.supabase.co',
+  ];
+
+  try {
+    const urlObj = new URL(url);
+    if (allowedDomains.some(domain => urlObj.hostname.includes(domain))) {
+      return url;
+    }
+  } catch {
+    // Invalid URL
+  }
+
+  return '/images/placeholder-logo.png';
+}
+
 export default function DonorsSection({
   title = 'Our Partners & Donors',
   description = 'Working together with leading organizations to create lasting impact',
   className = '',
   variant = 'white',
 }: DonorsSectionProps) {
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch partners from API
+  useEffect(() => {
+    async function loadPartners() {
+      try {
+        setIsLoading(true);
+        const data = await fetchPartners();
+        // Filter to only show active and featured partners
+        const featuredPartners = data.filter(p => p.isActive && p.isFeatured);
+        setPartners(featuredPartners.length > 0 ? featuredPartners : data.filter(p => p.isActive));
+      } catch (error) {
+        console.error('Failed to load partners:', error);
+        setPartners([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadPartners();
+  }, []);
   return (
     <Section variant={variant} spacing="lg" className={className}>
       <Section.Content>
@@ -57,32 +77,58 @@ export default function DonorsSection({
           align="center"
         />
 
-        <Grid cols={{ base: 2, md: 3, lg: 6 }} gap="md">
-          {donors.map((donor, index) => (
-            <div
-              key={donor.name}
-              className="opacity-0 animate-fade-in"
-              style={{
-                animationDelay: `${index * 50}ms`,
-                animationFillMode: 'forwards',
-              }}
-            >
-              <Card variant="elevated" className="hover:shadow-lg hover:scale-105 transition-all duration-300 h-full">
-                <Card.Body className="p-6 flex items-center justify-center">
-                  <div className="relative w-full h-20">
-                    <Image
-                      src={donor.logo}
-                      alt={donor.name}
-                      fill
-                      className="object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                    />
-                  </div>
-                </Card.Body>
-              </Card>
-            </div>
-          ))}
-        </Grid>
+        {isLoading ? (
+          <PartnersGridSkeleton count={6} />
+        ) : partners.length > 0 ? (
+          <Grid cols={{ base: 2, md: 3, lg: 6 }} gap="md">
+            {partners.map((partner, index) => (
+              <div
+                key={partner.id}
+                className="opacity-0 animate-fade-in"
+                style={{
+                  animationDelay: `${index * 50}ms`,
+                  animationFillMode: 'forwards',
+                }}
+              >
+                {partner.websiteUrl ? (
+                  <a href={partner.websiteUrl} target="_blank" rel="noopener noreferrer">
+                    <Card variant="elevated" className="hover:shadow-lg hover:scale-105 transition-all duration-300 h-full">
+                      <Card.Body className="p-6 flex items-center justify-center">
+                        <div className="relative w-full h-20">
+                          <Image
+                            src={getSafeImageUrl(partner.logoUrl)}
+                            alt={partner.name}
+                            fill
+                            className="object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                          />
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </a>
+                ) : (
+                  <Card variant="elevated" className="hover:shadow-lg hover:scale-105 transition-all duration-300 h-full">
+                    <Card.Body className="p-6 flex items-center justify-center">
+                      <div className="relative w-full h-20">
+                        <Image
+                          src={getSafeImageUrl(partner.logoUrl)}
+                          alt={partner.name}
+                          fill
+                          className="object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                        />
+                      </div>
+                    </Card.Body>
+                  </Card>
+                )}
+              </div>
+            ))}
+          </Grid>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No partners available at the moment.</p>
+          </div>
+        )}
       </Section.Content>
     </Section>
   );

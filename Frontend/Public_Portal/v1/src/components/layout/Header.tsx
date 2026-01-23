@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Button from '../ui/Button';
 import LanguageSwitcher from '../ui/LanguageSwitcher';
 import { SPACING } from '@/constants/design-tokens';
+import { siteConfig } from '@/config/site.config';
 
 const navigationItems = [
   { label: 'Home', href: '/' },
@@ -18,9 +19,13 @@ const navigationItems = [
   { label: 'Gallery', href: '/gallery' },
 ];
 
+// Pages temporarily disabled - controlled via site.config.ts
+const disabledPages = siteConfig.disabledPages;
+
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   // Detect scroll for sticky background
   useEffect(() => {
@@ -74,26 +79,26 @@ export default function Header() {
                 <span>CONTACT US</span>
               </Link>
               <span className="text-white/50">|</span>
-              <Link href="/portfolio" className={`flex items-center ${SPACING.gap.xs} ${SPACING.padding.xs} hover:text-hakiardhi-red rounded transition-all`}>
+              <button onClick={() => setShowComingSoon(true)} className={`flex items-center ${SPACING.gap.xs} ${SPACING.padding.xs} hover:text-hakiardhi-red rounded transition-all cursor-pointer`}>
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
                 <span>PORTFOLIO</span>
-              </Link>
+              </button>
               <span className="text-white/50">|</span>
-              <Link href="/work-with-us" className={`flex items-center ${SPACING.gap.xs} ${SPACING.padding.xs} hover:text-hakiardhi-red rounded transition-all`}>
+              <button onClick={() => setShowComingSoon(true)} className={`flex items-center ${SPACING.gap.xs} ${SPACING.padding.xs} hover:text-hakiardhi-red rounded transition-all cursor-pointer`}>
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 <span>WORK WITH US</span>
-              </Link>
+              </button>
               <span className="text-white/50">|</span>
-              <Link href="/lrm-network" className={`flex items-center ${SPACING.gap.xs} ${SPACING.padding.xs} hover:text-hakiardhi-red rounded transition-all`}>
+              <button onClick={() => setShowComingSoon(true)} className={`flex items-center ${SPACING.gap.xs} ${SPACING.padding.xs} hover:text-hakiardhi-red rounded transition-all cursor-pointer`}>
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                 </svg>
                 <span>LRM NETWORK</span>
-              </Link>
+              </button>
               <span className="text-white/50">|</span>
               {/* Language Switcher */}
               <LanguageSwitcher variant="dropdown" theme="light" size="sm" />
@@ -127,20 +132,39 @@ export default function Header() {
 
           {/* Desktop Menu - Right Justified - Balanced sizing for all screens */}
           <div className={`hidden lg:flex items-center gap-4 xl:gap-5 2xl:gap-6`}>
-            {navigationItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="relative inline-flex items-center justify-center group py-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2"
-              >
-                {/* Menu text - Balanced sizing with no wrapping */}
-                <span className="relative z-10 text-sm lg:text-[0.9375rem] xl:text-base 2xl:text-base font-semibold text-black group-hover:text-hakiardhi-red transition-colors duration-300 whitespace-nowrap">
-                  {item.label}
-                  {/* Underline on hover */}
-                  <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-black group-hover:w-full transition-all duration-300"></span>
-                </span>
-              </Link>
-            ))}
+            {navigationItems.map((item) => {
+              const isDisabled = disabledPages.includes(item.href);
+
+              if (isDisabled) {
+                return (
+                  <button
+                    key={item.href}
+                    onClick={() => setShowComingSoon(true)}
+                    className="relative inline-flex items-center justify-center group py-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 cursor-pointer"
+                  >
+                    <span className="relative z-10 text-sm lg:text-[0.9375rem] xl:text-base 2xl:text-base font-semibold text-black group-hover:text-hakiardhi-red transition-colors duration-300 whitespace-nowrap">
+                      {item.label}
+                      <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-black group-hover:w-full transition-all duration-300"></span>
+                    </span>
+                  </button>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="relative inline-flex items-center justify-center group py-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2"
+                >
+                  {/* Menu text - Balanced sizing with no wrapping */}
+                  <span className="relative z-10 text-sm lg:text-[0.9375rem] xl:text-base 2xl:text-base font-semibold text-black group-hover:text-hakiardhi-red transition-colors duration-300 whitespace-nowrap">
+                    {item.label}
+                    {/* Underline on hover */}
+                    <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-black group-hover:w-full transition-all duration-300"></span>
+                  </span>
+                </Link>
+              );
+            })}
 
             {/* Visual Separator - Balanced spacing */}
             <div className="w-[1px] h-8 bg-gray-300 mx-2"></div>
@@ -211,34 +235,51 @@ export default function Header() {
 
               {/* Menu Items Container */}
               <div className="flex-1 px-4 sm:px-6 py-6 space-y-3">
-                {navigationItems.map((item, index) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="group relative flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <span className="relative z-10 flex items-center gap-3">
-                      {/* Animated dot indicator */}
-                      <span className="w-1.5 h-1.5 bg-hakiardhi-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                      {item.label}
-                    </span>
+                {navigationItems.map((item, index) => {
+                  const isDisabled = disabledPages.includes(item.href);
 
-                    {/* Arrow Icon */}
-                    <svg
-                      className="w-5 h-5 text-gray-400 group-hover:text-hakiardhi-red group-hover:translate-x-1 transition-all duration-300"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  if (isDisabled) {
+                    return (
+                      <button
+                        key={item.href}
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          setShowComingSoon(true);
+                        }}
+                        className="group relative flex items-center justify-between w-full px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2 cursor-pointer"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <span className="relative z-10 flex items-center gap-3">
+                          <span className="w-1.5 h-1.5 bg-hakiardhi-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                          {item.label}
+                        </span>
+                        <svg className="w-5 h-5 text-gray-400 group-hover:text-hakiardhi-red group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="group relative flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hakiardhi-red focus-visible:ring-offset-2"
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-
-                    {/* Hover background effect */}
-                    <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                  </Link>
-                ))}
+                      <span className="relative z-10 flex items-center gap-3">
+                        <span className="w-1.5 h-1.5 bg-hakiardhi-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                        {item.label}
+                      </span>
+                      <svg className="w-5 h-5 text-gray-400 group-hover:text-hakiardhi-red group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                    </Link>
+                  );
+                })}
 
                 {/* Divider */}
                 <div className="py-3">
@@ -261,10 +302,12 @@ export default function Header() {
                   <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                 </Link>
 
-                <Link
-                  href="/portfolio"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="group relative flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300"
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setShowComingSoon(true);
+                  }}
+                  className="group relative flex items-center justify-between w-full px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300 cursor-pointer"
                 >
                   <span className="relative z-10 flex items-center gap-3">
                     <span className="w-1.5 h-1.5 bg-hakiardhi-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
@@ -274,12 +317,14 @@ export default function Header() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                   <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                </Link>
+                </button>
 
-                <Link
-                  href="/work-with-us"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="group relative flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300"
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setShowComingSoon(true);
+                  }}
+                  className="group relative flex items-center justify-between w-full px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300 cursor-pointer"
                 >
                   <span className="relative z-10 flex items-center gap-3">
                     <span className="w-1.5 h-1.5 bg-hakiardhi-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
@@ -289,12 +334,14 @@ export default function Header() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                   <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                </Link>
+                </button>
 
-                <Link
-                  href="/lrm-network"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="group relative flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300"
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setShowComingSoon(true);
+                  }}
+                  className="group relative flex items-center justify-between w-full px-4 sm:px-5 py-4 sm:py-5 text-sm md:text-base font-semibold !text-black rounded-xl hover:bg-white hover:!text-hakiardhi-red hover:shadow-md active:scale-[0.98] transition-all duration-300 cursor-pointer"
                 >
                   <span className="relative z-10 flex items-center gap-3">
                     <span className="w-1.5 h-1.5 bg-hakiardhi-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
@@ -304,7 +351,7 @@ export default function Header() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                   <span className="absolute inset-0 bg-gradient-to-r from-hakiardhi-red/5 to-hakiardhi-red/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                </Link>
+                </button>
               </div>
 
               {/* Bottom Section - Language & CTA */}
@@ -338,6 +385,46 @@ export default function Header() {
                 </Button>
               </div>
             </nav>
+          </div>
+        </>
+      )}
+
+      {/* Coming Soon Modal */}
+      {showComingSoon && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] animate-fade-in"
+            onClick={() => setShowComingSoon(false)}
+            aria-hidden="true"
+          ></div>
+
+          {/* Modal */}
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center animate-scale-in">
+              {/* Icon */}
+              <div className="w-20 h-20 mx-auto mb-6 bg-hakiardhi-red/10 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10 text-hakiardhi-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+
+              {/* Title */}
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Coming Soon</h2>
+
+              {/* Message */}
+              <p className="text-gray-600 mb-6">
+                We&apos;re working hard to bring you this feature. Stay tuned for updates!
+              </p>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setShowComingSoon(false)}
+                className="w-full bg-hakiardhi-red text-white font-semibold py-3 px-6 rounded-xl hover:bg-hakiardhi-red/90 transition-all duration-300 active:scale-[0.98]"
+              >
+                Got it
+              </button>
+            </div>
           </div>
         </>
       )}

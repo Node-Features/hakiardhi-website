@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Button from '../ui/Button';
@@ -9,32 +9,63 @@ import { THRESHOLDS, SPACING, CONTENT_WIDTHS, RESPONSIVE } from '@/constants/des
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
 import Icon from '../ui/Icon';
-import { programs, PROGRAM_CATEGORIES } from '@/data/programs';
+import { ProgramsGridSkeleton } from '../ui/ProgramCardSkeleton';
+import { fetchPrograms, Program } from '@/lib/api/services/programs';
 
 export interface ProgramsGallerySectionProps {
+  limit?: number;
   className?: string;
 }
 
-export default function ProgramsGallerySection({ className = '' }: ProgramsGallerySectionProps) {
-  const [selectedCategory, setSelectedCategory] = useState('All');
+/**
+ * Check if image URL is safe to use with Next.js Image
+ */
+function getSafeImageUrl(url: string | null): string {
+  if (!url) return '/images/placeholder-program.jpg';
+  if (url.startsWith('/')) return url;
+
+  const allowedDomains = [
+    'hakiardhi-api.vercel.app',
+    'tjsatamyfjxdxqgxmcuq.supabase.co',
+  ];
+
+  try {
+    const urlObj = new URL(url);
+    if (allowedDomains.some(domain => urlObj.hostname.includes(domain))) {
+      return url;
+    }
+  } catch {
+    // Invalid URL
+  }
+
+  return '/images/placeholder-program.jpg';
+}
+
+export default function ProgramsGallerySection({ limit = 3, className = '' }: ProgramsGallerySectionProps) {
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [sectionRef, isVisible] = useIntersectionObserver({
     threshold: THRESHOLDS.intersection.low,
     freezeOnceVisible: true,
   });
 
-  const filteredPrograms =
-    selectedCategory === 'All'
-      ? programs
-      : programs.filter((program) => program.category === selectedCategory);
+  // Fetch programs from API
+  useEffect(() => {
+    async function loadPrograms() {
+      try {
+        setIsLoading(true);
+        const response = await fetchPrograms({ limit, featured: true });
+        setPrograms(response.programs);
+      } catch (error) {
+        console.error('Failed to load programs:', error);
+        setPrograms([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-  // Get category count
-  const getCategoryCount = (category: string) => {
-    if (category === 'All') return programs.length;
-    return programs.filter(p => p.category === category).length;
-  };
-
-  // Show only first 6 programs on landing page
-  const displayPrograms = filteredPrograms.slice(0, 6);
+    loadPrograms();
+  }, [limit]);
 
   return (
     <section
@@ -71,44 +102,15 @@ export default function ProgramsGallerySection({ className = '' }: ProgramsGalle
           </div>
         </div>
 
-        {/* Category Filter - With Counts */}
-        <div
-          className={`flex flex-wrap justify-center gap-3 mb-8 transition-all duration-1000 delay-200 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-          }`}
-        >
-          {PROGRAM_CATEGORIES.map((category) => {
-            const count = getCategoryCount(category);
-            return (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`group px-6 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
-                  selectedCategory === category
-                    ? 'bg-hakiardhi-red text-white shadow-lg shadow-hakiardhi-red/30 scale-105'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-300 hover:border-hakiardhi-red hover:scale-105'
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  {category}
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                    selectedCategory === category
-                      ? 'bg-white/20 text-white'
-                      : 'bg-hakiardhi-red/10 text-hakiardhi-red group-hover:bg-hakiardhi-red/20'
-                  }`}>
-                    {count}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
         {/* Programs Grid - With Gradient Background Container */}
-        {displayPrograms.length > 0 ? (
+        {isLoading ? (
+          <div className="bg-gradient-to-br from-zinc-50 via-gray-50 to-zinc-100/50 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-inner border border-zinc-200/50">
+            <ProgramsGridSkeleton count={limit} />
+          </div>
+        ) : programs.length > 0 ? (
           <div className="bg-gradient-to-br from-zinc-50 via-gray-50 to-zinc-100/50 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-inner border border-zinc-200/50">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
-              {displayPrograms.map((program, index) => (
+              {programs.map((program, index) => (
                 <div
                   key={program.id}
                   className={`transition-all duration-1000 flex ${
@@ -122,7 +124,7 @@ export default function ProgramsGallerySection({ className = '' }: ProgramsGalle
                     <Card variant="elevated" hoverEffect="lift" className="w-full flex flex-col group transition-all duration-300 h-full">
                       <Card.Media className="h-48 relative overflow-hidden flex-shrink-0">
                         <Image
-                          src={program.image}
+                          src={getSafeImageUrl(program.image)}
                           alt={program.title}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -131,11 +133,13 @@ export default function ProgramsGallerySection({ className = '' }: ProgramsGalle
                       </Card.Media>
 
                       {/* Badge */}
-                      <Card.Badge className="absolute top-4 right-4">
-                        <Badge variant="primary" size="sm">
-                          {program.category}
-                        </Badge>
-                      </Card.Badge>
+                      {program.category && (
+                        <Card.Badge className="absolute top-4 right-4">
+                          <Badge variant="primary" size="sm">
+                            {program.category}
+                          </Badge>
+                        </Card.Badge>
+                      )}
 
                       <Card.Body className="flex-1 flex flex-col p-5">
                         {/* Title with professional typography */}
@@ -153,26 +157,28 @@ export default function ProgramsGallerySection({ className = '' }: ProgramsGalle
                         {/* Program Meta - Professional spacing and alignment */}
                         <div className="mt-auto pt-3 border-t border-gray-100">
                           <div className="space-y-2 mb-3">
-                            <div className="flex items-center gap-2">
-                              <Icon name="clock" size="sm" className="text-hakiardhi-red flex-shrink-0" />
-                              <span className="text-xs text-gray-600 leading-tight">
-                                {new Date(program.date).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric'
-                                })}
-                              </span>
-                            </div>
+                            {program.startDate && (
+                              <div className="flex items-center gap-2">
+                                <Icon name="clock" size="sm" className="text-hakiardhi-red flex-shrink-0" />
+                                <span className="text-xs text-gray-600 leading-tight">
+                                  {new Date(program.startDate).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                            )}
                             {program.location && (
                               <div className="flex items-center gap-2">
                                 <Icon name="map-pin" size="sm" className="text-hakiardhi-red flex-shrink-0" />
                                 <span className="text-xs text-gray-600 leading-tight">{program.location}</span>
                               </div>
                             )}
-                            {program.participants && (
+                            {program.participantsCount > 0 && (
                               <div className="flex items-center gap-2">
                                 <Icon name="users" size="sm" className="text-hakiardhi-red flex-shrink-0" />
-                                <span className="text-xs text-gray-600 leading-tight">{program.participants} Participants</span>
+                                <span className="text-xs text-gray-600 leading-tight">{program.participantsCount} Participants</span>
                               </div>
                             )}
                           </div>

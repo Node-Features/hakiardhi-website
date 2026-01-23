@@ -219,6 +219,14 @@ const config: Config = {
           from: { transform: "translateX(100%)", opacity: "0" },
           to: { transform: "translateX(0)", opacity: "1" },
         },
+        "scale-in": {
+          from: { transform: "scale(0.9)", opacity: "0" },
+          to: { transform: "scale(1)", opacity: "1" },
+        },
+        "slide-down": {
+          from: { transform: "translateY(-10px)", opacity: "0" },
+          to: { transform: "translateY(0)", opacity: "1" },
+        },
       },
       animation: {
         shimmer: "shimmer 1.5s infinite linear",
@@ -229,6 +237,8 @@ const config: Config = {
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         gradient: "gradient-shift 8s ease infinite",
         "slide-in": "slide-in 0.3s ease-out",
+        "scale-in": "scale-in 0.2s ease-out",
+        "slide-down": "slide-down 0.3s ease-out",
       },
     },
   },
