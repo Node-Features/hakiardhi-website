@@ -15,14 +15,16 @@ const db = supabase(false);
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const parsed = PortalValidation.ContactForm.safeParse(body);
+
+  const body = await request.json();
+
+  const parsed = PortalValidation.ContactForm.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
         { success: false, errors: formatZodError(parsed.error) },
         { status: 400 }
-      );
+      )
     }
 
     const { data, error } = await db

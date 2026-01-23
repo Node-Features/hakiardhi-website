@@ -49,8 +49,8 @@ export function getQueryParams(request: NextRequest): Record<string, string> {
  */
 export function getPaginationMeta(total: number, page: number, limit: number) {
   return {
-    page,
-    limit,
+    current_page: page,
+    per_page: limit,
     total,
     total_pages: Math.ceil(total / limit),
   };

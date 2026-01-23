@@ -208,6 +208,38 @@ export async function GET(req: NextRequest) {
     const submitted_by = searchParams.get("submitted_by");
     const reference_number = searchParams.get("reference_number");
     const search = searchParams.get("search");
+    const region_id = searchParams.get("region_id");
+
+    // Time period filters
+    const year = searchParams.get("year");
+    const month = searchParams.get("month");
+    const quarter = searchParams.get("quarter");
+    let start_date_from = searchParams.get("start_date_from");
+    let start_date_to = searchParams.get("start_date_to");
+
+    // Convert time period parameters to date ranges
+    if (year) {
+        if (month) {
+            // Filter by specific month in year
+            const monthNum = parseInt(month);
+            start_date_from = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+            const lastDay = new Date(parseInt(year), monthNum, 0).getDate();
+            start_date_to = `${year}-${String(monthNum).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+        } else if (quarter) {
+            // Filter by quarter
+            const quarterNum = parseInt(quarter.replace('Q', ''));
+            const startMonth = (quarterNum - 1) * 3 + 1;
+            const endMonth = startMonth + 2;
+            start_date_from = `${year}-${String(startMonth).padStart(2, '0')}-01`;
+            const lastDay = new Date(parseInt(year), endMonth, 0).getDate();
+            start_date_to = `${year}-${String(endMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+        } else {
+            // Filter by entire year
+            start_date_from = `${year}-01-01`;
+            start_date_to = `${year}-12-31`;
+        }
+    }
+
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
@@ -238,8 +270,18 @@ export async function GET(req: NextRequest) {
     if (reference_number) {
         query = query.eq("reference_number", reference_number);
     }
+    if (region_id) {
+        query = query.eq("region_id", region_id);
+    }
     if (search) {
         query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    }
+    // Date range filters (for time period filtering)
+    if (start_date_from) {
+        query = query.gte("created_at", start_date_from);
+    }
+    if (start_date_to) {
+        query = query.lte("created_at", `${start_date_to}T23:59:59`);
     }
 
     const { data, error, count } = await query

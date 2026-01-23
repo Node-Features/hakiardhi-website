@@ -70,6 +70,39 @@ export async function GET(req: NextRequest) {
     const region_id = searchParams.get("region_id");
     const district_id = searchParams.get("district_id");
     const village_id = searchParams.get("village_id");
+
+    // Time period filters
+    const year = searchParams.get("year");
+    const month = searchParams.get("month");
+    const quarter = searchParams.get("quarter");
+    let start_date_from = searchParams.get("start_date_from");
+    let start_date_to = searchParams.get("start_date_to");
+
+    // Convert time period filters to date ranges
+    if (year) {
+        if (month) {
+            // Month filter: specific month in a year
+            const monthNum = parseInt(month);
+            start_date_from = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+            // Last day of the month
+            const lastDay = new Date(parseInt(year), monthNum, 0).getDate();
+            start_date_to = `${year}-${String(monthNum).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+        } else if (quarter) {
+            // Quarter filter: Q1-Q4
+            const quarterNum = parseInt(quarter.replace('Q', ''));
+            const startMonth = (quarterNum - 1) * 3 + 1;
+            const endMonth = startMonth + 2;
+            start_date_from = `${year}-${String(startMonth).padStart(2, '0')}-01`;
+            // Last day of the quarter's last month
+            const lastDay = new Date(parseInt(year), endMonth, 0).getDate();
+            start_date_to = `${year}-${String(endMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+        } else {
+            // Year filter only: Jan 1 to Dec 31
+            start_date_from = `${year}-01-01`;
+            start_date_to = `${year}-12-31`;
+        }
+    }
+
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
@@ -114,6 +147,13 @@ export async function GET(req: NextRequest) {
     }
     if (village_id) {
         query = query.eq("village_id", village_id);
+    }
+    if (start_date_from) {
+        query = query.gte("created_at", start_date_from);
+    }
+    if (start_date_to) {
+        // Add 23:59:59 to include the entire end date
+        query = query.lte("created_at", `${start_date_to}T23:59:59`);
     }
 
     const { data, error, count } = await query

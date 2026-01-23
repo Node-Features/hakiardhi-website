@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
       query = query.eq('type', type);
     }
     if (topic) {
-      query = query.contains('topics', [topic]);
+      // Filter by topic - topics is a JSONB array, use @> operator
+      query = query.filter('topics', 'cs', `["${topic}"]`);
     }
     if (year) {
       query = query
