@@ -4,8 +4,7 @@
  */
 
 import { NextResponse } from 'next/server';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://hakiardhi-api.vercel.app';
+import { API_BASE_URL } from '@/config/api.config';
 
 export async function GET() {
   try {

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import { THRESHOLDS } from '@/constants/design-tokens';
 import Button from '../ui/Button';
@@ -63,6 +64,7 @@ export default function HowYouCanHelpSection({
     threshold: THRESHOLDS.intersection.low,
     freezeOnceVisible: true,
   });
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   const colorClasses = {
     red: {
@@ -237,10 +239,10 @@ export default function HowYouCanHelpSection({
               Your donation provides legal aid, training, and protection to families fighting for their land rights
             </p>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons - Temporarily disabled */}
             <div className="flex flex-col sm:flex-row gap-5 justify-center items-center mb-10">
               <Button
-                href="/donate"
+                onClick={() => setShowComingSoon(true)}
                 variant="dark"
                 size="lg"
                 icon={<Icon name="heart" size="sm" />}
@@ -248,7 +250,7 @@ export default function HowYouCanHelpSection({
                 Make a One-Time Gift
               </Button>
               <Button
-                href="/donate?type=monthly"
+                onClick={() => setShowComingSoon(true)}
                 variant="dark"
                 size="lg"
                 icon={<Icon name="refresh" size="sm" />}
@@ -281,6 +283,34 @@ export default function HowYouCanHelpSection({
           </div>
         </div>
       </div>
+
+      {/* Coming Soon Modal */}
+      {showComingSoon && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] animate-fade-in"
+            onClick={() => setShowComingSoon(false)}
+            aria-hidden="true"
+          />
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center animate-scale-in">
+              <div className="w-20 h-20 mx-auto mb-6 bg-hakiardhi-red/10 rounded-full flex items-center justify-center">
+                <Icon name="heart" size="lg" className="text-hakiardhi-red" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Coming Soon</h2>
+              <p className="text-gray-600 mb-6">
+                Online donations will be available soon. For now, please contact us directly to make a donation.
+              </p>
+              <button
+                onClick={() => setShowComingSoon(false)}
+                className="w-full bg-hakiardhi-red text-white font-semibold py-3 px-6 rounded-xl hover:bg-hakiardhi-red/90 transition-all duration-300 active:scale-[0.98]"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </section>
   );
 }

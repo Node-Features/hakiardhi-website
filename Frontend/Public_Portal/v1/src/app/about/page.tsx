@@ -2,7 +2,8 @@ import { Header, Footer, ImageOverlaySection } from '@/components';
 import PageHero from '@/components/layout/PageHero';
 import VisionMissionSection from '@/components/sections/VisionMissionSection';
 import CoreValuesSection from '@/components/sections/CoreValuesSection';
-import DonorSection from '@/components/sections/DonorSection';
+import DonorsSection from '@/components/sections/DonorsSection';
+import TeamSection, { BoardSection } from '@/components/sections/TeamSection';
 import Section from '@/components/ui/Section';
 import Button from '@/components/ui/Button';
 import Grid from '@/components/ui/Grid';
@@ -13,10 +14,6 @@ import { SPACING, TYPOGRAPHY, CONTENT_WIDTHS } from '@/constants/design-tokens';
 import {
   aboutHero,
   approachPrinciples,
-  leadershipTeam,
-  coreTeamRoles,
-  boardMembers,
-  partners,
   legalAidHotline,
   ctaSection,
 } from '@/data/about';
@@ -98,119 +95,18 @@ export default function AboutPage() {
         </Section.Content>
       </section>
 
-      {/* Team Section - LIGHT THEME */}
-      <Section variant="white" spacing="lg">
-        <Section.Content>
-          <div className="text-center mb-12">
-            <h2 className={`${TYPOGRAPHY.heading.h2.size} ${TYPOGRAPHY.heading.h2.weight} text-hakiardhi-red ${SPACING.margin.element.md}`}>
-              Our Team
-            </h2>
-            <p className={`${TYPOGRAPHY.body.lg.size} text-gray-600 max-w-3xl mx-auto`}>
-              Dedicated professionals committed to advancing land rights in Tanzania
-            </p>
-          </div>
+      {/* Team Section - Dynamic from API */}
+      <TeamSection showLeadership={true} showStaff={true} showAdvisors={true} />
 
-          <h3 className={`${TYPOGRAPHY.heading.h3.size} ${TYPOGRAPHY.heading.h3.weight} text-gray-900 ${SPACING.margin.element.lg}`}>
-            Leadership
-          </h3>
-          <Grid layout="thirds" className={SPACING.margin.element.xl}>
-            {leadershipTeam.map((member, index) => (
-              <Card
-                key={index}
-                variant="elevated"
-                hoverEffect="lift"
-                className="overflow-hidden h-full"
-              >
-                <div className="aspect-square bg-gray-200 relative">
-                  <Image
-                    src={member.image}
-                    alt={member.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <Card.Body>
-                  <h4 className={`${TYPOGRAPHY.heading.h4.size} ${TYPOGRAPHY.heading.h4.weight} text-gray-900 ${SPACING.margin.element.xs}`}>
-                    {member.name}
-                  </h4>
-                  <p className={`${TYPOGRAPHY.body.default.size} text-gray-600`}>{member.role}</p>
-                </Card.Body>
-              </Card>
-            ))}
-          </Grid>
+      {/* Board of Directors - Dynamic from API */}
+      <BoardSection />
 
-          <h3 className={`${TYPOGRAPHY.heading.h3.size} ${TYPOGRAPHY.heading.h3.weight} text-gray-900 ${SPACING.margin.element.lg}`}>
-            Departments
-          </h3>
-          <Grid layout="thirds">
-            {coreTeamRoles.map((department, index) => (
-              <Card
-                key={index}
-                variant="elevated"
-                hoverEffect="lift"
-                className="overflow-hidden h-full"
-              >
-                <div className="aspect-square bg-gray-200 relative">
-                  <Image
-                    src={department.image}
-                    alt={department.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <Card.Body>
-                  <h4 className={`${TYPOGRAPHY.heading.h4.size} ${TYPOGRAPHY.heading.h4.weight} text-gray-900 ${SPACING.margin.element.xs}`}>
-                    {department.name}
-                  </h4>
-                  <p className={`${TYPOGRAPHY.body.default.size} text-gray-600`}>{department.role}</p>
-                </Card.Body>
-              </Card>
-            ))}
-          </Grid>
-        </Section.Content>
-      </Section>
-
-      {/* Board of Directors */}
-      <Section variant="white" spacing="lg">
-        <Section.Content>
-          <h2 className={`${TYPOGRAPHY.heading.h2.size} ${TYPOGRAPHY.heading.h2.weight} text-hakiardhi-red ${SPACING.margin.element.lg} text-center`}>
-            Board of Directors
-          </h2>
-          <p className={`${TYPOGRAPHY.body.lg.size} text-gray-700 ${TYPOGRAPHY.body.lg.lineHeight} text-center ${SPACING.margin.element.xl} max-w-3xl mx-auto`}>
-            Our Board provides strategic governance and brings diverse expertise in land rights,
-            law, development, and community advocacy.
-          </p>
-
-          <Grid layout="thirds">
-            {boardMembers.map((member, index) => (
-              <Card
-                key={index}
-                variant="elevated"
-                hoverEffect="lift"
-                className="overflow-hidden h-full"
-              >
-                <div className="aspect-square bg-gray-200 relative">
-                  <Image
-                    src={member.image}
-                    alt={member.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <Card.Body>
-                  <h4 className={`${TYPOGRAPHY.heading.h4.size} ${TYPOGRAPHY.heading.h4.weight} text-gray-900 ${SPACING.margin.element.xs}`}>
-                    {member.name}
-                  </h4>
-                  <p className={`${TYPOGRAPHY.body.default.size} text-gray-600`}>{member.role}</p>
-                </Card.Body>
-              </Card>
-            ))}
-          </Grid>
-        </Section.Content>
-      </Section>
-
-      {/* Partners & Networks */}
-      <DonorSection partners={partners} />
+      {/* Partners & Networks - Dynamic from API */}
+      <DonorsSection
+        title="Partners & Networks"
+        description="Collaborating with local and international organizations for greater impact"
+        variant="light"
+      />
 
       {/* Legal Aid Hotline - LIGHT THEME WITH GRADIENT ORBS */}
       <section className="relative overflow-hidden bg-gray-50 py-12 sm:py-16 lg:py-24">
