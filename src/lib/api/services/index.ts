@@ -17,6 +17,7 @@ export { usersService } from './users';
 export { rolesService } from './roles';
 export { permissionsService } from './permissions';
 export { uploadsService } from './uploads';
+export { teamMembersService } from './team-members';
 export {
   settingsService,
   locationsService,

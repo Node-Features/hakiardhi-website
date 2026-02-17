@@ -129,9 +129,20 @@ const othersItems: NavItem[] = [
   },
   {
     name: "Users",
-    path: "/users",
     icon: <UserIcon />,
     permission: "user_view",
+    subItems: [
+      {
+        name: "All Users",
+        path: "/users",
+        permission: "user_view",
+      },
+      {
+        name: "Team Members",
+        path: "/users/team-members",
+        permission: "user_view",
+      },
+    ],
   },
 
   // === SETTINGS ===

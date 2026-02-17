@@ -480,6 +480,41 @@
   @apply px-3 py-2.5 min-h-[44px] rounded-lg text-mobile-sm font-medium text-gray-700 whitespace-nowrap hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors;
 }
 
+/* Icon-Only Buttons - Fully Rounded (Circular) */
+@utility btn-icon-round {
+  @apply h-10 w-10 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-full transition-colors;
+}
+
+@utility btn-icon-round-sm {
+  @apply h-8 w-8 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-full transition-colors;
+}
+
+@utility btn-icon-round-lg {
+  @apply h-12 w-12 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-full transition-colors;
+}
+
+/* Icon Button Variants - Primary */
+@utility btn-icon-primary {
+  @apply btn-icon-round bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700 shadow-theme-sm;
+}
+
+@utility btn-icon-secondary {
+  @apply btn-icon-round bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100 shadow-theme-xs dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700;
+}
+
+@utility btn-icon-ghost {
+  @apply btn-icon-round text-gray-700 hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-800 dark:active:bg-gray-700;
+}
+
+/* Navigation Button Variants */
+@utility btn-nav {
+  @apply btn-icon-round-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 shadow-theme-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:border-gray-600;
+}
+
+@utility btn-nav-disabled {
+  @apply opacity-40 cursor-not-allowed pointer-events-none;
+}
+
 /* Mobile Menu Active/Inactive States with Better Contrast */
 @utility menu-item-mobile-active {
   @apply bg-brand-500/20 text-brand-500 dark:bg-brand-500/25 dark:text-brand-400 border-l-2 border-brand-500 dark:border-brand-400;

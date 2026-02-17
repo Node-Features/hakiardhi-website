@@ -493,6 +493,14 @@ export interface UpdateUserRequest {
   role_id?: string;
   is_active?: boolean;
   status?: 'Active' | 'Inactive' | 'Suspended';
+  // Team member fields
+  department?: string | null;
+  bio?: string | null;
+  linkedin_url?: string | null;
+  twitter_url?: string | null;
+  member_type?: 'leadership' | 'board' | 'staff' | 'advisor' | null;
+  display_order?: number | null;
+  show_in_team?: boolean;
 }
 
 export interface UserResponse {
@@ -512,6 +520,14 @@ export interface UserResponse {
   roles?: string[]; // All user roles (array of role names)
   role_id?: string; // Role ID if included
   permissions?: string[]; // User permissions (array of permission names)
+  // Team member fields
+  department?: string | null;
+  bio?: string | null;
+  linkedin_url?: string | null;
+  twitter_url?: string | null;
+  member_type?: 'leadership' | 'board' | 'staff' | 'advisor' | null;
+  display_order?: number | null;
+  show_in_team?: boolean;
 }
 
 export interface AuthResponse {

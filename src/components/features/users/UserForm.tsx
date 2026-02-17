@@ -15,6 +15,7 @@ interface UserFormProps {
   formId?: string;
   initialData?: UserResponse;
   onSubmit: (data: CreateUserRequest | UpdateUserRequest) => Promise<void>;
+  onPhotoSelect?: (file: File | null) => void;
   isLoading?: boolean;
   showActions?: boolean;
 }
@@ -23,12 +24,15 @@ export default function UserForm({
   formId = 'user-form',
   initialData,
   onSubmit,
+  onPhotoSelect,
   isLoading = false,
   showActions = true,
 }: UserFormProps) {
   const isEditMode = !!initialData?.id;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState<CreateUserRequest>({
+  const [formData, setFormData] = useState<CreateUserRequest & UpdateUserRequest>({
     first_name: initialData?.first_name || '',
     last_name: initialData?.last_name || '',
     email: initialData?.email || '',
@@ -39,6 +43,14 @@ export default function UserForm({
     photo_consent: initialData?.photo_consent || false,
     role_id: initialData?.role_id || (initialData as any)?.role?.id || (initialData as any)?.roles?.id || '',
     status: (initialData?.status as 'Active' | 'Inactive' | 'Suspended' | undefined) || 'Active',
+    // Team member fields
+    department: initialData?.department || '',
+    bio: initialData?.bio || '',
+    linkedin_url: initialData?.linkedin_url || '',
+    twitter_url: initialData?.twitter_url || '',
+    member_type: initialData?.member_type || null,
+    display_order: initialData?.display_order ?? null,
+    show_in_team: initialData?.show_in_team || false,
   });
 
   const [roles, setRoles] = useState<RoleResponse[]>([]);
@@ -128,17 +140,24 @@ export default function UserForm({
     if (!submitData.sex) delete submitData.sex;
     if (!submitData.age_group || submitData.age_group === '') delete submitData.age_group;
 
+    // Clean team fields - send null for empty strings
+    if (submitData.department === '') submitData.department = null;
+    if (submitData.bio === '') submitData.bio = null;
+    if (submitData.linkedin_url === '') submitData.linkedin_url = null;
+    if (submitData.twitter_url === '') submitData.twitter_url = null;
+    if (submitData.member_type === '') submitData.member_type = null;
+
     await onSubmit(submitData);
   };
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-6">
       {/* Profile Picture */}
-      {isEditMode && initialData?.id && (
-        <div>
-          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
-            Profile Picture
-          </h3>
+      <div>
+        <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+          Profile Picture
+        </h3>
+        {isEditMode && initialData?.id ? (
           <ProfilePictureUpload
             currentImageUrl={initialData?.image_url}
             onUpload={async (file) => {
@@ -151,8 +170,72 @@ export default function UserForm({
             entityName="user"
             disabled={isLoading}
           />
-        </div>
-      )}
+        ) : (
+          <div className="flex items-center gap-4">
+            {photoPreview ? (
+              <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-gray-200 dark:border-gray-700">
+                <Image
+                  src={photoPreview}
+                  alt="Preview"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-800">
+                <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  if (file) {
+                    const url = URL.createObjectURL(file);
+                    setPhotoPreview(url);
+                  } else {
+                    setPhotoPreview(null);
+                  }
+                  onPhotoSelect?.(file);
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+              >
+                {photoPreview ? 'Change Photo' : 'Upload Photo'}
+              </Button>
+              {photoPreview && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPhotoPreview(null);
+                    onPhotoSelect?.(null);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  disabled={isLoading}
+                >
+                  Remove
+                </Button>
+              )}
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                JPG, PNG or WebP. Max 5MB.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Personal Information */}
       <div>
@@ -322,6 +405,120 @@ export default function UserForm({
           </div>
         </div>
       </div>
+
+      {/* Team Profile - Edit mode only */}
+      {isEditMode && (
+        <div>
+          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+            Team Profile
+          </h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Department
+              </label>
+              <Input
+                type="text"
+                value={formData.department || ''}
+                onChange={(e) => handleChange('department', e.target.value)}
+                placeholder="e.g. Legal, Programs, Finance"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Member Type
+              </label>
+              <Select
+                value={formData.member_type || ''}
+                onChange={(value) => handleChange('member_type', value || null)}
+                options={[
+                  { value: '', label: 'Select member type' },
+                  { value: 'leadership', label: 'Leadership' },
+                  { value: 'board', label: 'Board' },
+                  { value: 'staff', label: 'Staff' },
+                  { value: 'advisor', label: 'Advisor' },
+                ]}
+                placeholder="Select member type"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Display Order
+              </label>
+              <Input
+                type="number"
+                value={formData.display_order ?? ''}
+                onChange={(e) => handleChange('display_order', e.target.value ? Number(e.target.value) : null)}
+                placeholder="0"
+              />
+            </div>
+
+            <div className="flex items-center">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.show_in_team || false}
+                  onChange={(e) => handleChange('show_in_team', e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  Show on public team page
+                </span>
+              </label>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Bio
+              </label>
+              <textarea
+                value={formData.bio || ''}
+                onChange={(e) => handleChange('bio', e.target.value)}
+                placeholder="Brief biography..."
+                rows={3}
+                maxLength={2000}
+                className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-200/50 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Social Links - Edit mode only */}
+      {isEditMode && (
+        <div>
+          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+            Social Links
+          </h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                LinkedIn URL
+              </label>
+              <Input
+                type="url"
+                value={formData.linkedin_url || ''}
+                onChange={(e) => handleChange('linkedin_url', e.target.value)}
+                placeholder="https://linkedin.com/in/username"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Twitter / X URL
+              </label>
+              <Input
+                type="url"
+                value={formData.twitter_url || ''}
+                onChange={(e) => handleChange('twitter_url', e.target.value)}
+                placeholder="https://x.com/username"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Form Actions */}
       {showActions && (

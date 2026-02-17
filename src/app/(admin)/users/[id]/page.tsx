@@ -416,6 +416,44 @@ export default function UserDetailsPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Department */}
+                {user.department && (
+                  <div className="group relative rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-brand-300 hover:bg-brand-50/30 dark:border-gray-700 dark:bg-gray-800/50 dark:hover:border-brand-700 dark:hover:bg-brand-900/20">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/40">
+                        <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Department</p>
+                        <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                          {user.department}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bio */}
+                {user.bio && (
+                  <div className="group relative rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-brand-300 hover:bg-brand-50/30 dark:border-gray-700 dark:bg-gray-800/50 dark:hover:border-brand-700 dark:hover:bg-brand-900/20">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-teal-100 dark:bg-teal-900/40">
+                        <svg className="h-4 w-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Bio</p>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                          {user.bio}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -524,6 +562,58 @@ export default function UserDetailsPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Team Visibility */}
+                <div className="group relative rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-brand-300 hover:bg-brand-50/30 dark:border-gray-700 dark:bg-gray-800/50 dark:hover:border-brand-700 dark:hover:bg-brand-900/20">
+                  <div className="flex items-start gap-3">
+                    <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${user.show_in_team ? 'bg-green-100 dark:bg-green-900/40' : 'bg-gray-100 dark:bg-gray-700'}`}>
+                      <svg className={`h-4 w-4 ${user.show_in_team ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Public Team Page</p>
+                      <div className="mt-1">
+                        <Badge variant="light" color={user.show_in_team ? 'success' : 'light'} size="sm">
+                          {user.show_in_team ? 'Visible' : 'Hidden'}
+                        </Badge>
+                        {user.member_type && (
+                          <Badge variant="light" color="primary" size="sm" className="ml-2">
+                            {user.member_type.charAt(0).toUpperCase() + user.member_type.slice(1)}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Links */}
+                {(user.linkedin_url || user.twitter_url) && (
+                  <div className="group relative rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-brand-300 hover:bg-brand-50/30 dark:border-gray-700 dark:bg-gray-800/50 dark:hover:border-brand-700 dark:hover:bg-brand-900/20">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
+                        <svg className="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Social Links</p>
+                        <div className="mt-1 flex flex-col gap-1">
+                          {user.linkedin_url && (
+                            <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-600 hover:underline dark:text-brand-400 truncate">
+                              LinkedIn
+                            </a>
+                          )}
+                          {user.twitter_url && (
+                            <a href={user.twitter_url} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-600 hover:underline dark:text-brand-400 truncate">
+                              Twitter / X
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Photo Consent */}
                 {user.photo_consent !== undefined && (

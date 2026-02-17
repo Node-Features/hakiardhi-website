@@ -12,10 +12,6 @@ import Switch from '@/components/ui/form/switch/Switch';
 import { LoadingSpinner } from '@/components/ui/loading';
 import ContentForm from '@/components/features/content/ContentForm';
 import { contentService } from '@/lib/api/services/settings';
-import { teamService } from '@/lib/api/services/team';
-import { partnerService } from '@/lib/api/services/partners';
-import { testimonialService } from '@/lib/api/services/testimonials';
-import { milestoneService } from '@/lib/api/services/milestones';
 import { useToast } from '@/lib/context/ToastContext';
 import { ContentResponse, ContentType } from '@/types/api';
 
@@ -68,46 +64,6 @@ const contentTypes: ContentTypeConfig[] = [
     ),
     description: 'Static pages like About, Contact, Terms, Privacy Policy',
   },
-  {
-    id: 'team',
-    label: 'Team Members',
-    icon: (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-      </svg>
-    ),
-    description: 'Manage team members, leadership, board members, and staff',
-  },
-  {
-    id: 'partner',
-    label: 'Partners',
-    icon: (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-    description: 'Manage partner organizations, donors, and collaborators',
-  },
-  {
-    id: 'testimonial',
-    label: 'Testimonials',
-    icon: (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-      </svg>
-    ),
-    description: 'Manage success stories, testimonials, and client feedback',
-  },
-  {
-    id: 'milestone',
-    label: 'Milestones',
-    icon: (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-      </svg>
-    ),
-    description: 'Manage organization timeline, key achievements, and historical events',
-  },
 ];
 
 // Content list component for each tab
@@ -141,62 +97,9 @@ function ContentList({ contentType }: { contentType: ContentTypeConfig }) {
     try {
       let response: any[];
 
-      // Call appropriate service based on content type
-      switch (contentType.id) {
-        case 'team':
-          response = await teamService.getAll();
-          // Map to ContentResponse format
-          response = response.map((item: any) => ({
-            ...item,
-            content_type: 'team',
-            title: item.name,
-            content: item.bio || '',
-            published: item.is_active,
-          }));
-          break;
-
-        case 'partner':
-          response = await partnerService.getAll();
-          // Map to ContentResponse format
-          response = response.map((item: any) => ({
-            ...item,
-            content_type: 'partner',
-            title: item.name,
-            content: item.description || '',
-            published: item.is_active,
-          }));
-          break;
-
-        case 'testimonial':
-          response = await testimonialService.getAll();
-          // Map to ContentResponse format
-          response = response.map((item: any) => ({
-            ...item,
-            content_type: 'testimonial',
-            title: item.author_name,
-            content: item.quote,
-            published: item.is_published,
-          }));
-          break;
-
-        case 'milestone':
-          response = await milestoneService.getAll();
-          // Map to ContentResponse format
-          response = response.map((item: any) => ({
-            ...item,
-            content_type: 'milestone',
-            title: `${item.year} - ${item.title}`,
-            content: item.description,
-            published: item.is_active,
-          }));
-          break;
-
-        default:
-          // For blog, publication, faq, page - use existing contentService
-          const allContent = await contentService.getAll();
-          response = allContent.filter((content: any) => content.content_type === contentType.id);
-          break;
-      }
+      // Use contentService for all content types (blog, publication, faq, page)
+      const allContent = await contentService.getAll();
+      response = allContent.filter((content: any) => content.content_type === contentType.id);
 
       setContents(response as ContentResponse[] || []);
     } catch (error: any) {
@@ -1384,7 +1287,7 @@ export default function ContentManagementPage() {
           Content Management
         </h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Manage website content including blogs, publications, FAQs, and pages
+          Manage website content including blogs, publications, FAQs, and static pages
         </p>
       </div>
 

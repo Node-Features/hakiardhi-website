@@ -140,10 +140,12 @@ export default function DashboardFilters({
           <button
             onClick={onRefresh}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-colors rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-icon-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Refresh Data"
+            aria-label="Refresh Data"
           >
             <svg
-              className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
+              className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -155,7 +157,6 @@ export default function DashboardFilters({
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
               />
             </svg>
-            Refresh Data
           </button>
         )}
       </div>

@@ -32,6 +32,7 @@ export default function UsersPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingPhoto, setPendingPhoto] = useState<File | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -116,9 +117,22 @@ export default function UsersPage() {
   const handleCreateUser = async (data: any) => {
     setIsSubmitting(true);
     try {
-      await usersService.create(data);
+      const response = await usersService.create(data);
+      const newUser = response.user || response;
+
+      // Upload photo if one was selected
+      if (pendingPhoto && newUser?.id) {
+        try {
+          await usersService.uploadProfilePicture(newUser.id, pendingPhoto);
+        } catch (photoError) {
+          console.error('Failed to upload profile picture:', photoError);
+          showToast('User created but photo upload failed', 'warning');
+        }
+      }
+
       showToast('User created successfully', 'success');
       setIsCreateModalOpen(false);
+      setPendingPhoto(null);
       loadUsers();
       loadStatistics();
     } catch (error: any) {
@@ -716,7 +730,7 @@ export default function UsersPage() {
       {/* Create User Modal */}
       <Modal
         isOpen={isCreateModalOpen}
-        onClose={() => !isSubmitting && setIsCreateModalOpen(false)}
+        onClose={() => { if (!isSubmitting) { setIsCreateModalOpen(false); setPendingPhoto(null); } }}
         size="xl"
       >
         <ModalHeader>
@@ -728,6 +742,7 @@ export default function UsersPage() {
           <UserForm
             formId="create-user-form"
             onSubmit={handleCreateUser}
+            onPhotoSelect={(file) => setPendingPhoto(file)}
             isLoading={isSubmitting}
             showActions={false}
           />
@@ -737,7 +752,7 @@ export default function UsersPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setIsCreateModalOpen(false)}
+              onClick={() => { setIsCreateModalOpen(false); setPendingPhoto(null); }}
               disabled={isSubmitting}
             >
               Cancel
