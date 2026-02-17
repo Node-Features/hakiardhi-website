@@ -43,8 +43,8 @@ export const usersService = {
    * Create new user
    * POST /api/admin/users
    */
-  create: async (data: CreateUserRequest) => {
-    return authApi.post<UserResponse>('/api/admin/users', data);
+  create: async (data: CreateUserRequest): Promise<{ success: boolean; user: UserResponse }> => {
+    return authApi.post<{ success: boolean; user: UserResponse }>('/api/admin/users', data);
   },
 
   /**

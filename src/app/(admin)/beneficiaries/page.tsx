@@ -1553,6 +1553,7 @@ export default function BeneficiariesPage() {
 
               {/* Page navigation */}
               <div className="flex items-center gap-1">
+                <button
                   onClick={() => handlePageChange(1)}
                   disabled={currentPage === 1}
                   className="btn-nav disabled:btn-nav-disabled"
