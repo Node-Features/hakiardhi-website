@@ -100,6 +100,13 @@ export const routePermissionMap: { [key: string]: string } = {
   'PATCH /api/admin/blogs/:id': 'content_manage',
   'DELETE /api/admin/blogs/:id': 'content_manage',
 
+  // ========== TEAM MEMBERS ==========
+  'GET /api/admin/users/team-members': 'team_member_view',
+  'POST /api/admin/users/team-members': 'team_member_create',
+  'GET /api/admin/users/team-members/:id': 'team_member_view',
+  'PUT /api/admin/users/team-members/:id': 'team_member_edit',
+  'DELETE /api/admin/users/team-members/:id': 'team_member_delete',
+
   // ========== CHATBOT ==========
   'GET /api/admin/chatbot/logs': 'chatbot_moderate',
   'POST /api/admin/chatbot/logs': 'chatbot_moderate',

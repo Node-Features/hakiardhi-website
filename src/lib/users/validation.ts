@@ -106,4 +106,45 @@ export const UserUpdateSchema = z.object({
     .url({ message: "Image URL must be a valid URL" })
     .optional()
     .nullable(),
+
+  // Team member fields
+  department: z
+    .string()
+    .max(100, { message: "Department cannot exceed 100 characters" })
+    .optional()
+    .nullable(),
+
+  bio: z
+    .string()
+    .max(2000, { message: "Bio cannot exceed 2000 characters" })
+    .optional()
+    .nullable(),
+
+  linkedin_url: z
+    .string()
+    .url({ message: "LinkedIn URL must be a valid URL" })
+    .optional()
+    .nullable(),
+
+  twitter_url: z
+    .string()
+    .url({ message: "Twitter URL must be a valid URL" })
+    .optional()
+    .nullable(),
+
+  member_type: z
+    .enum(["leadership", "board", "staff", "advisor"], { description: "Member type for team display" })
+    .optional()
+    .nullable(),
+
+  display_order: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .nullable(),
+
+  show_in_team: z
+    .boolean()
+    .optional(),
 });

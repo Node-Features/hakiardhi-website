@@ -137,6 +137,14 @@ export async function GET(req: NextRequest) {
       created_at,
       updated_at,
       status,
+      image_url,
+      department,
+      bio,
+      linkedin_url,
+      twitter_url,
+      member_type,
+      display_order,
+      show_in_team,
       user_roles (
         role_id,
         roles (
@@ -185,6 +193,14 @@ export async function GET(req: NextRequest) {
       created_at: user.created_at,
       updated_at: user.updated_at,
       status: user.status,
+      image_url: user.image_url,
+      department: user.department,
+      bio: user.bio,
+      linkedin_url: user.linkedin_url,
+      twitter_url: user.twitter_url,
+      member_type: user.member_type,
+      display_order: user.display_order,
+      show_in_team: user.show_in_team,
       role: role ? {
         id: role.id,
         name: role.name

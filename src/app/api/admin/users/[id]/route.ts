@@ -101,10 +101,17 @@ export async function PUT(
     photo_consent: updateData.photo_consent,
     updated_at: toEAT(),
     status: updateData.status,
-    image_url: updateData.image_url
+    image_url: updateData.image_url,
+    department: updateData.department,
+    bio: updateData.bio,
+    linkedin_url: updateData.linkedin_url,
+    twitter_url: updateData.twitter_url,
+    member_type: updateData.member_type,
+    display_order: updateData.display_order,
+    show_in_team: updateData.show_in_team
     })
     .eq("id", id)
-    .select('first_name, last_name, email, phone_number, status, created_at, updated_at, image_url')
+    .select('first_name, last_name, email, phone_number, status, created_at, updated_at, image_url, department, bio, linkedin_url, twitter_url, member_type, display_order, show_in_team')
     .single();
 
   if (error) {
@@ -212,6 +219,13 @@ export async function GET(
       updated_at,
       status,
       image_url,
+      department,
+      bio,
+      linkedin_url,
+      twitter_url,
+      member_type,
+      display_order,
+      show_in_team,
       user_roles (
         role_id,
         roles (
@@ -258,6 +272,13 @@ export async function GET(
     updated_at: user.updated_at,
     status: user.status,
     image_url: user.image_url,
+    department: user.department,
+    bio: user.bio,
+    linkedin_url: user.linkedin_url,
+    twitter_url: user.twitter_url,
+    member_type: user.member_type,
+    display_order: user.display_order,
+    show_in_team: user.show_in_team,
     role: role ? {
       id: role.id,
       name: role.name
