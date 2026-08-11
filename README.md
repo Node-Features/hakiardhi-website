@@ -291,25 +291,6 @@ This public repository currently serves primarily as project documentation.
 
 The full production application source may be maintained separately depending on organizational ownership, deployment, and confidentiality requirements.
 
----
-
-# Portfolio Value
-
-This project demonstrates experience in:
-
-* Institutional website design
-* Information architecture
-* Public-interest technology
-* Content-heavy web platforms
-* Program and publication organization
-* Analytics presentation
-* Mobile-friendly web design
-* Translating organizational requirements into software
-
-It also demonstrates the ability to work on software where usability, communication, and public access are as important as the underlying technology.
-
----
-
 # Author
 
 **Mrisho Salum**
